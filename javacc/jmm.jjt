@@ -45,12 +45,10 @@ TOKEN:
     < INT : (["0" - "9"])+ >
     | < LF : "\n" >
     | < PV : ";" >
-    | <INT_ARR : <INT> "[" "]">
-    | <BOOL : "true" | "false" >
     | <IDENTIFIER_CLASS : ["A" - "Z"](["A" - "Z","a" - "z","_","0"-"9"])* >
     | <IDENTIFIER_VAR : (["A" - "Z"]|["a" - "z"])(["A" - "Z","a" - "z","_","0"-"9"])* >  //Identifier     is     one or more letters, digits, and underscores, starting with a letter
     | <IDENTIFIER : <IDENTIFIER_VAR> | <IDENTIFIER_CLASS>>
-    | <TYPE : <INT_ARR> | <INT> | <BOOL> | <IDENTIFIER>>
+    | <TYPE : ("int" | "boolean" | "int[]" | <IDENTIFIER> ) >
     | <OPEN_BRACE: "{">
     | <CLOSE_BRACE: "}">
 }
@@ -77,10 +75,10 @@ void VarDeclaration(): {Token t1, t2;}
 {
     //var = TYPE , IDENTIFIER, ';'
     t1= <TYPE> {
-        System.out.println("Integer = " + t1.image);
+        System.out.println("Token1= " + t1.image);
     }
     t2=<IDENTIFIER> {
-        System.out.println("Integer = " + t2.image);
+        System.out.println("Token2 = " + t2.image);
     }
     <PV><LF>
 }
