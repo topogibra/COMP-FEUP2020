@@ -1,0 +1,3 @@
+int var;
+boolean var2;
+int[] array_3;
