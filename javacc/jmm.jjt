@@ -57,7 +57,8 @@ TOKEN:
 
 void Program(): {}
 {
-    ImportDeclaration() ClassDeclaration()
+    //ImportDeclaration() ClassDeclaration()
+    VarDeclaration()
 }
 
 void ImportDeclaration(): {}
