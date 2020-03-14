@@ -46,7 +46,7 @@ TOKEN :
 {
     <INT : "int">
     | <INT_ARR : "int[]">
-    | <BOOL : "bool">
+    | <BOOL : "boolean">
 }
 
 TOKEN:
@@ -67,7 +67,7 @@ TOKEN :
 void Program(): {}
 {
     //ImportDeclaration() ClassDeclaration()
-    VarDeclaration()
+    (VarDeclaration())+
 }
 
 Token Type(): {Token t1;}
@@ -94,7 +94,7 @@ void VarDeclaration(): {Token t1, t2;}
 {
     //var = TYPE , IDENTIFIER, ';'
     t1=Type(){
-        System.out.println("Token2: <" + t1.image + ">");
+        System.out.println("Token1: <" + t1.image + ">");
     }
     t2=<IDENTIFIER> {
         System.out.println("Token2: <" + t2.image + ">");
