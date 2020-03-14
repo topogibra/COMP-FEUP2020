@@ -1,6 +1,12 @@
 .gradle
+gradlew
+gradlew.bat
 /build/
 /generated/
+.idea/
+.settings/
+bin/
+gradle/
 *.jar
 
 # Ignore Gradle GUI config

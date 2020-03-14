@@ -3,36 +3,115 @@ options
     LOOKAHEAD=1;
 }
 
-PARSER_BEGIN(Calculator)
+PARSER_BEGIN(jmm)
 
-public class Calculator
+public class jmm
 {
     public static void main(String args[]) throws ParseException {
-      	System.out.println("Write an arithmetic expression:");
-		Calculator myCalc = new Calculator(System.in);
-		SimpleNode root = myCalc.Expression(); // returns reference to root node
-        	
-		root.dump(""); // prints the tree on the screen
+        //Creation of File Reader Object, that will be used to read text from file
+        //The file is passed as argument (1st argument)
+        FileReader fr;
+        try {
+            fr = new FileReader(args[0]);
+        } catch (FileNotFoundException fnf) {
+            System.out.println("File not Found.");
+            return;
+        }
 
-		//System.out.println("Expression value: "+myCalc.eval(root));
+        //All the text that the file has, will be stored here
+        char [] fileText = new char[500];
+
+        //Populates fileText variable with the text read
+        try {
+            fr.read(fileText);
+        } catch (IOException ioe) {
+            System.out.println("Failed to read from file");
+            return;
+        }
+
+        //Prints everything that was read
+        System.out.println("\t====== File Read ======");
+
+        for(char c : fileText)
+            System.out.print(c);
+
+        System.out.println("\t======================");
+
+        jmm parser = new jmm(fileText);
+        parser.Program();
+
     }
-
 }
 
-PARSER_END(Calculator)
+PARSER_END(jmm)
 
+// Symbols that must be skipped during the lexical analysis
 SKIP :
 {
 	" " | "\r" | "\t"
 }
 
+// token definition (terminal symbols)
 TOKEN:
 {
-    	< INTEGER: (["0"-"9"])+ >
-	|   < LF: "\n" >
+    < INT : (["0" - "9"])+ >
+    | < LF : "\n" >
+    | < PV : ";" >
+    | <INT_ARR : <INT> "[" "]">
+    | <BOOL : "true" | "false" >
+    | <IDENTIFIER_CLASS : ["A" - "Z"](["A" - "Z"]|["a" - "z"])* >
+    | <IDENTIFIER_VAR : (["A" - "Z"]|["a" - "z"])+ >
+    | <IDENTIFIER : <IDENTIFIER_VAR> | <IDENTIFIER_CLASS>>
+    | <TYPE : <INT_ARR> | <INT> | <BOOL> | <IDENTIFIER>>
+    | <CLASS: "class">
+    | <EXTENDS : "extends">
 }
 
-SimpleNode Expression(): {}
+void Program(): {}
+{
+    ImportDeclaration() ClassDeclaration()
+}
+
+void ImportDeclaration(): {}
+{
+
+}
+
+void ClassDeclaration(): {}
+{
+    <CLASS> <IDENTIFIER_CLASS>
+    [ <EXTENDS> <IDENTIFIER_CLASS> ]
+    <
+}
+
+void VarDeclaration(): {Token t1, t2;}
+{
+    //var = TYPE , IDENTIFIER, ';'
+    t1= <TYPE> {
+        System.out.println("Integer = "+t1.image);
+    }
+    t2=<IDENTIFIER> {
+        System.out.println("Integer = "+t2.image);
+    }
+    <PV><LF>
+}
+
+void MethodDeclaration(): {}
+{
+
+}
+
+void Type(): {}
+{
+
+}
+
+void Statement(): {}
+{
+
+}
+
+void Expression(): {}
 {
    Expr1() <LF>  {return jjtThis;} // Java code inside brackets
 }
@@ -43,7 +122,6 @@ void Expr1() #void: {}
    	("+" Expr2(1) #Add(2)
    	| "-" Expr2(1) #Sub(2)
    	)
-   	
    ]
 }
 
@@ -68,7 +146,7 @@ void Expr2(int sign) #void: {} // 1: positive; -1: negative, because of the ‘-
 
 void Expr3(int sign) #void: {Token t;}
 {
-    t=<INTEGER> {  jjtThis.val = sign *Integer.parseInt(t.image); } #Term
+    t=<INT> {  jjtThis.val = sign *Integer.parseInt(t.image); } #Term
     | "-" Expr3(-1)
     | "(" Expr1() ")"
 }
