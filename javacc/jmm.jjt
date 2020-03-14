@@ -36,7 +36,7 @@ PARSER_END(jmm)
 // Symbols that must be skipped during the lexical analysis
 SKIP :
 {
-	" " | "\r" | "\t"
+	" " | "\r" | "\t" | "\n"
 }
 
 // token definition (terminal symbols)
@@ -47,6 +47,51 @@ TOKEN :
     <INT : "int">
     | <INT_ARR : "int[]">
     | <BOOL : "boolean">
+    | <STRING : "String">
+}
+
+//
+TOKEN :
+{
+    <CLASS : "class">
+    | <EXTENDS : "extends">
+    | <IMPORT : "import">
+    | <PUBLIC : "public">
+    | <RETURN : "return">
+    | <STATIC : "static">
+    | <VOID : "void">
+    | <MAIN : "main">
+    | <IF : "if">
+    | <ELSE : "else">
+    | <WHILE : "while">
+    | <NEW : "new">
+    | <THIS : "this">
+    | <LENGTH : "length">
+}
+
+TOKEN :
+{
+    < PV : ";" >
+    | <OPEN_BRACE: "{">
+    | <CLOSE_BRACE: "}">
+    | <OPEN_PARENTHESIS : "(">
+    | <CLOSE_PARENTHESIS : ")">
+    | <COMMA : ",">
+    | <OPEN_BRACKET : "[">
+    | <CLOSE_BRACKET : "]">
+}
+
+TOKEN :
+{
+    <NOT : "!">
+    | <EQUALS : "=">
+    | <LESS : "<">
+    | <GREATER : ">">
+    | <AND : "&&">
+    | <MINUS : "-">
+    | <PLUS : "+">
+    | <MULT : "*">
+    | <DIV : "/">
 }
 
 TOKEN:
@@ -54,20 +99,13 @@ TOKEN:
     <IDENTIFIER : <LETTER>(<LETTER>|<DIGIT>)* >  //Identifier     is     one or more letters, digits, and underscores, starting with a letter
     | <DIGIT : (["0"-"9"])+ >
     | <LETTER : ["a"-"z", "A"-"Z", "_"]>
-}
-
-TOKEN :
-{
-    < LF : "\n" >
-    | < PV : ";" >
-    | <OPEN_BRACE: "{">
-    | <CLOSE_BRACE: "}">
+    | <TRUE : "true">
+    | <FALSE : "false">
 }
 
 void Program(): {}
 {
-    //ImportDeclaration() ClassDeclaration()
-    (VarDeclaration())+
+   (ClassDeclaration())+
 }
 
 Token Type(): {Token t1;}
@@ -84,38 +122,101 @@ void ImportDeclaration(): {}
     | ""
 }
 
-void ClassDeclaration(): {}
-{
-    "class" <IDENTIFIER>
-    [ "extends" <IDENTIFIER> ]
-}
 
 void VarDeclaration(): {Token t1, t2;}
 {
     //var = TYPE , IDENTIFIER, ';'
-    t1=Type(){
-        System.out.println("Token1: <" + t1.image + ">");
-    }
+    t1=Type()
     t2=<IDENTIFIER> {
-        System.out.println("Token2: <" + t2.image + ">");
+        System.out.println("[New Var] Type: " + t1.image + " Identifier: " + t2.image);
     }
-    <PV><LF>
+    <PV>
 }
 
-void MethodDeclaration(): {}
+void Statement(): {Token t1;}
 {
-    "public"
-}
-
-void Statement(): {}
-{
-    <OPEN_BRACE>
+    <OPEN_BRACE> Statement() <CLOSE_BRACE>
+    | <IF> <OPEN_PARENTHESIS> Expression() <CLOSE_PARENTHESIS> Statement() <ELSE> Statement()
+    | <WHILE> <OPEN_PARENTHESIS> Expression() <CLOSE_PARENTHESIS> Statement()
+    | Expression() <PV>
+    | t1=<IDENTIFIER>[<OPEN_BRACKET> Expression() <CLOSE_BRACKET>] <EQUALS> {System.out.println("Assignment: " + t1.image);} Expression() <PV>
 }
 
 void Expression(): {}
 {
-   Expr1() <LF>
+   <PLUS>
 }
+
+void ReturnExpression(): {}
+{
+    <RETURN> Expression()<PV>
+}
+
+void Method_Body():{}
+{
+    <OPEN_BRACE>
+        (VarDeclaration())* (Statement())* ReturnExpression()
+    <CLOSE_BRACE>
+}
+
+void Method_Arguments():{}
+{
+    <OPEN_PARENTHESIS>
+        [Type() <IDENTIFIER> (<COMMA> Type() <IDENTIFIER>)*]
+    <CLOSE_PARENTHESIS>
+}
+
+void MainMethodBody():{}
+{
+    <OPEN_BRACE>
+        (VarDeclaration())* (Statement())*
+    <CLOSE_BRACE>
+}
+
+void MainMethodArguments():{Token t1;}
+{
+    <OPEN_PARENTHESIS>
+        <STRING>
+        <OPEN_BRACKET> <CLOSE_BRACKET>
+        t1=<IDENTIFIER> {System.out.println("Main argument: " + t1.image);}
+    <CLOSE_PARENTHESIS>
+}
+
+void MainMethod() : {}
+{
+    <STATIC> <VOID> <MAIN> MainMethodArguments() MainMethodBody()
+}
+
+void MethodDeclaration(): {}
+{
+   Type() <IDENTIFIER>
+   Method_Arguments()
+   Method_Body()
+}
+
+void Class_Body(): {}
+{
+    <OPEN_BRACE>
+        (VarDeclaration())*
+        (<PUBLIC> (MainMethod() | MethodDeclaration()) )*
+    <CLOSE_BRACE>
+}
+
+void Extends(): {Token ident;}
+{
+    <EXTENDS> ident=<IDENTIFIER> {
+    System.out.println("\t[Previous Class] Extends: " + ident.image);
+    }
+}
+
+void ClassDeclaration(): {Token t1;}
+{
+    //"class", Identifier, ["extends", Identifier], "{", Var-Declaration, MethodDeclaration  "}"
+    <CLASS> t1=<IDENTIFIER> {System.out.println("[New Class] Class name: " + t1.image);}
+    [Extends()]
+    Class_Body()
+}
+
 
 void Expr1() #void: {}
 {
