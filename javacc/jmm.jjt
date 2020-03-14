@@ -40,15 +40,26 @@ SKIP :
 }
 
 // token definition (terminal symbols)
+
+//Types
+TOKEN :
+{
+    <INT : "int">
+    | <INT_ARR : "int[]">
+    | <BOOL : "bool">
+}
+
 TOKEN:
 {
-    < INT : (["0" - "9"])+ >
-    | < LF : "\n" >
+    <IDENTIFIER : <LETTER>(<LETTER>|<DIGIT>)* >  //Identifier     is     one or more letters, digits, and underscores, starting with a letter
+    | <DIGIT : (["0"-"9"])+ >
+    | <LETTER : ["a"-"z", "A"-"Z", "_"]>
+}
+
+TOKEN :
+{
+    < LF : "\n" >
     | < PV : ";" >
-    | <IDENTIFIER_CLASS : ["A" - "Z"](["A" - "Z","a" - "z","_","0"-"9"])* >
-    | <IDENTIFIER_VAR : (["A" - "Z"]|["a" - "z"])(["A" - "Z","a" - "z","_","0"-"9"])* >  //Identifier     is     one or more letters, digits, and underscores, starting with a letter
-    | <IDENTIFIER : <IDENTIFIER_VAR> | <IDENTIFIER_CLASS>>
-    | <TYPE : ("int" | "boolean" | "int[]" | <IDENTIFIER> ) >
     | <OPEN_BRACE: "{">
     | <CLOSE_BRACE: "}">
 }
@@ -59,6 +70,14 @@ void Program(): {}
     VarDeclaration()
 }
 
+Token Type(): {Token t1;}
+{
+    //<TYPE : ("int" | "boolean" | "int[]" | <IDENTIFIER> )>
+    (t1=<INT> | t1=<INT_ARR> | t1=<BOOL> | t1=<IDENTIFIER> )
+
+    {return t1;}
+}
+
 void ImportDeclaration(): {}
 {
     "import"
@@ -67,18 +86,18 @@ void ImportDeclaration(): {}
 
 void ClassDeclaration(): {}
 {
-    "class" <IDENTIFIER_CLASS>
-    [ "extends" <IDENTIFIER_CLASS> ]
+    "class" <IDENTIFIER>
+    [ "extends" <IDENTIFIER> ]
 }
 
 void VarDeclaration(): {Token t1, t2;}
 {
     //var = TYPE , IDENTIFIER, ';'
-    t1= <TYPE> {
-        System.out.println("Token1= " + t1.image);
+    t1=Type(){
+        System.out.println("Token2: <" + t1.image + ">");
     }
     t2=<IDENTIFIER> {
-        System.out.println("Token2 = " + t2.image);
+        System.out.println("Token2: <" + t2.image + ">");
     }
     <PV><LF>
 }
@@ -86,11 +105,6 @@ void VarDeclaration(): {Token t1, t2;}
 void MethodDeclaration(): {}
 {
     "public"
-}
-
-void Type(): {}
-{
-    "int"
 }
 
 void Statement(): {}
@@ -133,7 +147,7 @@ void Expr2(int sign) #void: {} // 1: positive; -1: negative, because of the ‘-
 
 void Expr3(int sign) #void: {Token t;}
 {
-    t=<INT> {  jjtThis.val = sign *Integer.parseInt(t.image); } #Term
+    t=<DIGIT> {  jjtThis.val = sign *Integer.parseInt(t.image); } #Term
     | "-" Expr3(-1)
     | "(" Expr1() ")"
 }
