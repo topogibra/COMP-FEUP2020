@@ -5,39 +5,28 @@ options
 
 PARSER_BEGIN(jmm)
 
-public class jmm
-{
+import java.io.*;
+public class jmm {
     public static void main(String args[]) throws ParseException {
-        //Creation of File Reader Object, that will be used to read text from file
+
+        if (args.length != 1) {
+            System.err.println("Usage: java jmm <file_name>");
+            return;
+        }
+
+        //Reading file with InputStream
         //The file is passed as argument (1st argument)
-        FileReader fr;
+        File file = new File(args[0]);
+        InputStream input;
+
         try {
-            fr = new FileReader(args[0]);
-        } catch (FileNotFoundException fnf) {
+            input = new FileInputStream(file);
+        } catch (FileNotFoundException e) {
             System.out.println("File not Found.");
             return;
         }
 
-        //All the text that the file has, will be stored here
-        char [] fileText = new char[500];
-
-        //Populates fileText variable with the text read
-        try {
-            fr.read(fileText);
-        } catch (IOException ioe) {
-            System.out.println("Failed to read from file");
-            return;
-        }
-
-        //Prints everything that was read
-        System.out.println("\t====== File Read ======");
-
-        for(char c : fileText)
-            System.out.print(c);
-
-        System.out.println("\t======================");
-
-        jmm parser = new jmm(fileText);
+        jmm parser = new jmm(input);
         parser.Program();
 
     }
@@ -63,8 +52,8 @@ TOKEN:
     | <IDENTIFIER_VAR : (["A" - "Z"]|["a" - "z"])+ >
     | <IDENTIFIER : <IDENTIFIER_VAR> | <IDENTIFIER_CLASS>>
     | <TYPE : <INT_ARR> | <INT> | <BOOL> | <IDENTIFIER>>
-    | <CLASS: "class">
-    | <EXTENDS : "extends">
+    | <OPEN_BRACE: "{">
+    | <CLOSE_BRACE: "}">
 }
 
 void Program(): {}
@@ -74,14 +63,13 @@ void Program(): {}
 
 void ImportDeclaration(): {}
 {
-
+    "import"
 }
 
 void ClassDeclaration(): {}
 {
-    <CLASS> <IDENTIFIER_CLASS>
-    [ <EXTENDS> <IDENTIFIER_CLASS> ]
-    <
+    "class" <IDENTIFIER_CLASS>
+    [ "extends" <IDENTIFIER_CLASS> ]
 }
 
 void VarDeclaration(): {Token t1, t2;}
@@ -98,22 +86,22 @@ void VarDeclaration(): {Token t1, t2;}
 
 void MethodDeclaration(): {}
 {
-
+    "public"
 }
 
 void Type(): {}
 {
-
+    "int"
 }
 
 void Statement(): {}
 {
-
+    <OPEN_BRACE>
 }
 
 void Expression(): {}
 {
-   Expr1() <LF>  {return jjtThis;} // Java code inside brackets
+   Expr1() <LF>
 }
 
 void Expr1() #void: {}
