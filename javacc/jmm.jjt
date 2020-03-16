@@ -100,11 +100,11 @@ TOKEN :
 //Variables Values
 TOKEN:
 {
-    <IDENTIFIER : <LETTER>(<LETTER>|<DIGIT>)* >  //Identifier is one or more letters, digits, and underscores, starting with a letter
+    <TRUE : "true">
+    | <FALSE : "false">
     | <DIGIT : (["0"-"9"])+ >
     | <LETTER : ["a"-"z", "A"-"Z", "_"]>
-    | <TRUE : "true">
-    | <FALSE : "false">
+    | <IDENTIFIER : <LETTER>(<LETTER>|<DIGIT>)* >  //Identifier is one or more letters, digits, and underscores, starting with a letter
 }
 
 void Program(): {}
@@ -122,13 +122,11 @@ Token Type(): {Token t1;}
 void ImportDeclaration(): {}
 {
     "import"
-    | ""
 }
 
 
 void VarDeclaration(): {Token t1, t2;}
 {
-    //var = TYPE , IDENTIFIER, ';'
     t1=Type()
     t2=<IDENTIFIER> {
         System.out.println("[New Var] Type: " + t1.image + " Identifier: " + t2.image);
@@ -141,13 +139,8 @@ void Statement(): {Token t1;}
     <OPEN_BRACE> Statement() <CLOSE_BRACE>
     | <IF> <OPEN_PARENTHESIS> Expression() <CLOSE_PARENTHESIS> Statement() <ELSE> Statement()
     | <WHILE> <OPEN_PARENTHESIS> Expression() <CLOSE_PARENTHESIS> Statement()
-    | Expression() <PV>
-    | t1=<IDENTIFIER>[<OPEN_BRACKET> Expression() <CLOSE_BRACKET>] <EQUALS> {System.out.println("Assignment: " + t1.image);} Expression() <PV>
-}
-
-void Expression(): {} // generic expression
-{
-   Expr1()
+    | LOOKAHEAD(Expression() <PV>) Expression() <PV>
+    | t1=<IDENTIFIER> [ <OPEN_BRACKET> Expression() <CLOSE_BRACKET>] <EQUALS> {System.out.println("Assignment: " + t1.image);} Expression() <PV>
 }
 
 void ReturnExpression(): {}
@@ -214,107 +207,65 @@ void Extends(): {Token ident;}
 
 void ClassDeclaration(): {Token t1;}
 {
-    //"class", Identifier, ["extends", Identifier], "{", Var-Declaration, MethodDeclaration  "}"
     <CLASS> t1=<IDENTIFIER> {System.out.println("[New Class] Class name: " + t1.image);}
     [Extends()]
     Class_Body()
 }
 
-
-void Expr1() #void: {} //add|subtract
+void Expression(): {} // generic expression
 {
-   Expr2() 
-   	(
-	<PLUS> Expr2() #Add(2)
-   	|
-	<MINUS> Expr2() #Sub(2)
-   	)*
+    Values()
+    (
+        Operations()
+        | <OPEN_BRACKET> Expression() <CLOSE_BRACKET>
+        | DotFunc()
+    )*
 }
 
-void Expr2() #void: {} //multiply|divide
+void Operations(): {}
 {
-   Expr3()
-   (
-	<MULT> Expr3() #Mul(2) 
-   |
-	<DIV> Expr3() #Div(2)
-   )*
-   
+    <AND> Expression() #And(2)
+    | <LESS> Expression() #Lss(2)
+    | <GREATER> Expression() #Gtr(2)
+    | <MINUS> Expression() #Sub(2)
+    | <PLUS> Expression() #Add(2)
+    | <MULT> Expression() #Mul(2)
+    | <DIV> Expression() #Div(2)
 }
 
-void Expr3() #void: {} //&& | < | >
+void DotFunc(): {}
 {
-    Expr4()
-	(
-	<AND> Expr4()
-	|
-	<LESS> Expr4()
-	|
-	<GREATER> Expr4()
-	)*
+    <DOT>
+    (
+        <LENGTH>
+        | <IDENTIFIER> FuncArguments()
+    )
 }
 
-void Expr4() #void: {}  // incomplete, not sure how or what to work in it. LOOKAHEAD?
+void FuncArguments(): {}
 {
-	Expr0()
-	(
-	<OPEN_BRACKET> Expr0() <CLOSE_BRACKET>
-	|
-	LengthFunc() 
-	|
-	ExprIDArgs()
-	)*
+    <OPEN_PARENTHESIS>
+        [ Values() (<COMMA> Values() )* ]
+    <CLOSE_PARENTHESIS>
 }
 
-void ExprIDArgs() #void: {} // when identifier may require arguments
+void Values() #void: {} // simpler expressions
 {
-	<DOT> Identifier() <OPEN_PARENTHESIS> <CLOSE_PARENTHESIS>
-	|
-	<DOT> Identifier() <OPEN_PARENTHESIS> Expr0() (<COMMA> Expr0())* <CLOSE_PARENTHESIS>
-}
-
-void Expr0() #void: {} // simpler expressions
-{
-	Integer()
-	|
-	Bool()
-	|
-	Identifier()
-	|
-	<THIS>
-	|
-	NewFunc()
-	|
-	<NOT> Expression()
-	|
-	<OPEN_PARENTHESIS> Expression() <CLOSE_PARENTHESIS>
-}
-
-void LengthFunc() #void: {} //right now only exists because i assume down the road it will need more in it
-{
-	<DOT><LENGTH>
-}
-
-void Bool() : {Token token} //boolean
-{
-	token = <TRUE>{jjtThis.jjtsetValue(token.image);}
-	|
-	token = <FALSE>{jjtThis.jjtsetValue(token.image);}
-}
-
-void Integer() : {Token token} //integer literal
-{
-	token = <DIGIT>{jjtThis.jjtsetValue(token.image);}
-}
-
-void Identifier() : {Token token} //identifier // don't know which set function 
-{
-//	token = <IDENTIFIER>{jjtThis._____(token.image);} //which function here?
+	<DIGIT>
+	| <TRUE>
+	| <FALSE>
+	| <THIS>
+	| <IDENTIFIER>
+	| NewFunc()
+	| <NOT> Expression()
+	| <OPEN_PARENTHESIS> Expression() <CLOSE_PARENTHESIS>
 }
 
 void NewFunc() #void: {} //new within expression
 {
-	<NEW> <INT> <OPEN_BRACKET> Expression() <CLOSE_BRACKET>
-	|
-	<NEW> Identifier() <OPEN_PARENTHESIS><CLOSE_PARENTHESIS>
+	<NEW>
+	(
+	    <INT> <OPEN_BRACKET> Expression() <CLOSE_BRACKET>
+	    | <IDENTIFIER> <OPEN_PARENTHESIS> <CLOSE_PARENTHESIS>
+	)
 } 
