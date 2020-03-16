@@ -8,6 +8,8 @@ gradlew.bat
 bin/
 gradle/
 *.jar
+.classpath
+.project
 
 # Ignore Gradle GUI config
 gradle-app.setting

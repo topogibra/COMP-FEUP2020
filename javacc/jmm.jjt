@@ -50,7 +50,7 @@ TOKEN :
     | <STRING : "String">
 }
 
-//
+//Dedicated words
 TOKEN :
 {
     <CLASS : "class">
@@ -69,6 +69,7 @@ TOKEN :
     | <LENGTH : "length">
 }
 
+//Seperators
 TOKEN :
 {
     < PV : ";" >
@@ -81,6 +82,7 @@ TOKEN :
     | <CLOSE_BRACKET : "]">
 }
 
+//Operators
 TOKEN :
 {
     <NOT : "!">
@@ -94,9 +96,10 @@ TOKEN :
     | <DIV : "/">
 }
 
+//Variables Values
 TOKEN:
 {
-    <IDENTIFIER : <LETTER>(<LETTER>|<DIGIT>)* >  //Identifier     is     one or more letters, digits, and underscores, starting with a letter
+    <IDENTIFIER : <LETTER>(<LETTER>|<DIGIT>)* >  //Identifier is one or more letters, digits, and underscores, starting with a letter
     | <DIGIT : (["0"-"9"])+ >
     | <LETTER : ["a"-"z", "A"-"Z", "_"]>
     | <TRUE : "true">
@@ -110,7 +113,6 @@ void Program(): {}
 
 Token Type(): {Token t1;}
 {
-    //<TYPE : ("int" | "boolean" | "int[]" | <IDENTIFIER> )>
     (t1=<INT> | t1=<INT_ARR> | t1=<BOOL> | t1=<IDENTIFIER> )
 
     {return t1;}
@@ -149,7 +151,7 @@ void Expression(): {}
 
 void ReturnExpression(): {}
 {
-    <RETURN> Expression()<PV>
+    <RETURN> Expression() <PV>
 }
 
 void Method_Body():{}
