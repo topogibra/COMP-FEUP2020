@@ -244,12 +244,18 @@ void Assignment(Token t1) #void: {}
 // ############### EXPRESSION #################
 void Expression() #void: {}
 {
-    (<IDENTIFIER> | Expression1())
+    Values()
+    Expression2()
 }
 
 void Expression1() #void: {} // generic expression
 {
     Values1()
+    Expression2()
+}
+
+void Expression2() #void: {} // generic expression
+{
     (
         ( <OPEN_BRACKET> Expression() <CLOSE_BRACKET> )
         | DotFunc()
@@ -259,7 +265,7 @@ void Expression1() #void: {} // generic expression
 
 void Values() #void: {}
 {
-    ( <IDENTIFIER> | Values1() )
+    <IDENTIFIER> | Values1()
 }
 
 void Values1() #void: {} // simpler expressions
@@ -284,13 +290,13 @@ void NewFunc() #void: {} //new within expression
 
 void Operations() #void: {}
 {
-    <PLUS> Expression() #Add(2)
-    | <MINUS> Expression() #Sub(2)
-    | <MULT> Expression() #Mul(2)
-    | <DIV> Expression() #Div(2)
-    | <LESS> Expression() #Lss(2)
-    | <GREATER> Expression() #Gtr(2)
-    | <AND> Expression() #And(2)
+    <PLUS> Expression()
+    | <MINUS> Expression()
+    | <MULT> Expression()
+    | <DIV> Expression()
+    | <LESS> Expression()
+    | <GREATER> Expression()
+    | <AND> Expression()
 }
 
 void DotFunc() #void: {}
@@ -305,6 +311,6 @@ void DotFunc() #void: {}
 void FuncArguments() #void: {}
 {
     <OPEN_PARENTHESIS>
-        [ Values() (<COMMA> Values() )* ]
+        [ Expression() (<COMMA> Expression() )* ]
     <CLOSE_PARENTHESIS>
 }
