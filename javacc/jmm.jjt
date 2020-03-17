@@ -107,25 +107,41 @@ TOKEN:
     | <IDENTIFIER : <LETTER>(<LETTER>|<DIGIT>)* >  //Identifier is one or more letters, digits, and underscores, starting with a letter
 }
 
-void Program(): {}
+void Program() #void: {}
 {
    (ClassDeclaration())+
 }
 
-Token Type(): {Token t1;}
-{
-    (t1=<INT> | t1=<INT_ARR> | t1=<BOOL> | t1=<IDENTIFIER> )
-
-    {return t1;}
-}
-
-void ImportDeclaration(): {}
+void ImportDeclaration() #void: {}
 {
     "import"
 }
 
+// ############### CLASS DECLARATION #################
+void ClassDeclaration() #void: {Token t1;}
+{
+    <CLASS> t1=<IDENTIFIER> {System.out.println("[New Class] Class name: " + t1.image);}
+    [Extends()]
+    Class_Body()
+}
 
-void VarDeclaration(): {Token t1, t2;}
+void Extends() #void: {Token ident;}
+{
+    <EXTENDS> ident=<IDENTIFIER> {
+    System.out.println("\t[Previous Class] Extends: " + ident.image);
+    }
+}
+
+void Class_Body() #void: {}
+{
+    <OPEN_BRACE>
+        (VarDeclaration())*
+        (<PUBLIC> (MainMethod() | MethodDeclaration()) )*
+    <CLOSE_BRACE>
+}
+
+// ############### VAR DECLARATION #################
+void VarDeclaration() #void: {Token t1, t2;}
 {
     t1=Type()
     t2=<IDENTIFIER> {
@@ -134,42 +150,19 @@ void VarDeclaration(): {Token t1, t2;}
     <PV>
 }
 
-void Statement(): {Token t1;}
+Token Type() #void: {Token t1;}
 {
-    <OPEN_BRACE> Statement() <CLOSE_BRACE>
-    | <IF> <OPEN_PARENTHESIS> Expression() <CLOSE_PARENTHESIS> Statement() <ELSE> Statement()
-    | <WHILE> <OPEN_PARENTHESIS> Expression() <CLOSE_PARENTHESIS> Statement()
-    | LOOKAHEAD(Expression() <PV>) Expression() <PV>
-    | t1=<IDENTIFIER> [ <OPEN_BRACKET> Expression() <CLOSE_BRACKET>] <EQUALS> {System.out.println("Assignment: " + t1.image);} Expression() <PV>
+    (t1=<INT> | t1=<INT_ARR> | t1=<BOOL> | t1=<IDENTIFIER> )
+    {return t1;}
 }
 
-void ReturnExpression(): {}
+// ############### MAIN METHOD #################
+void MainMethod() #void: {}
 {
-    <RETURN> Expression() <PV>
+    <STATIC> <VOID> <MAIN> MainMethodArguments() MainMethodBody()
 }
 
-void Method_Body():{}
-{
-    <OPEN_BRACE>
-        (VarDeclaration())* (Statement())* ReturnExpression()
-    <CLOSE_BRACE>
-}
-
-void Method_Arguments():{}
-{
-    <OPEN_PARENTHESIS>
-        [Type() <IDENTIFIER> (<COMMA> Type() <IDENTIFIER>)*]
-    <CLOSE_PARENTHESIS>
-}
-
-void MainMethodBody():{}
-{
-    <OPEN_BRACE>
-        (VarDeclaration())* (Statement())*
-    <CLOSE_BRACE>
-}
-
-void MainMethodArguments():{Token t1;}
+void MainMethodArguments() #void: {Token t1;}
 {
     <OPEN_PARENTHESIS>
         <STRING>
@@ -178,41 +171,52 @@ void MainMethodArguments():{Token t1;}
     <CLOSE_PARENTHESIS>
 }
 
-void MainMethod() : {}
+void MainMethodBody() #void: {}
 {
-    <STATIC> <VOID> <MAIN> MainMethodArguments() MainMethodBody()
+    <OPEN_BRACE>
+        (VarDeclaration())* (Statement())*
+    <CLOSE_BRACE>
 }
 
-void MethodDeclaration(): {}
+// ############### METHOD DECLARATION #################
+void MethodDeclaration() #void: {}
 {
    Type() <IDENTIFIER>
    Method_Arguments()
    Method_Body()
 }
 
-void Class_Body(): {}
+void Method_Arguments() #void: {}
+{
+    <OPEN_PARENTHESIS>
+        [Type() <IDENTIFIER> (<COMMA> Type() <IDENTIFIER>)*]
+    <CLOSE_PARENTHESIS>
+}
+
+void Method_Body() #void: {}
 {
     <OPEN_BRACE>
-        (VarDeclaration())*
-        (<PUBLIC> (MainMethod() | MethodDeclaration()) )*
+        (VarDeclaration())* (Statement())* ReturnExpression()
     <CLOSE_BRACE>
 }
 
-void Extends(): {Token ident;}
+void ReturnExpression() #void: {}
 {
-    <EXTENDS> ident=<IDENTIFIER> {
-    System.out.println("\t[Previous Class] Extends: " + ident.image);
-    }
+    <RETURN> Expression() <PV>
 }
 
-void ClassDeclaration(): {Token t1;}
+// ############### STATEMENT #################
+void Statement() #void: {Token t1;}
 {
-    <CLASS> t1=<IDENTIFIER> {System.out.println("[New Class] Class name: " + t1.image);}
-    [Extends()]
-    Class_Body()
+    <OPEN_BRACE> Statement() <CLOSE_BRACE>
+    | <IF> <OPEN_PARENTHESIS> Expression() <CLOSE_PARENTHESIS> Statement() <ELSE> Statement()
+    | <WHILE> <OPEN_PARENTHESIS> Expression() <CLOSE_PARENTHESIS> Statement()
+    | t1=<IDENTIFIER> [ <OPEN_BRACKET> Expression() <CLOSE_BRACKET>] <EQUALS> {System.out.println("Assignment: " + t1.image);} Expression() <PV>
+    | Expression() <PV>
 }
 
-void Expression(): {} // generic expression
+// ############### EXPRESSION #################
+void Expression() #void: {} // generic expression
 {
     Values()
     (
@@ -220,33 +224,6 @@ void Expression(): {} // generic expression
         | <OPEN_BRACKET> Expression() <CLOSE_BRACKET>
         | DotFunc()
     )*
-}
-
-void Operations(): {}
-{
-    <AND> Expression() #And(2)
-    | <LESS> Expression() #Lss(2)
-    | <GREATER> Expression() #Gtr(2)
-    | <MINUS> Expression() #Sub(2)
-    | <PLUS> Expression() #Add(2)
-    | <MULT> Expression() #Mul(2)
-    | <DIV> Expression() #Div(2)
-}
-
-void DotFunc(): {}
-{
-    <DOT>
-    (
-        <LENGTH>
-        | <IDENTIFIER> FuncArguments()
-    )
-}
-
-void FuncArguments(): {}
-{
-    <OPEN_PARENTHESIS>
-        [ Values() (<COMMA> Values() )* ]
-    <CLOSE_PARENTHESIS>
 }
 
 void Values() #void: {} // simpler expressions
@@ -268,4 +245,31 @@ void NewFunc() #void: {} //new within expression
 	    <INT> <OPEN_BRACKET> Expression() <CLOSE_BRACKET>
 	    | <IDENTIFIER> <OPEN_PARENTHESIS> <CLOSE_PARENTHESIS>
 	)
-} 
+}
+
+void Operations() #void: {}
+{
+    <AND> Expression() #And(2)
+    | <LESS> Expression() #Lss(2)
+    | <GREATER> Expression() #Gtr(2)
+    | <MINUS> Expression() #Sub(2)
+    | <PLUS> Expression() #Add(2)
+    | <MULT> Expression() #Mul(2)
+    | <DIV> Expression() #Div(2)
+}
+
+void DotFunc() #void: {}
+{
+    <DOT>
+    (
+        <LENGTH>
+        | <IDENTIFIER> FuncArguments()
+    )
+}
+
+void FuncArguments() #void: {}
+{
+    <OPEN_PARENTHESIS>
+        [ Values() (<COMMA> Values() )* ]
+    <CLOSE_PARENTHESIS>
+}

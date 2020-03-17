@@ -42,11 +42,11 @@ sourceSets {
       }
    }
 	
-   test {
+   /*test {
       java {
          srcDir 'test'
       }
-   }
+   }*/
     
 }
 
