@@ -6,19 +6,19 @@ class Calculator extends Calculator {
 
     public int calculate(int P, boolean J, int[] f_O)
     {
-        if(+)
+        if(true)
         {
-            kf_O = +;
+            kf_O = 2;
         }
         else
-            num_aux = +;
+            num_aux = 5;
 
-        return +;
+        return 10;
     }
 
     public static void main(String[] a)
     {
-        num_aux2 = +;
+        num_aux2 = 4;
     }
 
 }

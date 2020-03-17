@@ -103,8 +103,8 @@ TOKEN:
     <TRUE : "true">
     | <FALSE : "false">
     | <DIGIT : (["0"-"9"])+ >
-    | <LETTER : ["a"-"z", "A"-"Z", "_"]>
     | <IDENTIFIER : <LETTER>(<LETTER>|<DIGIT>)* >  //Identifier is one or more letters, digits, and underscores, starting with a letter
+    | <LETTER : ["a"-"z", "A"-"Z", "_"]>
 }
 
 void Program() #void: {}
@@ -114,7 +114,7 @@ void Program() #void: {}
 
 void ImportDeclaration() #void: {}
 {
-    "import"
+    <IMPORT>
 }
 
 // ############### CLASS DECLARATION #################
@@ -122,7 +122,7 @@ void ClassDeclaration() #void: {Token t1;}
 {
     <CLASS> t1=<IDENTIFIER> {System.out.println("[New Class] Class name: " + t1.image);}
     [Extends()]
-    Class_Body()
+    ClassBody()
 }
 
 void Extends() #void: {Token ident;}
@@ -132,7 +132,7 @@ void Extends() #void: {Token ident;}
     }
 }
 
-void Class_Body() #void: {}
+void ClassBody() #void: {}
 {
     <OPEN_BRACE>
         (VarDeclaration())*
@@ -141,9 +141,14 @@ void Class_Body() #void: {}
 }
 
 // ############### VAR DECLARATION #################
-void VarDeclaration() #void: {Token t1, t2;}
+void VarDeclaration() #void: {Token t1;}
 {
-    t1=Type()
+    ( t1=Type() | t1=<IDENTIFIER> )
+    VarDeclaration1(t1)
+}
+
+void VarDeclaration1(Token t1) #void: {Token t2;}
+{
     t2=<IDENTIFIER> {
         System.out.println("[New Var] Type: " + t1.image + " Identifier: " + t2.image);
     }
@@ -152,7 +157,7 @@ void VarDeclaration() #void: {Token t1, t2;}
 
 Token Type() #void: {Token t1;}
 {
-    (t1=<INT> | t1=<INT_ARR> | t1=<BOOL> | t1=<IDENTIFIER> )
+    (t1=<INT> | t1=<INT_ARR> | t1=<BOOL>)
     {return t1;}
 }
 
@@ -167,72 +172,102 @@ void MainMethodArguments() #void: {Token t1;}
     <OPEN_PARENTHESIS>
         <STRING>
         <OPEN_BRACKET> <CLOSE_BRACKET>
-        t1=<IDENTIFIER> {System.out.println("Main argument: " + t1.image);}
+        t1=<IDENTIFIER> {System.out.println("[Main Method] Argument name: " + t1.image);}
     <CLOSE_PARENTHESIS>
 }
 
 void MainMethodBody() #void: {}
 {
     <OPEN_BRACE>
-        (VarDeclaration())* (Statement())*
+        MethodCode()
     <CLOSE_BRACE>
 }
 
 // ############### METHOD DECLARATION #################
-void MethodDeclaration() #void: {}
+void MethodDeclaration() #void: {Token t1, t2;}
 {
-   Type() <IDENTIFIER>
-   Method_Arguments()
-   Method_Body()
+   t1=Type() t2=<IDENTIFIER> { System.out.println("[New Method] Return Type: " + t1.image + " Identifier: " + t2.image); }
+   MethodArguments()
+   MethodBody()
 }
 
-void Method_Arguments() #void: {}
+void MethodArguments() #void: {}
 {
     <OPEN_PARENTHESIS>
         [Type() <IDENTIFIER> (<COMMA> Type() <IDENTIFIER>)*]
     <CLOSE_PARENTHESIS>
 }
 
-void Method_Body() #void: {}
+void MethodBody() #void: {}
 {
     <OPEN_BRACE>
-        (VarDeclaration())* (Statement())* ReturnExpression()
+        MethodCode()
+        ReturnExpression()
     <CLOSE_BRACE>
+}
+
+void MethodCode() #void: {Token t1;}
+{
+    (
+        ( t1=Type() VarDeclaration1(t1) )
+        | t1=<IDENTIFIER>
+            ( VarDeclaration1(t1) | Assignment(t1) )
+    )*
+    (Statement1())*
 }
 
 void ReturnExpression() #void: {}
 {
-    <RETURN> Expression() <PV>
+    <RETURN> Expression() <PV> {System.out.println("[Return Expression]");}
 }
 
 // ############### STATEMENT #################
 void Statement() #void: {Token t1;}
 {
-    <OPEN_BRACE> Statement() <CLOSE_BRACE>
-    | <IF> <OPEN_PARENTHESIS> Expression() <CLOSE_PARENTHESIS> Statement() <ELSE> Statement()
-    | <WHILE> <OPEN_PARENTHESIS> Expression() <CLOSE_PARENTHESIS> Statement()
-    | t1=<IDENTIFIER> [ <OPEN_BRACKET> Expression() <CLOSE_BRACKET>] <EQUALS> {System.out.println("Assignment: " + t1.image);} Expression() <PV>
-    | Expression() <PV>
+    Statement1()
+    | ( t1=<IDENTIFIER> Assignment(t1) )
+}
+
+void Statement1() #void: {Token t1;}
+{
+    ( <OPEN_BRACE> Statement() <CLOSE_BRACE> )
+    | ( <IF> <OPEN_PARENTHESIS> Expression() <CLOSE_PARENTHESIS> Statement() <ELSE> Statement() {System.out.println("[If-Else]");} )
+    | ( <WHILE> <OPEN_PARENTHESIS> Expression() <CLOSE_PARENTHESIS> Statement() {System.out.println("[If-Else]");} )
+    | ( Expression1() <PV> )
+}
+
+void Assignment(Token t1) #void: {}
+{
+    [ <OPEN_BRACKET> Expression() <CLOSE_BRACKET>] <EQUALS> {System.out.println("[New Assignment] Identifier: " + t1.image);} Expression() <PV>
 }
 
 // ############### EXPRESSION #################
-void Expression() #void: {} // generic expression
+void Expression() #void: {}
 {
-    Values()
+    (<IDENTIFIER> | Expression1())
+}
+
+void Expression1() #void: {} // generic expression
+{
+    Values1()
     (
-        Operations()
-        | <OPEN_BRACKET> Expression() <CLOSE_BRACKET>
+        ( <OPEN_BRACKET> Expression() <CLOSE_BRACKET> )
         | DotFunc()
+        | Operations()
     )*
 }
 
-void Values() #void: {} // simpler expressions
+void Values() #void: {}
+{
+    ( <IDENTIFIER> | Values1() )
+}
+
+void Values1() #void: {} // simpler expressions
 {
 	<DIGIT>
 	| <TRUE>
 	| <FALSE>
 	| <THIS>
-	| <IDENTIFIER>
 	| NewFunc()
 	| <NOT> Expression()
 	| <OPEN_PARENTHESIS> Expression() <CLOSE_PARENTHESIS>
@@ -249,13 +284,13 @@ void NewFunc() #void: {} //new within expression
 
 void Operations() #void: {}
 {
-    <AND> Expression() #And(2)
-    | <LESS> Expression() #Lss(2)
-    | <GREATER> Expression() #Gtr(2)
+    <PLUS> Expression() #Add(2)
     | <MINUS> Expression() #Sub(2)
-    | <PLUS> Expression() #Add(2)
     | <MULT> Expression() #Mul(2)
     | <DIV> Expression() #Div(2)
+    | <LESS> Expression() #Lss(2)
+    | <GREATER> Expression() #Gtr(2)
+    | <AND> Expression() #And(2)
 }
 
 void DotFunc() #void: {}
