@@ -211,9 +211,18 @@ void MethodCode() #void: {Token t1;}
     (
         ( t1=Type() VarDeclaration1(t1) )
         | t1=<IDENTIFIER>
-            ( VarDeclaration1(t1) | Assignment(t1) )
+            ( VarDeclaration1(t1) | MethodCode2(t1) )
     )*
     (Statement1())*
+}
+
+void MethodCode2(Token t1) #void: {}
+{
+    (
+        <DOT> {System.out.println("[Dot Function]");} DotFunc()
+        | ( Array() [Assignment1(t1)] )
+    )
+    <PV>
 }
 
 void ReturnExpression() #void: {}
@@ -231,14 +240,45 @@ void Statement() #void: {Token t1;}
 void Statement1() #void: {Token t1;}
 {
     ( <OPEN_BRACE> Statement() <CLOSE_BRACE> )
-    | ( <IF> <OPEN_PARENTHESIS> Expression() <CLOSE_PARENTHESIS> Statement() <ELSE> Statement() {System.out.println("[If-Else]");} )
-    | ( <WHILE> <OPEN_PARENTHESIS> Expression() <CLOSE_PARENTHESIS> Statement() {System.out.println("[If-Else]");} )
+    | IfStatement()
+    | WhileStatement()
     | ( Expression1() <PV> )
+}
+
+void IfStatement() #void: {}
+{
+    <IF> {System.out.println("[If]");}
+    <OPEN_PARENTHESIS>
+    Expression()
+    <CLOSE_PARENTHESIS>
+    Statement()
+    <ELSE> {System.out.println("[Else]");}
+    Statement()
+}
+
+void WhileStatement() #void: {}
+{
+     <WHILE> {System.out.println("[While]");}
+     <OPEN_PARENTHESIS>
+     Expression()
+     <CLOSE_PARENTHESIS>
+     Statement()
 }
 
 void Assignment(Token t1) #void: {}
 {
-    [ <OPEN_BRACKET> Expression() <CLOSE_BRACKET>] <EQUALS> {System.out.println("[New Assignment] Identifier: " + t1.image);} Expression() <PV>
+    Array()
+    Assignment1(t1)
+}
+
+void Assignment1(Token t1) #void: {}
+{
+    <EQUALS> {System.out.println("[New Assignment] Identifier: " + t1.image);} Expression() <PV>
+}
+
+void Array() #void: {}
+{
+    [ <OPEN_BRACKET> Expression() <CLOSE_BRACKET>]
 }
 
 // ############### EXPRESSION #################
@@ -258,7 +298,7 @@ void Expression2() #void: {} // generic expression
 {
     (
         ( <OPEN_BRACKET> Expression() <CLOSE_BRACKET> )
-        | DotFunc()
+        | <DOT> DotFunc()
         | Operations()
     )*
 }
@@ -281,10 +321,10 @@ void Values1() #void: {} // simpler expressions
 
 void NewFunc() #void: {} //new within expression
 {
-	<NEW>
+	<NEW> {System.out.println("[New]");}
 	(
-	    <INT> <OPEN_BRACKET> Expression() <CLOSE_BRACKET>
-	    | <IDENTIFIER> <OPEN_PARENTHESIS> <CLOSE_PARENTHESIS>
+	    ( <INT> <OPEN_BRACKET> Expression() <CLOSE_BRACKET> )
+	    | ( <IDENTIFIER> <OPEN_PARENTHESIS> <CLOSE_PARENTHESIS> {System.out.println("[Function call]");} )
 	)
 }
 
@@ -301,16 +341,14 @@ void Operations() #void: {}
 
 void DotFunc() #void: {}
 {
-    <DOT>
-    (
-        <LENGTH>
-        | <IDENTIFIER> FuncArguments()
-    )
+    <LENGTH>
+    | <IDENTIFIER> FuncArguments()
+
 }
 
 void FuncArguments() #void: {}
 {
-    <OPEN_PARENTHESIS>
+    <OPEN_PARENTHESIS> {System.out.println("[Function call]");}
         [ Expression() (<COMMA> Expression() )* ]
     <CLOSE_PARENTHESIS>
 }
