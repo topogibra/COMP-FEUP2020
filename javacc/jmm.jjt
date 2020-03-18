@@ -254,11 +254,11 @@ void IfStatement() #void: {}
 {
     <IF> {System.out.println("[If]");}
     <OPEN_PARENTHESIS>
-    Expression()
+        Expression()
     <CLOSE_PARENTHESIS>
-    Statement()
+        Statement()
     <ELSE> {System.out.println("[Else]");}
-    Statement()
+        Statement()
 }
 
 void WhileStatement() #void: {}
@@ -276,15 +276,16 @@ void Assignment(Token t1) #void: {}
     Assignment1(t1)
 }
 
+void Array() #void: {}
+{
+    [ <OPEN_BRACKET> Expression() <CLOSE_BRACKET>]
+}
+
 void Assignment1(Token t1) #void: {}
 {
     <EQUALS> {System.out.println("[New Assignment] Identifier: " + t1.image);} Expression() <PV>
 }
 
-void Array() #void: {}
-{
-    [ <OPEN_BRACKET> Expression() <CLOSE_BRACKET>]
-}
 
 // ############### EXPRESSION #################
 void Expression() #void: {}
@@ -295,45 +296,34 @@ void Expression() #void: {}
 void AndExpression() #void: {}
 {
     LessExpression()
-    ( <AND> AndExpression())*
+    ( <AND> AndExpression())?
 }
 
 void LessExpression() #void: {}
 {
-    PlusExpression()
-    ( <LESS> LessExpression())*
+    AddSubExpression()
+    ( <LESS> AddSubExpression())?
 }
 
-void PlusExpression() #void: {}
+void AddSubExpression() #void: {}
 {
-    MinusExpression()
-    ( <PLUS> PlusExpression())*
+    MultDivExpression()
+    (
+        <PLUS> MultDivExpression()
+        | <MINUS> MultDivExpression()
+    )*
 }
 
-void MinusExpression() #void: {}
+void MultDivExpression() #void: {}
 {
-    MultExpression()
-    ( <MINUS> MinusExpression())*
+    Values()
+    (
+        <MULT> Values()
+        | <DIV> Values()
+    )*
 }
 
-void MultExpression() #void: {}
-{
-    DivExpression()
-    ( <MULT> MultExpression())*
-}
-
-void DivExpression() #void: {}
-{
-    Values1()
-    ( <DIV> DivExpression())*
-}
-
-void Values() #void: {}
-{
-    <IDENTIFIER> | Values1()
-}
-
-void Values1() #void: {} // simpler expressions
+void Values() #void: {} // simpler expressions
 {
 	<DIGIT>
 	| <TRUE>
@@ -354,7 +344,6 @@ void NewFunc() #void: {} //new within expression
 	    | ( <IDENTIFIER> <OPEN_PARENTHESIS> <CLOSE_PARENTHESIS> {System.out.println("[Function call]");} )
 	)
 }
-
 
 void DotFunc() #void: {}
 {
