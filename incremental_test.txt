@@ -1,12 +1,10 @@
-import static io.read() int;
-import static io.println() void;
-import static io.println(int,int[]) void;
+import io.println(int) void;
 
-
-class Calculator extends Calculator {
+class Fac {
 
     public int ComputeFac(int num) {
-        int num_aux;
+
+        int num_aux ;
 
         if (num < 1)
             num_aux = 1;
@@ -16,7 +14,7 @@ class Calculator extends Calculator {
         return num_aux;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[]args) {
         io.println(new Fac().ComputeFac(10));
     }
 
