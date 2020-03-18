@@ -1,3 +1,8 @@
+import static io.read() int;
+import static io.println() void;
+import static io.println(int,int[]) void;
+
+
 class Calculator extends Calculator {
 
     public int ComputeFac(int num) {

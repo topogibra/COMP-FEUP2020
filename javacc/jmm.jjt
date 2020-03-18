@@ -117,9 +117,28 @@ void ImportDeclaration() #void: {}
 {
     (
         <IMPORT>
-
+        ImpClass()
         <PV>
     )*
+}
+
+void ImpClass() #void: {}
+{
+    <IDENTIFIER> | (<STATIC>)?<IDENTIFIER><DOT>ImpFunc()(Type() | <VOID> )?
+}
+
+void ImpFunc() #void: {}
+{
+    <IDENTIFIER>
+    <OPEN_PARENTHESIS>
+    (
+        Type()
+        (
+        <COMMA>
+         Type()
+        )?
+    )?
+    <CLOSE_PARENTHESIS>
 }
 
 // ############### CLASS DECLARATION #################
