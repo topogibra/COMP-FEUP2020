@@ -298,7 +298,7 @@ void WhileStatement() #void: {}
      <OPEN_PARENTHESIS>
         ExpressionIdentifier()
      <CLOSE_PARENTHESIS>
-        ExpressionIdentifier()
+        Statement()
 }
 
 void Assignment(Token t1) #void: {}
