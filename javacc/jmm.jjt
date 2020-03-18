@@ -247,7 +247,7 @@ void Statement1() #void: {}
     ( <OPEN_BRACE> Statement() <CLOSE_BRACE> )
     | IfStatement()
     | WhileStatement()
-    | ( Expression1() <PV> )
+    | ( Expression() <PV> )
 }
 
 void IfStatement() #void: {}
@@ -289,23 +289,43 @@ void Array() #void: {}
 // ############### EXPRESSION #################
 void Expression() #void: {}
 {
-    Values()
-    Expression2()
+    AndExpression()
 }
 
-void Expression1() #void: {} // generic expression
+void AndExpression() #void: {}
+{
+    LessExpression()
+    ( <AND> AndExpression())*
+}
+
+void LessExpression() #void: {}
+{
+    PlusExpression()
+    ( <LESS> LessExpression())*
+}
+
+void PlusExpression() #void: {}
+{
+    MinusExpression()
+    ( <PLUS> PlusExpression())*
+}
+
+void MinusExpression() #void: {}
+{
+    MultExpression()
+    ( <MINUS> MinusExpression())*
+}
+
+void MultExpression() #void: {}
+{
+    DivExpression()
+    ( <MULT> MultExpression())*
+}
+
+void DivExpression() #void: {}
 {
     Values1()
-    Expression2()
-}
-
-void Expression2() #void: {} // generic expression
-{
-    (
-        ( <OPEN_BRACKET> Expression() <CLOSE_BRACKET> )
-        | ( <DOT> DotFunc() )
-        | Operations()
-    )*
+    ( <DIV> DivExpression())*
 }
 
 void Values() #void: {}
@@ -319,30 +339,22 @@ void Values1() #void: {} // simpler expressions
 	| <TRUE>
 	| <FALSE>
 	| <THIS>
-	| NewFunc()
+	| <NEW> NewFunc()
 	| <NOT> Expression()
 	| <OPEN_PARENTHESIS> Expression() <CLOSE_PARENTHESIS>
+	| <DOT> DotFunc()
+	| <OPEN_BRACKET> Expression() <CLOSE_BRACKET>
 }
 
 void NewFunc() #void: {} //new within expression
 {
-	<NEW> {System.out.println("[New]");}
+	{System.out.println("[New]");}
 	(
 	    ( <INT> <OPEN_BRACKET> Expression() <CLOSE_BRACKET> )
 	    | ( <IDENTIFIER> <OPEN_PARENTHESIS> <CLOSE_PARENTHESIS> {System.out.println("[Function call]");} )
 	)
 }
 
-void Operations() #void: {}
-{
-    <PLUS> Expression()
-    | <MINUS> Expression()
-    | <MULT> Expression()
-    | <DIV> Expression()
-    | <LESS> Expression()
-    | <GREATER> Expression()
-    | <AND> Expression()
-}
 
 void DotFunc() #void: {}
 {
