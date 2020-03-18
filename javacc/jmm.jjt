@@ -109,12 +109,17 @@ TOKEN:
 
 void Program() #void: {}
 {
-   (ClassDeclaration())+
+    ImportDeclaration()
+    ClassDeclaration()
 }
 
 void ImportDeclaration() #void: {}
 {
-    <IMPORT>
+    (
+        <IMPORT>
+
+        <PV>
+    )*
 }
 
 // ############### CLASS DECLARATION #################
@@ -237,7 +242,7 @@ void Statement() #void: {Token t1;}
     | ( t1=<IDENTIFIER> Assignment(t1) )
 }
 
-void Statement1() #void: {Token t1;}
+void Statement1() #void: {}
 {
     ( <OPEN_BRACE> Statement() <CLOSE_BRACE> )
     | IfStatement()
@@ -298,7 +303,7 @@ void Expression2() #void: {} // generic expression
 {
     (
         ( <OPEN_BRACKET> Expression() <CLOSE_BRACKET> )
-        | <DOT> DotFunc()
+        | ( <DOT> DotFunc() )
         | Operations()
     )*
 }
@@ -343,7 +348,6 @@ void DotFunc() #void: {}
 {
     <LENGTH>
     | <IDENTIFIER> FuncArguments()
-
 }
 
 void FuncArguments() #void: {}
