@@ -230,7 +230,7 @@ void MethodArguments() #void: {}
 void MethodBody() #void: {}
 {
     <OPEN_BRACE>
-        MethodCode()
+        (MethodCode())?
         ReturnExpression()
     <CLOSE_BRACE>
 }
@@ -249,13 +249,16 @@ void MethodCode() #void: {Token t1;}
 
 void MethodCode2(Token t1) #void: {}
 {
-    (
-        ( Array() [Assignment1(t1)] ) //Last option of Statement and 2nd option of expression
-        | Assignment1(t1)
-        | ( <DOT> DotFunc() )
-    )
+    IdentifierOptions(t1)
     (Statement())*
-    <PV>
+}
+
+void IdentifierOptions(Token t1) #void: {}
+{
+    ( Array() [Assignment1(t1)] ) //Last option of Statement and 2nd option of expression
+    | Assignment1(t1)
+    | ( <DOT> DotFunc() (<PV>)?)
+    | <PV>
 }
 
 void ReturnExpression() #void: {}
@@ -267,15 +270,12 @@ void ReturnExpression() #void: {}
 void Statement() #void: {Token t1;}
 {
     Statement1()
-    | ( t1=<IDENTIFIER>
-        ( Assignment(t1)
-        | <PV> )
-     )
+    | ( t1=<IDENTIFIER> IdentifierOptions(t1) )
 }
 
 void Statement1() #void: {}
 {
-    ( <OPEN_BRACE> Statement() <CLOSE_BRACE> )
+    ( <OPEN_BRACE> (Statement())* <CLOSE_BRACE> )
     | <IF> IfStatement()
     | <WHILE> WhileStatement()
     | ( Expression() <PV> )
