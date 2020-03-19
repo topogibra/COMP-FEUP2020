@@ -5,38 +5,39 @@ options
 
 PARSER_BEGIN(jmm)
 
-import java.io.*;
-public class jmm {
-    public static void main(String args[]) throws ParseException {
+   import java.io.*;
+   public class jmm {
+       public static void main(String args[]) throws ParseException {
 
-        if (args.length != 1) {
-            System.err.println("Usage: java jmm <file_name>");
-            return;
-        }
+           if (args.length != 1) {
+               System.err.println("Usage: java jmm <file_name>");
+               return;
+           }
 
-        //Reading file with InputStream
-        //The file is passed as argument (1st argument)
-        File file = new File(args[0]);
-        InputStream input;
+           //Reading file with InputStream
+           //The file is passed as argument (1st argument)
+           File file = new File(args[0]);
+           InputStream input;
 
-        try {
-            input = new FileInputStream(file);
-        } catch (FileNotFoundException e) {
-            System.out.println("File not Found.");
-            return;
-        }
+           try {
+               input = new FileInputStream(file);
+           } catch (FileNotFoundException e) {
+               System.out.println("File not Found.");
+               return;
+           }
 
-        jmm parser = new jmm(input);
-        parser.Program();
-    }
-}
+           jmm parser = new jmm(input);
+           parser.Program();
+       }
+   }
+
 
 PARSER_END(jmm)
 
 // Symbols that must be skipped during the lexical analysis
 SKIP :
 {
-	" " | "\r" | "\t" | "\n"
+	" " | "\r" | "\t" | "\n" | <"//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")> |  <"/*" (~["*"])* "*" (~["/"] (~["*"])* "*")* "/">
 }
 
 // token definition (terminal symbols)
@@ -334,7 +335,7 @@ void Expression() #void: {}
 void AndExpression() #void: {}
 {
     LessExpression()
-    ( <AND> AndExpressionIdentifier() )?
+    ( <AND> Expression() )?
 }
 
 void LessExpression() #void: {}
@@ -434,6 +435,7 @@ void Values() #void: {} // simpler expressions
 	<DIGIT>
 	| <TRUE>
 	| <FALSE>
+	| <NOT> ExpressionIdentifier()
 	| <THIS>
 	| <NEW> NewFunc()
 	| <OPEN_PARENTHESIS> ExpressionIdentifier() <CLOSE_PARENTHESIS>
