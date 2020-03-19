@@ -20,12 +20,6 @@ class Life {
 		l = new Life();
 		l.init();
 
-        while (true) {
-            l.printField();
-            l.update();
-            unused = io.read();
-        }
-
     }
 
     public boolean init() {
