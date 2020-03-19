@@ -328,8 +328,7 @@ void Assignment1(Token t1) #void: {}
 // ############### EXPRESSION #################
 void Expression() #void: {}
 {
-    <NOT> ExpressionIdentifier()
-    | AndExpression()
+    AndExpression()
 }
 
 void AndExpression() #void: {}
@@ -367,7 +366,7 @@ void BracketExpression() #void: {}
     DotExpression()
     (
         <OPEN_BRACKET>
-            DotExpressionIdentifier()
+            BracketExpressionIdentifier()
         <CLOSE_BRACKET>
     )?
 }
@@ -419,7 +418,7 @@ void BracketExpressionIdentifier() #void: {}
     DotExpressionIdentifier()
     (
         <OPEN_BRACKET>
-        DotExpressionIdentifier()
+        BracketExpressionIdentifier()
         <CLOSE_BRACKET>
     )?
 }
