@@ -103,8 +103,9 @@ TOKEN:
     <TRUE : "true">
     | <FALSE : "false">
     | <DIGIT : (["0"-"9"])+ >
-    | <IDENTIFIER : <LETTER>(<LETTER>|<DIGIT>)* >  //Identifier is one or more letters, digits, and underscores, starting with a letter
+    | <IDENTIFIER : (<LETTER>|<DOLLAR_SIGN>)(<LETTER>|<DIGIT>)* >  //Identifier is one or more letters, digits, and underscores, starting with a letter
     | <LETTER : ["a"-"z", "A"-"Z", "_"]>
+    | <DOLLAR_SIGN : "$">
 }
 
 void Program() #void: {}
@@ -137,13 +138,18 @@ void ImpFunc() #void: {}
     <IDENTIFIER>
     <OPEN_PARENTHESIS>
     (
-        Type()
+        ImportType()
         (
         <COMMA>
-         Type()
+        ImportType()
         )*
     )?
     <CLOSE_PARENTHESIS>
+}
+
+void ImportType() #void: {}
+{
+    <VOID> | Type()
 }
 
 // ############### CLASS DECLARATION #################
@@ -328,21 +334,21 @@ void Expression() #void: {}
 void AndExpression() #void: {}
 {
     LessExpression()
-    ( <AND> AndExpression())?
+    ( <AND> AndExpressionIdentifier() )?
 }
 
 void LessExpression() #void: {}
 {
     AddSubExpression()
-    ( <LESS> AddSubExpression())?
+    ( <LESS> AddSubExpressionIdentifier() )?
 }
 
 void AddSubExpression() #void: {}
 {
     MultDivExpression()
     (
-        <PLUS> MultDivExpression()
-        | <MINUS> MultDivExpression()
+        <PLUS> MultDivExpressionIdentifier()
+        | <MINUS> MultDivExpressionIdentifier()
     )*
 }
 
@@ -350,23 +356,25 @@ void MultDivExpression() #void: {}
 {
     BracketExpression()
     (
-        <MULT> BracketExpression()
-        | <DIV> BracketExpression()
+        <MULT> BracketExpressionIdentifier()
+        | <DIV> BracketExpressionIdentifier()
     )*
 }
 
 void BracketExpression() #void: {}
 {
     DotExpression()
-    <OPEN_BRACKET>
-        DotExpression()
-    <CLOSE_BRACKET>
+    (
+        <OPEN_BRACKET>
+            DotExpressionIdentifier()
+        <CLOSE_BRACKET>
+    )?
 }
 
 void DotExpression() #void: {}
 {
     Values()
-    (<DOT> Values())*
+    (<DOT> DotFunc())?
 }
 
 void ExpressionIdentifier() #void: {}
@@ -411,13 +419,14 @@ void BracketExpressionIdentifier() #void: {}
     (
         <OPEN_BRACKET>
         DotExpressionIdentifier()
-        <CLOSE_BRACKET>)?
+        <CLOSE_BRACKET>
+    )?
 }
 
 void DotExpressionIdentifier() #void: {}
 {
     ValuesIdentifier()
-    (<DOT> DotFunc() )*
+    (<DOT> DotFunc())?
 }
 
 void Values() #void: {} // simpler expressions
