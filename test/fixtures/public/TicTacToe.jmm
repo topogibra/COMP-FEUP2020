@@ -1,6 +1,6 @@
 import static BoardBase.sameArray(int[]) boolean;
 import static BoardBase.sameArray(int[]) boolean;
-import static BoardBase.printBoard(int[],int[],int[]) void; 
+import static BoardBase.printBoard(int[],int[],int[]) void;
 import static BoardBase.printWinner(int) void;
 
 class TicTacToe {
@@ -23,6 +23,8 @@ class TicTacToe {
     whoseturn = 0;
     movesmade = 0;
     return true;
+
+
   }
 
   public int[] getRow0(){
@@ -78,9 +80,9 @@ class TicTacToe {
       in =  false;
     else if (column < 0)
       in =  false;
-    else if (2 < row) 
+    else if (2 < row)
       in =  false;
-    else if (2 < column) 
+    else if (2 < column)
       in = false;
     else in = true;
     return in;
@@ -115,7 +117,7 @@ class TicTacToe {
     }
     else if (BoardBase.sameArray(row2) && 0 < row2[0]){
         winner =  row2[0];
-    } 
+    }
     else{
         i = 0;
         while(winner < 1 && i < 3){
@@ -164,32 +166,32 @@ class TicTacToe {
       done = false;
       // Read in a move & check if it's valid.
       while(!done){
-	
-        BoardBase.printBoard(mygame.getRow0(), 
-          mygame.getRow1(), 
+
+        BoardBase.printBoard(mygame.getRow0(),
+          mygame.getRow1(),
           mygame.getRow2());
 
-        player = mygame.getCurrentPlayer();            
+        player = mygame.getCurrentPlayer();
         move = BoardBase.playerTurn(player);
-	    
-      		
-        if (!mygame.inbounds(move[0],move[1])) 
+
+
+        if (!mygame.inbounds(move[0],move[1]))
           BoardBase.wrongMove();
         else {
           if (!mygame.Move(move[0],move[1]))
              BoardBase.placeTaken();
           else
             done = true;
-       } 
+       }
       }
-	
+
       // Change who's turn it is.
       mygame.changeturn();
     }
 
     // Print out a message with the winner.
-    BoardBase.printBoard(mygame.getRow0(), 
-          mygame.getRow1(), 
+    BoardBase.printBoard(mygame.getRow0(),
+          mygame.getRow1(),
           mygame.getRow2());
     win = mygame.winner();
 
