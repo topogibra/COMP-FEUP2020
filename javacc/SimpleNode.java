@@ -69,6 +69,14 @@ class SimpleNode implements Node {
 
   public void dump(String prefix) {
     System.out.println(toString(prefix));
+
+    switch (this.id) {
+
+    }
+
+    if(children == null)
+      System.out.println("\t[ "+this.val+" ]");
+
     if (children != null) {
       for (int i = 0; i < children.length; ++i) {
         SimpleNode n = (SimpleNode)children[i];

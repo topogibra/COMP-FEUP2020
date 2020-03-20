@@ -10,11 +10,14 @@ PARSER_BEGIN(jmm)
 
        public static int MAX_ERRORS = 100;
        public static int NUM_ERRORS = 0;
-       public File file;
+       public String filePath;
 
-       public void parseProgram() throws ParseException {
+       public void parseProgram(String filePath) throws ParseException {
            jmm.NUM_ERRORS = 0;
-           this.Program();
+           this.filePath = filePath;
+
+           SimpleNode root = this.Program();
+           root.dump("");
        }
 
        public static boolean isStatementStart(Token t) {
@@ -43,7 +46,7 @@ PARSER_BEGIN(jmm)
            String errorMessage = "Error found at line " + line + ", column " + col + ":\n";
 
            try {
-                FileInputStream fileStream = new FileInputStream(file.getPath());
+                FileInputStream fileStream = new FileInputStream(filePath);
                 InputStreamReader inputStream = new InputStreamReader(fileStream);
                 BufferedReader reader = new BufferedReader(inputStream);
 
@@ -71,10 +74,6 @@ PARSER_BEGIN(jmm)
             System.out.println("Forgot to close while condition parenthesis");
        }
 
-       public void setFile(File file) {
-           this.file = file;
-       }
-
        public static void main(String args[]) throws ParseException {
 
            if (args.length != 1) {
@@ -95,11 +94,9 @@ PARSER_BEGIN(jmm)
            }
 
            jmm parser = new jmm(input);
-           parser.setFile(file);
-           parser.parseProgram();
+           parser.parseProgram(args[0]);
        }
    }
-
 
 PARSER_END(jmm)
 
@@ -178,7 +175,7 @@ TOKEN:
     | <#LETTER : ["a"-"z", "A"-"Z", "_"]>
 }
 
-void Program() #void: {}
+SimpleNode Program(): {}
 {
     ImportDeclaration()
     ClassDeclaration()
@@ -187,6 +184,8 @@ void Program() #void: {}
         if(jmm.NUM_ERRORS > 0){
             throw new ParseException();
         }
+
+        return jjtThis;
     }
 }
 
@@ -231,16 +230,14 @@ void ImportType() #void: {}
 // ############### CLASS DECLARATION #################
 void ClassDeclaration() #void: {Token t1;}
 {
-    <CLASS> t1=<IDENTIFIER> {System.out.println("[New Class] Class name: " + t1.image);}
+    <CLASS> t1=<IDENTIFIER> #Class(2)
     [Extends()]
     ClassBody()
 }
 
 void Extends() #void: {Token ident;}
 {
-    <EXTENDS> ident=<IDENTIFIER> {
-    System.out.println("\t[Previous Class] Extends: " + ident.image);
-    }
+    <EXTENDS> ident=<IDENTIFIER>
 }
 
 void ClassBody() #void: {}
@@ -260,9 +257,7 @@ void VarDeclaration() #void: {Token t1;}
 
 void VarDeclaration1(Token t1) #void: {Token t2;}
 {
-    t2=<IDENTIFIER> {
-        System.out.println("[New Var] Type: " + t1.image + " Identifier: " + t2.image);
-    }
+    t2=<IDENTIFIER>
     <PV>
 }
 
@@ -283,7 +278,7 @@ void MainMethodArguments() #void: {Token t1;}
     <OPEN_PARENTHESIS>
         <STRING>
         <OPEN_BRACKET> <CLOSE_BRACKET>
-        t1=<IDENTIFIER> {System.out.println("[Main Method] Argument name: " + t1.image);}
+        t1=<IDENTIFIER>
     <CLOSE_PARENTHESIS>
 }
 
@@ -297,7 +292,7 @@ void MainMethodBody() #void: {}
 // ############### METHOD DECLARATION #################
 void MethodDeclaration() #void: {Token t1, t2;}
 {
-   t1=Type() t2=<IDENTIFIER> { System.out.println("[New Method] Return Type: " + t1.image + " Identifier: " + t2.image); }
+   t1=Type() t2=<IDENTIFIER>
    MethodArguments()
    MethodBody()
 }
@@ -319,7 +314,6 @@ void MethodBody() #void: {}
 
 void MethodCode() #void: {Token t1;}
 {
-    {System.out.println("In Method Code");}
     t1=Type() VarDeclaration1(t1) MethodCode()
     | ( t1=<IDENTIFIER> (
         MethodCode2(t1)
@@ -345,7 +339,7 @@ void IdentifierOptions(Token t1) #void: {}
 
 void ReturnExpression() #void: {}
 {
-    <RETURN> ExpressionIdentifier() <PV> {System.out.println("[Return Expression]");}
+    <RETURN> ExpressionIdentifier() <PV>
 }
 
 // ############### STATEMENT #################
@@ -365,18 +359,16 @@ void Statement1() #void: {}
 
 void IfStatement() #void: {}
 {
-    {System.out.println("[If]");}
     <OPEN_PARENTHESIS>
         ExpressionIdentifier()
     <CLOSE_PARENTHESIS>
         Statement()
-    <ELSE> {System.out.println("[Else]");}
+    <ELSE>
         Statement()
 }
 
 void WhileStatement() #void: {}
 {
-     {System.out.println("[While]");}
      <OPEN_PARENTHESIS>
      try {
             ExpressionIdentifier()
@@ -431,7 +423,9 @@ void Array() #void: {}
 
 void Assignment1(Token t1) #void: {}
 {
-    <EQUALS> {System.out.println("[New Assignment] Identifier: " + t1.image);} ExpressionIdentifier() <PV>
+    <EQUALS>
+    ExpressionIdentifier()
+    <PV>
 }
 
 // ############### EXPRESSION #################
@@ -444,21 +438,21 @@ void Expression() #void: {}
 void AndExpression() #void: {}
 {
     LessExpression()
-    ( <AND> ExpressionIdentifier() )?
+    ( <AND> ExpressionIdentifier() #And(2))?
 }
 
 void LessExpression() #void: {}
 {
     AddSubExpression()
-    ( <LESS> AddSubExpressionIdentifier() )?
+    ( <LESS> AddSubExpressionIdentifier() #Less(2) )?
 }
 
 void AddSubExpression() #void: {}
 {
     MultDivExpression()
     (
-        <PLUS> MultDivExpressionIdentifier()
-        | <MINUS> MultDivExpressionIdentifier()
+        <PLUS> MultDivExpressionIdentifier() #Add(2)
+        | <MINUS> MultDivExpressionIdentifier() #Sub(2)
     )*
 }
 
@@ -466,8 +460,8 @@ void MultDivExpression() #void: {}
 {
     BracketExpression()
     (
-        <MULT> BracketExpressionIdentifier()
-        | <DIV> BracketExpressionIdentifier()
+        <MULT> BracketExpressionIdentifier() #Mul(2)
+        | <DIV> BracketExpressionIdentifier() #Div(2)
     )*
 }
 
@@ -496,21 +490,21 @@ void ExpressionIdentifier() #void: {}
 void AndExpressionIdentifier() #void: {}
 {
      LessExpressionIdentifier()
-    ( <AND> ExpressionIdentifier())?
+    ( <AND> ExpressionIdentifier() #And(2))?
 }
 
 void LessExpressionIdentifier() #void: {}
 {
     AddSubExpressionIdentifier()
-    ( <LESS> AddSubExpressionIdentifier())?
+    ( <LESS> AddSubExpressionIdentifier() #Less(2))?
 }
 
 void AddSubExpressionIdentifier() #void: {}
 {
     MultDivExpressionIdentifier()
     (
-        <PLUS> MultDivExpressionIdentifier()
-        | <MINUS> MultDivExpressionIdentifier()
+        <PLUS> MultDivExpressionIdentifier() #Add(2)
+        | <MINUS> MultDivExpressionIdentifier() #Sub(2)
     )*
 }
 
@@ -518,8 +512,8 @@ void MultDivExpressionIdentifier() #void: {}
 {
     BracketExpressionIdentifier()
     (
-        <MULT> BracketExpressionIdentifier()
-        | <DIV> BracketExpressionIdentifier()
+        <MULT> BracketExpressionIdentifier() #Mul(2)
+        | <DIV> BracketExpressionIdentifier() #Sub(2)
     )*
 }
 
@@ -541,38 +535,35 @@ void DotExpressionIdentifier() #void: {}
 
 void Values() #void: {} // simpler expressions
 {
-	<DIGIT>
-	| <TRUE>
-	| <FALSE>
-	| <THIS>
-	| <NEW> NewFunc()
-	| <OPEN_PARENTHESIS> ExpressionIdentifier() <CLOSE_PARENTHESIS>
+	<DIGIT> #Term
+	| <TRUE> #Term
+	| <FALSE> #Term
+	| <THIS> #Term
+	| <NEW> NewFunc() #New(1)
+	| ( <OPEN_PARENTHESIS> #New(1) ExpressionIdentifier() <CLOSE_PARENTHESIS> )
 }
 
 void ValuesIdentifier() #void: {}
 {
-    <IDENTIFIER>
+    <IDENTIFIER> #Term
     | Values()
 }
 
 void NewFunc() #void: {} //new within expression
 {
-	{System.out.println("[New]");}
-	(
-	    ( <INT> <OPEN_BRACKET> ExpressionIdentifier() <CLOSE_BRACKET> )
-	    | ( <IDENTIFIER> <OPEN_PARENTHESIS> <CLOSE_PARENTHESIS> {System.out.println("[Function call]");} )
-	)
+    ( <INT> <OPEN_BRACKET> ExpressionIdentifier() <CLOSE_BRACKET> )
+    | ( <IDENTIFIER> <OPEN_PARENTHESIS> <CLOSE_PARENTHESIS> )
 }
 
 void DotFunc() #void: {}
 {
-    <LENGTH>
+    <LENGTH> #Term
     | <IDENTIFIER> FuncArguments()
 }
 
 void FuncArguments() #void: {}
 {
-    <OPEN_PARENTHESIS> {System.out.println("[Function call]");}
+    <OPEN_PARENTHESIS>
         [ ExpressionIdentifier() (<COMMA> ExpressionIdentifier() )* ]
     <CLOSE_PARENTHESIS>
 }
