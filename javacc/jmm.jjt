@@ -10,6 +10,7 @@ PARSER_BEGIN(jmm)
 
        public static int MAX_ERRORS = 100;
        public static int NUM_ERRORS = 0;
+       public static file;
 
        public void parseProgram() throws ParseException {
            jmm.NUM_ERRORS = 0;
@@ -33,6 +34,10 @@ PARSER_BEGIN(jmm)
                default:
                    return false;
            }
+       }
+
+       public static void printTokenErrorMessage(Token token) {
+           String errorMessage = ""
        }
 
        public static void main(String args[]) throws ParseException {
@@ -341,14 +346,17 @@ void WhileStatement() #void: {}
             ExpressionIdentifier()
             <CLOSE_PARENTHESIS>
      } catch(ParseException e) {
-           System.out.println(e.toString());
+            Token errorToken = getToken(0);
+
+            System.out.println("Error found");
+           //System.out.println(e.toString());
 
            Token t;
            jmm.NUM_ERRORS++;
 
            if(jmm.NUM_ERRORS == jmm.MAX_ERRORS){
                System.out.println("Reached max number of errors, aborting");
-               throw new ParseException();
+               //throw new ParseException();
            }
 
            do {
@@ -357,8 +365,10 @@ void WhileStatement() #void: {}
              if (t.kind == CLOSE_PARENTHESIS) {
                 Token t1 = getToken(1);
 
-                if (jmm.isStatementStart(t1))
+                if (jmm.isStatementStart(t1)) {
+                    Sytem.
                     break;
+                }
              }
 
              //System.out.println("Token image: " + t.image);
