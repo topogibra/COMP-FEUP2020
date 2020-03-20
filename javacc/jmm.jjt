@@ -10,7 +10,7 @@ PARSER_BEGIN(jmm)
 
        public static int MAX_ERRORS = 100;
        public static int NUM_ERRORS = 0;
-       public static file;
+       public File file;
 
        public void parseProgram() throws ParseException {
            jmm.NUM_ERRORS = 0;
@@ -36,8 +36,43 @@ PARSER_BEGIN(jmm)
            }
        }
 
-       public static void printTokenErrorMessage(Token token) {
-           String errorMessage = ""
+       public void printTokenErrorMessage(Token token) {
+           int line = token.beginLine;
+           int col = token.beginColumn;
+
+           String errorMessage = "Error found at line " + line + ", column " + col + ":\n";
+
+           try {
+                FileInputStream fileStream = new FileInputStream(file.getPath());
+                InputStreamReader inputStream = new InputStreamReader(fileStream);
+                BufferedReader reader = new BufferedReader(inputStream);
+
+                for (int i = 0; i < line - 1; i++)
+                    reader.readLine();
+
+                errorMessage += reader.readLine() + "\n";
+                errorMessage = errorMessage.replaceAll("\t", " ");
+
+            } catch(Exception e) {
+                System.out.println("File not Found.");
+                return;
+            }
+
+           for (int i = 0; i < col; i++)
+               errorMessage += " ";
+
+           errorMessage += "^";
+
+           System.out.println(errorMessage);
+       }
+
+       public void printUnclosedParenthesisErrorMessage(Token token) {
+            this.printTokenErrorMessage(token);
+            System.out.println("Forgot to close while condition parenthesis");
+       }
+
+       public void setFile(File file) {
+           this.file = file;
        }
 
        public static void main(String args[]) throws ParseException {
@@ -60,6 +95,7 @@ PARSER_BEGIN(jmm)
            }
 
            jmm parser = new jmm(input);
+           parser.setFile(file);
            parser.parseProgram();
        }
    }
@@ -346,34 +382,38 @@ void WhileStatement() #void: {}
             ExpressionIdentifier()
             <CLOSE_PARENTHESIS>
      } catch(ParseException e) {
+            boolean expressionError = true;
             Token errorToken = getToken(0);
-
-            System.out.println("Error found");
-           //System.out.println(e.toString());
 
            Token t;
            jmm.NUM_ERRORS++;
 
            if(jmm.NUM_ERRORS == jmm.MAX_ERRORS){
                System.out.println("Reached max number of errors, aborting");
-               //throw new ParseException();
+               throw new ParseException();
            }
 
            do {
-             t = getNextToken();
+                t = getNextToken();
 
-             if (t.kind == CLOSE_PARENTHESIS) {
-                Token t1 = getToken(1);
+                if (t.kind == CLOSE_PARENTHESIS) {
+                    Token t1 = getToken(1);
 
-                if (jmm.isStatementStart(t1)) {
-                    Sytem.
-                    break;
+                    if (jmm.isStatementStart(t1)) {
+                        expressionError = false;
+                        break;
+                    }
+
                 }
-             }
-
-             //System.out.println("Token image: " + t.image);
            }
            while (t.kind != OPEN_BRACE && t.kind != 0);
+
+            if (!expressionError) {
+                printTokenErrorMessage(errorToken);
+            }
+            else {
+                printUnclosedParenthesisErrorMessage(errorToken);
+            }
      }
      Statement()
 }

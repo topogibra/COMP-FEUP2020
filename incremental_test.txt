@@ -1,22 +1,6 @@
-class BlowUp {
+class MissingRightPar {
 	public static void main(String[] args) {
-		while (i +) {
-				while (j < ) {
-
-			}
+	while (i < 10 {
 		}
-
-	}
-
-	public int gi() {
-		while (i[2 < a.length) {
-
-			}
-		}
-		asfa();
-		while (j[3 < a.length) {
-
-		}
-	}
 	}
 }
