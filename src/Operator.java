@@ -18,7 +18,9 @@ public enum Operator {
     ADD("+"),
     SUB("-"),
     MUL("*"),
-    DIV("/");
+    DIV("/"),
+    AND("&&"),
+    LESS("<");
 
     private final String op;
 

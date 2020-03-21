@@ -43,7 +43,7 @@ PARSER_BEGIN(jmm)
            int line = token.beginLine;
            int col = token.beginColumn;
 
-           String errorMessage = "Error found at line " + line + ", column " + col + ":\n";
+           String errorMessage = "Syntax Error: Unexpected token " + token.image + " found at line " + line + ", column " + col + ":\n";
 
            try {
                 FileInputStream fileStream = new FileInputStream(filePath);
@@ -175,10 +175,11 @@ TOKEN:
     | <#LETTER : ["a"-"z", "A"-"Z", "_"]>
 }
 
-SimpleNode Program(): {}
+SimpleNode Program() #Start: {}
 {
-    ImportDeclaration()
-    ClassDeclaration()
+    /* ImportDeclaration()
+    ClassDeclaration() */
+    (Statement())*
     {
         System.out.println(jmm.NUM_ERRORS + " errors encountered");
         if(jmm.NUM_ERRORS > 0){
@@ -353,21 +354,21 @@ void Statement1() #void: {}
 {
     ( <OPEN_BRACE> (Statement())* <CLOSE_BRACE> )
     | <IF> IfStatement()
-        | <WHILE> WhileStatement()
+    | <WHILE> WhileStatement()
     | ( Expression() <PV> )
 }
 
-void IfStatement() #void: {}
+void IfStatement() #If: {}
 {
     <OPEN_PARENTHESIS>
         ExpressionIdentifier()
     <CLOSE_PARENTHESIS>
-        Statement()
+        Statement() #Block
     <ELSE>
-        Statement()
+        Statement() #Else
 }
 
-void WhileStatement() #void: {}
+void WhileStatement() #While: {}
 {
      <OPEN_PARENTHESIS>
      try {
@@ -407,13 +408,7 @@ void WhileStatement() #void: {}
                 printUnclosedParenthesisErrorMessage(errorToken);
             }
      }
-     Statement()
-}
-
-void Assignment(Token t1) #void: {}
-{
-    (Array())?
-    Assignment1(t1)
+     Statement() #Block
 }
 
 void Array() #void: {}
@@ -424,8 +419,8 @@ void Array() #void: {}
 void Assignment1(Token t1) #void: {}
 {
     <EQUALS>
-    ExpressionIdentifier()
-    <PV>
+    ExpressionIdentifier() #Assignment(2)
+    <PV> #PV
 }
 
 // ############### EXPRESSION #################
@@ -478,12 +473,12 @@ void BracketExpression() #void: {}
 void DotExpression() #void: {}
 {
     Values()
-    (<DOT> DotFunc())?
+    (<DOT> DotFunc() #Dot(2))?
 }
 
 void ExpressionIdentifier() #void: {}
 {
-     <NOT> ExpressionIdentifier()
+     <NOT> #Not(2) ExpressionIdentifier()
      | AndExpressionIdentifier()
 }
 
@@ -503,7 +498,7 @@ void AddSubExpressionIdentifier() #void: {}
 {
     MultDivExpressionIdentifier()
     (
-        <PLUS> MultDivExpressionIdentifier() #Add(2)
+        <PLUS> MultDivExpressionIdentifier() {jjtThis.op = Operator.ADD;} #Add(2)
         | <MINUS> MultDivExpressionIdentifier() #Sub(2)
     )*
 }
@@ -513,7 +508,7 @@ void MultDivExpressionIdentifier() #void: {}
     BracketExpressionIdentifier()
     (
         <MULT> BracketExpressionIdentifier() #Mul(2)
-        | <DIV> BracketExpressionIdentifier() #Sub(2)
+        | <DIV> BracketExpressionIdentifier() #Div(2)
     )*
 }
 
@@ -533,19 +528,20 @@ void DotExpressionIdentifier() #void: {}
     (<DOT> DotFunc())?
 }
 
-void Values() #void: {} // simpler expressions
+void Values() #void: {Token t;} // simpler expressions
 {
-	<DIGIT> #Term
-	| <TRUE> #Term
-	| <FALSE> #Term
-	| <THIS> #Term
+	t=<DIGIT>  {jjtThis.val = t.image;} #Int
+	| t=<TRUE> {jjtThis.val = t.image;} #Boolean
+	| t=<FALSE> {jjtThis.val = t.image;} #Boolean
+	| t=<THIS> {jjtThis.val = t.image;} #This
 	| <NEW> NewFunc() #New(1)
-	| ( <OPEN_PARENTHESIS> #New(1) ExpressionIdentifier() <CLOSE_PARENTHESIS> )
+	| ( <OPEN_PARENTHESIS> ExpressionIdentifier() <CLOSE_PARENTHESIS> )
+
 }
 
 void ValuesIdentifier() #void: {}
 {
-    <IDENTIFIER> #Term
+    <IDENTIFIER> #Identifier
     | Values()
 }
 

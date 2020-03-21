@@ -10,7 +10,7 @@ class SimpleNode implements Node {
   protected jmm parser;
 
     // added
-    public int val;
+    public String val;
     public Operator op = null;
 
   public SimpleNode(int i) {
@@ -70,12 +70,8 @@ class SimpleNode implements Node {
   public void dump(String prefix) {
     System.out.println(toString(prefix));
 
-    switch (this.id) {
-
-    }
-
     if(children == null)
-      System.out.println("\t[ "+this.val+" ]");
+      System.out.println(prefix + "  [ "+this.val+" ]");
 
     if (children != null) {
       for (int i = 0; i < children.length; ++i) {
