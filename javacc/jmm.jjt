@@ -344,9 +344,9 @@ void MethodCode2(Token t1) #void: {}
 
 void IdentifierOptions(Token t1) #void: {}
 {
-    ( Array() [Assignment1(t1)] ) //Last option of Statement and 2nd option of expression
+    ( Array() [Assignment1(t1)] [<PV>]  )  #ArrayAccess //Last option of Statement and 2nd option of expression
     | Assignment1(t1)
-    | ( <DOT> DotFunc() #Dot(2)(<PV>)? )
+    | ( <DOT> DotFunc() #Dot(2) (<PV>)? )
     | <PV>
 }
 
@@ -428,11 +428,11 @@ void Array() #void: {}
     <OPEN_BRACKET> ExpressionIdentifier() <CLOSE_BRACKET>
 }
 
-void Assignment1(Token t1) #void: {}
+void Assignment1(Token t1) #Assignment(2): {}
 {
     <EQUALS>
-    ExpressionIdentifier() #Assignment(2)
-    <PV> #PV
+    ExpressionIdentifier()
+    <PV>
 }
 
 // ############### EXPRESSION #################

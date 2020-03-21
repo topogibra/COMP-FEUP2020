@@ -1,8 +1,9 @@
-while (5 < 4){
-    Cao.ladrar(a,b,c);
-    NotCao.length;
-    //Cao.ladrar();
-    //(2+2).length;
-    //Cao.ladrar(gato.length);
+while(true){
+a[1];
+    a.getArray().getArray();
+    //a = b[a[c[1]]];
 }
 
+//ArrayAccess
+//    Apontador
+//    Acesso
