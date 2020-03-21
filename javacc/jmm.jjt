@@ -8,7 +8,7 @@ PARSER_BEGIN(jmm)
    import java.io.*;
    public class jmm {
 
-       public static int MAX_ERRORS = 100;
+       public static int MAX_ERRORS = 10;
        public static int NUM_ERRORS = 0;
        public String filePath;
 
@@ -43,7 +43,7 @@ PARSER_BEGIN(jmm)
            int line = token.beginLine;
            int col = token.beginColumn;
 
-           String errorMessage = "Syntax Error: Unexpected token " + token.image + " found at line " + line + ", column " + col + ":\n";
+           String errorMessage = "Syntax Error: Unexpected token \"" + token.image + "\" found at line " + line + ", column " + col + ":\n";
 
            try {
                 FileInputStream fileStream = new FileInputStream(filePath);
@@ -61,7 +61,7 @@ PARSER_BEGIN(jmm)
                 return;
             }
 
-           for (int i = 0; i < col; i++)
+           for (int i = 0; i < col - 1; i++)
                errorMessage += " ";
 
            errorMessage += "^";
@@ -177,9 +177,8 @@ TOKEN:
 
 SimpleNode Program() #Start: {}
 {
-    /* ImportDeclaration()
-    ClassDeclaration() */
-    (Statement())*
+    ImportDeclaration()
+    ClassDeclaration()
     {
         System.out.println(jmm.NUM_ERRORS + " errors encountered");
         if(jmm.NUM_ERRORS > 0){
@@ -194,42 +193,43 @@ void ImportDeclaration() #void: {}
 {
     (
         <IMPORT>
-        ImpClass()
+        ImpClass() #Import
         <PV>
     )*
 }
 
-void ImpClass() #void: {Token t;}
+void ImpClass() #void: {Token t1, t2;}
 {
-    (<STATIC>)?
-    t=<IDENTIFIER>  {jjtThis.val = t.image;} #Identifier(0)
+    (<STATIC> #Static(0))?
+    t1=<IDENTIFIER>  {jjtThis.val = t1.image;} #Identifier(0)
     (
-        <DOT> ImpFunc()
-        (Type() | <VOID> )?
+        <DOT> ImpFunc() #Dot(2)
+        ( t2=ImportType() {jjtThis.val=t2.image;} #ImpType(0) )?
     )?
 }
 
-void ImpFunc() #void: {Token t;}
+void ImpFunc() #void: {Token t1, t2;}
 {
-    t=<IDENTIFIER>  {jjtThis.val = t.image;} #Identifier(0)
+    t1=<IDENTIFIER>  {jjtThis.val = t1.image;} #Identifier(0)
     <OPEN_PARENTHESIS>
     (
-        ImportType()
+        t2=ImportType() {jjtThis.val=t2.image;} #ImpType(0)
         (
         <COMMA>
-        ImportType()
+        t2=ImportType() {jjtThis.val=t2.image;} #ImpType(0)
         )*
     )?
     <CLOSE_PARENTHESIS>
 }
 
-void ImportType() #void: {}
+Token ImportType() #void: {Token t1;}
 {
-    <VOID> | Type()
+    ( t1=<VOID> | t1=Type() )
+    {return t1;}
 }
 
 // ############### CLASS DECLARATION #################
-void ClassDeclaration() #Class(2): {Token t;}
+void ClassDeclaration() #Class: {Token t;}
 {
     <CLASS> t=<IDENTIFIER>  {jjtThis.val = t.image;} #Identifier(0)
     [Extends()]
@@ -241,7 +241,7 @@ void Extends() #void: {Token t;}
     <EXTENDS> t=<IDENTIFIER>  {jjtThis.val = t.image;} #Identifier(0)
 }
 
-void ClassBody() #void: {}
+void ClassBody() #Body: {}
 {
     <OPEN_BRACE>
         (VarDeclaration())*
@@ -250,31 +250,28 @@ void ClassBody() #void: {}
 }
 
 // ############### VAR DECLARATION #################
-void VarDeclaration() #Var(2): {Token t1;}
+void VarDeclaration() #VarDeclaration(2): {Token t1, t2;}
 {
-    ( t1=Type() {jjtThis.val = t1.image;} #Type(0) | t1=<IDENTIFIER>  {jjtThis.val = t1.image;} #Type(0) )
-    VarDeclaration1(t1)
-}
-
-void VarDeclaration1(Token t1) #void: {Token t;}
-{
-    t=<IDENTIFIER>  {jjtThis.val = t.image;} #Identifier(0)
+    t1=Type() {jjtThis.val = t1.image;} #Type(0)
+    t2=<IDENTIFIER>  {jjtThis.val = t2.image;} #Identifier(0)
     <PV>
 }
 
 Token Type() #void: {Token t1;}
 {
-    (t1=<INT> | t1=<INT_ARR> | t1=<BOOL>)
+    (t1=<INT> | t1=<INT_ARR> | t1=<BOOL> | t1=<IDENTIFIER>)
     {return t1;}
 }
 
 // ############### MAIN METHOD #################
-void MainMethod() #void: {}
+void MainMethod() #Main: {}
 {
-    <STATIC> <VOID> <MAIN> MainMethodArguments() MainMethodBody()
+    <STATIC> <VOID> <MAIN>
+    MainMethodArguments()
+    MainMethodBody()
 }
 
-void MainMethodArguments() #void: {Token t;}
+void MainMethodArguments() #Args: {Token t;}
 {
     <OPEN_PARENTHESIS>
         <STRING>
@@ -283,7 +280,7 @@ void MainMethodArguments() #void: {Token t;}
     <CLOSE_PARENTHESIS>
 }
 
-void MainMethodBody() #void: {}
+void MainMethodBody() #Body: {}
 {
     <OPEN_BRACE>
         MethodCode()
@@ -291,13 +288,9 @@ void MainMethodBody() #void: {}
 }
 
 // ############### METHOD DECLARATION #################
-void MethodDeclaration() #Method(4): {Token t1, t2;}
+void MethodDeclaration() #Method: {Token t1, t2;}
 {
-   (
-    t1=Type() {jjtThis.val = t1.image;} #Type(0)
-    |
-    t1=<IDENTIFIER> {jjtThis.val = t1.image;} #Type(0)
-   )
+   t1=Type() {jjtThis.val = t1.image;} #ReturnType(0)
    t2=<IDENTIFIER>  {jjtThis.val = t2.image;} #Identifier(0)
    MethodArguments()
    MethodBody()
@@ -307,73 +300,53 @@ void MethodArguments() #Args: {Token t1,t2,i1,i2;}
 {
     <OPEN_PARENTHESIS>
         [
-          t1=Type() {jjtThis.val = t1.image;} #Type(1)
-              i1=<IDENTIFIER> {jjtThis.val = i1.image;} #Identifier(0)
-          (<COMMA>
-          t2=Type() {jjtThis.val = t2.image;} #Type(1)
-              i2=<IDENTIFIER> {jjtThis.val = i2.image;} #Identifier(0)
-          )*
+            ArgumentDeclaration()
+            (
+                <COMMA>
+                ArgumentDeclaration()
+            )*
         ]
     <CLOSE_PARENTHESIS>
+}
+
+void ArgumentDeclaration() #Arg(2): {Token t1, i1;}
+{
+    ( t1=Type() {jjtThis.val = t1.image;} ) #Type(0)
+    ( i1=<IDENTIFIER> {jjtThis.val = i1.image;} ) #Identifier(0)
 }
 
 void MethodBody() #Body: {}
 {
     <OPEN_BRACE>
-        (MethodCode())?
+        MethodCode()
         ReturnExpression()
     <CLOSE_BRACE>
 }
 
-void MethodCode() #void: {Token t1;}
+void MethodCode() #void: {}
 {
-    t1=Type() VarDeclaration1(t1) MethodCode()
-    | ( t1=<IDENTIFIER>  {jjtThis.val = t1.image;} #Identifier(0)(
-        MethodCode2(t1)
-        | ( VarDeclaration1(t1) MethodCode() )
-       )
-    )
-    | ( Statement1() (Statement())*)
-}
-
-void MethodCode2(Token t1) #void: {}
-{
-    IdentifierOptions(t1)
+    (LOOKAHEAD(2) VarDeclaration())*
     (Statement())*
 }
 
-void IdentifierOptions(Token t1) #void: {}
+void ReturnExpression() #void: {}
 {
-    ( Array() [Assignment1(t1)] [<PV>]  )  #ArrayAccess //Last option of Statement and 2nd option of expression
-    | Assignment1(t1)
-    | ( <DOT> DotFunc() #Dot(2) (<PV>)? )
-    | <PV>
-}
-
-void ReturnExpression() #Return(1): {}
-{
-    <RETURN> ExpressionIdentifier() <PV>
+    <RETURN> Expression() #Return(1) <PV>
 }
 
 // ############### STATEMENT #################
-void Statement() #void: {Token t1;}
-{
-    Statement1()
-    | ( t1=<IDENTIFIER>  {jjtThis.val = t1.image;}  #Identifier(0) IdentifierOptions(t1) )
-}
-
-void Statement1() #void: {}
+void Statement() #void: {}
 {
     ( <OPEN_BRACE> (Statement())* <CLOSE_BRACE> )
     | <IF> IfStatement()
     | <WHILE> WhileStatement()
-    | ( Expression() <PV> )
+    | IdentifierOptions()
 }
 
 void IfStatement() #If: {}
 {
     <OPEN_PARENTHESIS>
-        ExpressionIdentifier()
+        Expression()
     <CLOSE_PARENTHESIS>
         Statement() #Block
     <ELSE>
@@ -384,7 +357,7 @@ void WhileStatement() #While: {}
 {
      <OPEN_PARENTHESIS>
      try {
-            ExpressionIdentifier()
+            Expression()
             <CLOSE_PARENTHESIS>
      } catch(ParseException e) {
             boolean expressionError = true;
@@ -423,45 +396,51 @@ void WhileStatement() #While: {}
      Statement() #Block
 }
 
-void Array() #void: {}
+void IdentifierOptions() #void: {}
 {
-    <OPEN_BRACKET> ExpressionIdentifier() <CLOSE_BRACKET>
+    LOOKAHEAD(2)
+    Assignment()
+    | Expression() (<PV>)?
 }
 
-void Assignment1(Token t1) #Assignment(2): {}
+void Assignment() #void: {Token t;}
+{
+    t=<IDENTIFIER> {jjtThis.val = t.image;} #Identifier
+    Assignment1()
+}
+
+void Assignment1() #void: {Token t;}
 {
     <EQUALS>
-    ExpressionIdentifier()
-    <PV>
+    Expression() #Assignment(2)
+     <PV>
 }
 
 // ############### EXPRESSION #################
 void Expression() #void: {}
 {
-    <NOT>
-    ExpressionIdentifier() #Not(1)
-    |
-    AndExpression()
+    <NOT> Expression() #Not(1)
+    | AndExpression()
 }
 
 void AndExpression() #void: {}
 {
     LessExpression()
-    ( <AND> ExpressionIdentifier() #And(2))?
+    ( <AND> Expression() #And(2))?
 }
 
 void LessExpression() #void: {}
 {
     AddSubExpression()
-    ( <LESS> AddSubExpressionIdentifier() #Less(2) )?
+    ( <LESS> AddSubExpression() #Less(2) )?
 }
 
 void AddSubExpression() #void: {}
 {
     MultDivExpression()
     (
-        <PLUS> MultDivExpressionIdentifier() #Add(2)
-        | <MINUS> MultDivExpressionIdentifier() #Sub(2)
+        <PLUS> MultDivExpression() #Add(2)
+        | <MINUS> MultDivExpression() #Sub(2)
     )*
 }
 
@@ -469,8 +448,8 @@ void MultDivExpression() #void: {}
 {
     BracketExpression()
     (
-        <MULT> BracketExpressionIdentifier() #Mul(2)
-        | <DIV> BracketExpressionIdentifier() #Div(2)
+        <MULT> BracketExpression() #Mul(2)
+        | <DIV> BracketExpression() #Div(2)
     )*
 }
 
@@ -479,91 +458,33 @@ void BracketExpression() #void: {}
     DotExpression()
     (
         <OPEN_BRACKET>
-            BracketExpressionIdentifier()
+            Expression() #ArrayAccess(2)
         <CLOSE_BRACKET>
-    )?
+        [Assignment1()]
+    )*
 }
 
 void DotExpression() #void: {}
 {
     Values()
-    (<DOT> DotFunc() #Dot(2))?
-}
-
-void ExpressionIdentifier() #void: {}
-{
-     <NOT>
-      ExpressionIdentifier() #Not(1)
-     | AndExpressionIdentifier()
-}
-
-void AndExpressionIdentifier() #void: {}
-{
-     LessExpressionIdentifier()
-    ( <AND> ExpressionIdentifier() #And(2))?
-}
-
-void LessExpressionIdentifier() #void: {}
-{
-    AddSubExpressionIdentifier()
-    ( <LESS> AddSubExpressionIdentifier() #Less(2))?
-}
-
-void AddSubExpressionIdentifier() #void: {}
-{
-    MultDivExpressionIdentifier()
-    (
-        <PLUS> MultDivExpressionIdentifier() {jjtThis.op = Operator.ADD;} #Add(2)
-        | <MINUS> MultDivExpressionIdentifier() #Sub(2)
-    )*
-}
-
-void MultDivExpressionIdentifier() #void: {}
-{
-    BracketExpressionIdentifier()
-    (
-        <MULT> BracketExpressionIdentifier() #Mul(2)
-        | <DIV> BracketExpressionIdentifier() #Div(2)
-    )*
-}
-
-void BracketExpressionIdentifier() #void: {}
-{
-    DotExpressionIdentifier()
-    (
-        <OPEN_BRACKET>
-        BracketExpressionIdentifier()
-        <CLOSE_BRACKET>
-    )?
-}
-
-void DotExpressionIdentifier() #void: {}
-{
-    ValuesIdentifier()
-    (<DOT> DotFunc() #Dot(2))?
+    (<DOT> DotFunc() #Dot(2))*
 }
 
 void Values() #void: {Token t;} // simpler expressions
 {
 	t=<DIGIT>  {jjtThis.val = t.image;} #Int
+	| t=<IDENTIFIER> {jjtThis.val = t.image;} #Identifier
 	| t=<TRUE> {jjtThis.val = t.image;} #Boolean
 	| t=<FALSE> {jjtThis.val = t.image;} #Boolean
 	| t=<THIS> {jjtThis.val = t.image;} #This
 	| <NEW> NewFunc()
-	| ( <OPEN_PARENTHESIS> ExpressionIdentifier() <CLOSE_PARENTHESIS> )
-
-}
-
-void ValuesIdentifier() #void: {Token t;}
-{
-    t=<IDENTIFIER> {jjtThis.val = t.image;}  #Identifier(0)
-    | Values()
+	| ( <OPEN_PARENTHESIS> Expression() <CLOSE_PARENTHESIS> )
 }
 
 void NewFunc() #New(1): {Token t;} //new within expression
 {
     ( <INT> <OPEN_BRACKET>
-     ExpressionIdentifier() #ArraySize(1)
+     Expression() #ArraySize(1)
      <CLOSE_BRACKET> )
     | ( t=<IDENTIFIER>  {jjtThis.val = t.image;} #Identifier(0)
      <OPEN_PARENTHESIS> <CLOSE_PARENTHESIS> )
@@ -578,6 +499,6 @@ void DotFunc() #void: {Token t;}
 void FuncArguments() #Args: {}
 {
     <OPEN_PARENTHESIS>
-        [ ExpressionIdentifier() (<COMMA> ExpressionIdentifier() )* ]
+        [ Expression() (<COMMA> Expression() )* ]
     <CLOSE_PARENTHESIS>
 }
