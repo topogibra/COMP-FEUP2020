@@ -426,7 +426,9 @@ void Assignment1(Token t1) #void: {}
 // ############### EXPRESSION #################
 void Expression() #void: {}
 {
-    <NOT> ExpressionIdentifier() |
+    <NOT>
+    ExpressionIdentifier() #Not(1)
+    |
     AndExpression()
 }
 
@@ -478,7 +480,8 @@ void DotExpression() #void: {}
 
 void ExpressionIdentifier() #void: {}
 {
-     <NOT> #Not(2) ExpressionIdentifier()
+     <NOT>
+      ExpressionIdentifier() #Not(1)
      | AndExpressionIdentifier()
 }
 
@@ -534,7 +537,7 @@ void Values() #void: {Token t;} // simpler expressions
 	| t=<TRUE> {jjtThis.val = t.image;} #Boolean
 	| t=<FALSE> {jjtThis.val = t.image;} #Boolean
 	| t=<THIS> {jjtThis.val = t.image;} #This
-	| <NEW> NewFunc() #New(1)
+	| <NEW> NewFunc()
 	| ( <OPEN_PARENTHESIS> ExpressionIdentifier() <CLOSE_PARENTHESIS> )
 
 }
@@ -545,10 +548,13 @@ void ValuesIdentifier() #void: {}
     | Values()
 }
 
-void NewFunc() #void: {} //new within expression
+void NewFunc() #New(1): {Token t;} //new within expression
 {
-    ( <INT> <OPEN_BRACKET> ExpressionIdentifier() <CLOSE_BRACKET> )
-    | ( <IDENTIFIER> <OPEN_PARENTHESIS> <CLOSE_PARENTHESIS> )
+    ( <INT> <OPEN_BRACKET>
+     ExpressionIdentifier()
+     <CLOSE_BRACKET> )
+    | ( t=<IDENTIFIER>  {jjtThis.val = t.image;} #Identifier(0)
+     <OPEN_PARENTHESIS> <CLOSE_PARENTHESIS> )
 }
 
 void DotFunc() #void: {}

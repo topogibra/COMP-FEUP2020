@@ -4,8 +4,8 @@ while (5 < 4)
     }
     else {
         5+4;
-        if (10 && true)
-            false;
+        if (!(10 && !true))
+            new ola();
         else
             5 +5;
     }
