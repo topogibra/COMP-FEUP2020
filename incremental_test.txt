@@ -1,13 +1,8 @@
-while (5 < 4)
-    if (true) {
-        2+4;
-    }
-    else {
-        5+4;
-        if (!(10 && !true)){
-            new ola();
-            new int[banana + 1 - 3];
-        }
-        else
-            5 +5;
-    }
+while (5 < 4){
+    Cao.ladrar(a,b,c);
+    NotCao.length;
+    //Cao.ladrar();
+    //(2+2).length;
+    //Cao.ladrar(gato.length);
+}
+

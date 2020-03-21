@@ -199,19 +199,19 @@ void ImportDeclaration() #void: {}
     )*
 }
 
-void ImpClass() #void: {}
+void ImpClass() #void: {Token t;}
 {
     (<STATIC>)?
-    <IDENTIFIER>
+    t=<IDENTIFIER>  {jjtThis.val = t.image;} #Identifier(0)
     (
         <DOT> ImpFunc()
         (Type() | <VOID> )?
     )?
 }
 
-void ImpFunc() #void: {}
+void ImpFunc() #void: {Token t;}
 {
-    <IDENTIFIER>
+    t=<IDENTIFIER>  {jjtThis.val = t.image;} #Identifier(0)
     <OPEN_PARENTHESIS>
     (
         ImportType()
@@ -229,16 +229,16 @@ void ImportType() #void: {}
 }
 
 // ############### CLASS DECLARATION #################
-void ClassDeclaration() #void: {Token t1;}
+void ClassDeclaration() #Class(2): {Token t;}
 {
-    <CLASS> t1=<IDENTIFIER> #Class(2)
+    <CLASS> t=<IDENTIFIER>  {jjtThis.val = t.image;} #Identifier(0)
     [Extends()]
     ClassBody()
 }
 
-void Extends() #void: {Token ident;}
+void Extends() #void: {Token t;}
 {
-    <EXTENDS> ident=<IDENTIFIER>
+    <EXTENDS> t=<IDENTIFIER>  {jjtThis.val = t.image;} #Identifier(0)
 }
 
 void ClassBody() #void: {}
@@ -250,15 +250,15 @@ void ClassBody() #void: {}
 }
 
 // ############### VAR DECLARATION #################
-void VarDeclaration() #void: {Token t1;}
+void VarDeclaration() #Var(2): {Token t1;}
 {
-    ( t1=Type() | t1=<IDENTIFIER> )
+    ( t1=Type() {jjtThis.val = t1.image;} #Type(0) | t1=<IDENTIFIER>  {jjtThis.val = t1.image;} #Type(0) )
     VarDeclaration1(t1)
 }
 
-void VarDeclaration1(Token t1) #void: {Token t2;}
+void VarDeclaration1(Token t1) #void: {Token t;}
 {
-    t2=<IDENTIFIER>
+    t=<IDENTIFIER>  {jjtThis.val = t.image;} #Identifier(0)
     <PV>
 }
 
@@ -274,12 +274,12 @@ void MainMethod() #void: {}
     <STATIC> <VOID> <MAIN> MainMethodArguments() MainMethodBody()
 }
 
-void MainMethodArguments() #void: {Token t1;}
+void MainMethodArguments() #void: {Token t;}
 {
     <OPEN_PARENTHESIS>
         <STRING>
         <OPEN_BRACKET> <CLOSE_BRACKET>
-        t1=<IDENTIFIER>
+        t=<IDENTIFIER>  {jjtThis.val = t.image;} #Identifier(0)
     <CLOSE_PARENTHESIS>
 }
 
@@ -291,21 +291,33 @@ void MainMethodBody() #void: {}
 }
 
 // ############### METHOD DECLARATION #################
-void MethodDeclaration() #void: {Token t1, t2;}
+void MethodDeclaration() #Method(4): {Token t1, t2;}
 {
-   t1=Type() t2=<IDENTIFIER>
+   (
+    t1=Type() {jjtThis.val = t1.image;} #Type(0)
+    |
+    t1=<IDENTIFIER> {jjtThis.val = t1.image;} #Type(0)
+   )
+   t2=<IDENTIFIER>  {jjtThis.val = t2.image;} #Identifier(0)
    MethodArguments()
    MethodBody()
 }
 
-void MethodArguments() #void: {}
+void MethodArguments() #Args: {Token t1,t2,i1,i2;}
 {
     <OPEN_PARENTHESIS>
-        [Type() <IDENTIFIER> (<COMMA> Type() <IDENTIFIER>)*]
+        [
+          t1=Type() {jjtThis.val = t1.image;} #Type(1)
+              i1=<IDENTIFIER> {jjtThis.val = i1.image;} #Identifier(0)
+          (<COMMA>
+          t2=Type() {jjtThis.val = t2.image;} #Type(1)
+              i2=<IDENTIFIER> {jjtThis.val = i2.image;} #Identifier(0)
+          )*
+        ]
     <CLOSE_PARENTHESIS>
 }
 
-void MethodBody() #void: {}
+void MethodBody() #Body: {}
 {
     <OPEN_BRACE>
         (MethodCode())?
@@ -316,7 +328,7 @@ void MethodBody() #void: {}
 void MethodCode() #void: {Token t1;}
 {
     t1=Type() VarDeclaration1(t1) MethodCode()
-    | ( t1=<IDENTIFIER> (
+    | ( t1=<IDENTIFIER>  {jjtThis.val = t1.image;} #Identifier(0)(
         MethodCode2(t1)
         | ( VarDeclaration1(t1) MethodCode() )
        )
@@ -334,11 +346,11 @@ void IdentifierOptions(Token t1) #void: {}
 {
     ( Array() [Assignment1(t1)] ) //Last option of Statement and 2nd option of expression
     | Assignment1(t1)
-    | ( <DOT> DotFunc() (<PV>)?)
+    | ( <DOT> DotFunc() #Dot(2)(<PV>)? )
     | <PV>
 }
 
-void ReturnExpression() #void: {}
+void ReturnExpression() #Return(1): {}
 {
     <RETURN> ExpressionIdentifier() <PV>
 }
@@ -347,7 +359,7 @@ void ReturnExpression() #void: {}
 void Statement() #void: {Token t1;}
 {
     Statement1()
-    | ( t1=<IDENTIFIER> IdentifierOptions(t1) )
+    | ( t1=<IDENTIFIER>  {jjtThis.val = t1.image;}  #Identifier(0) IdentifierOptions(t1) )
 }
 
 void Statement1() #void: {}
@@ -528,7 +540,7 @@ void BracketExpressionIdentifier() #void: {}
 void DotExpressionIdentifier() #void: {}
 {
     ValuesIdentifier()
-    (<DOT> DotFunc())?
+    (<DOT> DotFunc() #Dot(2))?
 }
 
 void Values() #void: {Token t;} // simpler expressions
@@ -542,9 +554,9 @@ void Values() #void: {Token t;} // simpler expressions
 
 }
 
-void ValuesIdentifier() #void: {}
+void ValuesIdentifier() #void: {Token t;}
 {
-    <IDENTIFIER> #Identifier
+    t=<IDENTIFIER> {jjtThis.val = t.image;}  #Identifier(0)
     | Values()
 }
 
@@ -557,13 +569,13 @@ void NewFunc() #New(1): {Token t;} //new within expression
      <OPEN_PARENTHESIS> <CLOSE_PARENTHESIS> )
 }
 
-void DotFunc() #void: {}
+void DotFunc() #void: {Token t;}
 {
-    <LENGTH> #Term
-    | <IDENTIFIER> FuncArguments()
+    <LENGTH> #Length(0)
+    | (t=<IDENTIFIER>  {jjtThis.val = t.image;} #Identifier(0) FuncArguments()) #DotFunc
 }
 
-void FuncArguments() #void: {}
+void FuncArguments() #Args: {}
 {
     <OPEN_PARENTHESIS>
         [ ExpressionIdentifier() (<COMMA> ExpressionIdentifier() )* ]
