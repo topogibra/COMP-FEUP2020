@@ -1,15 +1,14 @@
-import static MathUtils.random(int,int) int; //lowerLimit,upperLimit
-import static ioPlus.requestNumber() int;
-import static ioPlus.printResult(int) void;
+
 class MonteCarloPi {
-	public boolean performSingleEstimate() {
+	public boolean performSingleEstimate(int i) {
 		int rand1;
 		int rand2;
 		boolean in_circle;
 		int squareDist;
 
-		rand1 = MathUtils.random(0-100, 100);
-		rand2 = MathUtils.random(0-100, 100);
+		a[1];
+		b[2] = 5;
+
 
 		squareDist = (rand1 * rand1 + rand2 * rand2) / 100;
 		if (squareDist < 100) {

@@ -180,7 +180,7 @@ void ImpClass() #void: {Token t1, t2;}
     (<STATIC> #Static(0))?
     t1=<IDENTIFIER>  {jjtThis.val = t1.image;} #ClassName(0)
     (
-        <DOT> ImpFunc() #DotMethod(2)
+        ( <DOT> ImpFunc() ) #DotMethod(true)
         ( t2=ImportType() {jjtThis.val=t2.image;} #ReturnType(0) )?
     )?
 }
@@ -399,8 +399,8 @@ void Assignment1() #void: {Token t;}
 // ############### EXPRESSION #################
 void Expression() #void: {}
 {
-    <NOT> Expression() #Not(1)
-    | AndExpression()
+    AndExpression()
+    | <NOT> Expression() #Not(1)
 }
 
 void AndExpression() #void: {}
