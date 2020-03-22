@@ -1,50 +1,53 @@
-class Worker extends Person {
-    int idade;
-    boolean is_working123;
-    int[] favorite_$_Numbers;
-    Identification id;
+import static MathUtils.random(int,int) int; //lowerLimit,upperLimit
+import static ioPlus.requestNumber() int;
+import static ioPlus.printResult(int) void;
+class MonteCarloPi {
+	public boolean performSingleEstimate() {
+		int rand1;
+		int rand2;
+		boolean in_circle;
+		int squareDist;
 
-    public static void main(String[] args) {
-        int x;
+		rand1 = MathUtils.random(0-100, 100);
+		rand2 = MathUtils.random(0-100, 100);
 
-        while(a+;) {
-            valid_code;
-        }
+		squareDist = (rand1 * rand1 + rand2 * rand2) / 100;
+		if (squareDist < 100) {
+			in_circle = true;
+		} else {
+			in_circle = false;
+		}
 
-        while(2+2 < 8) {
-            x = x + 1;
-        }
+		return in_circle;
+	}
 
-        while(bro+;ken/;) {
-            x = x - 1;
-        }
+	public int estimatePi100(int n) {
+		int samples_in_circle;
+		int samples_so_far;
+		int pi_estimate;
 
-        while((err+;o)) {
-            a = 2+2;
-            while(outroerr;o) {
-                while(ola+) {
-                    c = c+1;
-                }
-            }
-            c = c+3;
-        }
+		samples_so_far = 0;
+		samples_in_circle = 0;
 
-        while((if)) {
-            1;
-        }
+		while (samples_so_far < n) {
+			if (this.performSingleEstimate()) {
+				samples_in_circle = samples_in_circle + 1;
+			} else {
+			}
+			samples_so_far = samples_so_far + 1;
+		}
 
-        while(((((((2))))))) 3;
+		pi_estimate = 400 * samples_in_circle / n;
+		return pi_estimate;
+	}
 
-        while(((((((((((123 */ 2;))))))))))) 1;
+	public static void main(String[] args) {
+		int pi_estimate_times_100;
+		int num_samples;
 
-        while(1231312 + &&;) {
-            while(a+;) 1;
-        }
+		num_samples = ioPlus.requestNumber();
+		pi_estimate_times_100 = new MonteCarloPi().estimatePi100(num_samples);
 
-        while((while)) {
-            1;
-        }
-
-        while(else;) 1;
-    }
+		ioPlus.printResult(pi_estimate_times_100);
+	}
 }

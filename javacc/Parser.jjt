@@ -248,12 +248,12 @@ void MainMethod() #Main: {}
     MainMethodBody()
 }
 
-void MainMethodArguments() #Args: {Token t;}
+void MainMethodArguments() #void: {Token t;}
 {
     <OPEN_PARENTHESIS>
         <STRING>
         <OPEN_BRACKET> <CLOSE_BRACKET>
-        t=<IDENTIFIER>  {jjtThis.val = t.image;} #Identifier(0)
+        t=<IDENTIFIER>  {jjtThis.val = t.image;} #ArgumentName(0)
     <CLOSE_PARENTHESIS>
 }
 
@@ -273,15 +273,18 @@ void MethodDeclaration() #Method: {Token t1, t2;}
    MethodBody()
 }
 
-void MethodArguments() #Args: {Token t1,t2,i1,i2;}
+void MethodArguments() #void: {Token t1,t2,i1,i2;}
 {
     <OPEN_PARENTHESIS>
         [
-            ArgumentDeclaration()
             (
-                <COMMA>
                 ArgumentDeclaration()
-            )*
+                (
+                    <COMMA>
+                    ArgumentDeclaration()
+                )*
+            ) #Args
+
         ]
     <CLOSE_PARENTHESIS>
 }

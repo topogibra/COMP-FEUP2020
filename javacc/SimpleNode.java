@@ -11,7 +11,6 @@ class SimpleNode implements Node {
 
     // added
     public String val;
-    public Operator op = null;
 
   public SimpleNode(int i) {
     id = i;
