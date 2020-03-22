@@ -201,22 +201,22 @@ void ImportDeclaration() #void: {}
 void ImpClass() #void: {Token t1, t2;}
 {
     (<STATIC> #Static(0))?
-    t1=<IDENTIFIER>  {jjtThis.val = t1.image;} #Identifier(0)
+    t1=<IDENTIFIER>  {jjtThis.val = t1.image;} #ClassName(0)
     (
-        <DOT> ImpFunc() #Dot(2)
-        ( t2=ImportType() {jjtThis.val=t2.image;} #ImpType(0) )?
+        <DOT> ImpFunc() #DotMethod(2)
+        ( t2=ImportType() {jjtThis.val=t2.image;} #ReturnType(0) )?
     )?
 }
 
 void ImpFunc() #void: {Token t1, t2;}
 {
-    t1=<IDENTIFIER>  {jjtThis.val = t1.image;} #Identifier(0)
+    t1=<IDENTIFIER>  {jjtThis.val = t1.image;} #MethodName(0)
     <OPEN_PARENTHESIS>
     (
-        t2=ImportType() {jjtThis.val=t2.image;} #ImpType(0)
+        t2=ImportType() {jjtThis.val=t2.image;} #ArgType(0)
         (
         <COMMA>
-        t2=ImportType() {jjtThis.val=t2.image;} #ImpType(0)
+        t2=ImportType() {jjtThis.val=t2.image;} #ArgType(0)
         )*
     )?
     <CLOSE_PARENTHESIS>
@@ -236,12 +236,12 @@ void ClassDeclaration() #Class: {Token t;}
     ClassBody()
 }
 
-void Extends() #void: {Token t;}
+void Extends() #Extends(1): {Token t;}
 {
     <EXTENDS> t=<IDENTIFIER>  {jjtThis.val = t.image;} #Identifier(0)
 }
 
-void ClassBody() #Body: {}
+void ClassBody() #void: {}
 {
     <OPEN_BRACE>
         (VarDeclaration())*
@@ -280,7 +280,7 @@ void MainMethodArguments() #Args: {Token t;}
     <CLOSE_PARENTHESIS>
 }
 
-void MainMethodBody() #Body: {}
+void MainMethodBody() #MethodBody: {}
 {
     <OPEN_BRACE>
         MethodCode()
@@ -315,7 +315,7 @@ void ArgumentDeclaration() #Arg(2): {Token t1, i1;}
     ( i1=<IDENTIFIER> {jjtThis.val = i1.image;} ) #Identifier(0)
 }
 
-void MethodBody() #Body: {}
+void MethodBody() #MethodBody: {}
 {
     <OPEN_BRACE>
         MethodCode()
@@ -467,7 +467,7 @@ void BracketExpression() #void: {}
 void DotExpression() #void: {}
 {
     Values()
-    (<DOT> DotFunc() #Dot(2))*
+    (<DOT> DotFunc() #DotMethod(2))*
 }
 
 void Values() #void: {Token t;} // simpler expressions
@@ -493,12 +493,12 @@ void NewFunc() #New(1): {Token t;} //new within expression
 void DotFunc() #void: {Token t;}
 {
     <LENGTH> #Length(0)
-    | (t=<IDENTIFIER>  {jjtThis.val = t.image;} #Identifier(0) FuncArguments()) #DotFunc
+    | (t=<IDENTIFIER>  {jjtThis.val = t.image;} #MethodName(0) FuncArguments()) #MethodCall
 }
 
-void FuncArguments() #Args: {}
+void FuncArguments() #void: {}
 {
     <OPEN_PARENTHESIS>
-        [ Expression() (<COMMA> Expression() )* ]
+        [ ( Expression() (<COMMA> Expression() )* ) #Args]
     <CLOSE_PARENTHESIS>
 }
