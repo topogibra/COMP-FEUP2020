@@ -12,12 +12,11 @@ PARSER_BEGIN(Parser)
        public static int NUM_ERRORS = 0;
        public String filePath;
 
-       public void parseProgram(String filePath) throws Exception {
+       public SimpleNode parseProgram(String filePath) throws Exception {
            Parser.NUM_ERRORS = 0;
            this.filePath = filePath;
 
-           SimpleNode root = this.Program();
-           root.dump("");
+           return this.Program();
        }
 
        public static boolean isStatementStart(Token t) {
@@ -346,7 +345,7 @@ void WhileStatement() #While: {}
            Token t;
            Parser.NUM_ERRORS++;
 
-           if(Parser.NUM_ERRORS == Parser.MAX_ERRORS){
+           if (Parser.NUM_ERRORS == Parser.MAX_ERRORS){
                System.out.println("Reached max number of errors, aborting");
                throw new ParseException();
            }

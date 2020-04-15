@@ -7,7 +7,7 @@ public class jmm {
 
     public static void main(String[] args) throws Exception {
         if (args.length != 1) {
-            System.err.println("Usage: java Parser <file_name>");
+            System.err.println("Usage: java jmm <file_name>");
             return;
         }
 
@@ -26,7 +26,8 @@ public class jmm {
         Parser parser = new Parser(input);
 
         try {
-            parser.parseProgram(args[0]);
+            SimpleNode root = parser.parseProgram(args[0]);
+            root.dump("");
         } catch (Exception e) {
             throw new Exception();
         }
