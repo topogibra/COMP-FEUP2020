@@ -30,6 +30,8 @@ class SimpleNode implements Node {
   public void jjtSetParent(Node n) { parent = n; }
   public Node jjtGetParent() { return parent; }
 
+  public Node[] jjtGetChildren() { return children; }
+
   public void jjtAddChild(Node n, int i) {
     if (children == null) {
       children = new Node[i + 1];
@@ -44,6 +46,8 @@ class SimpleNode implements Node {
   public Node jjtGetChild(int i) {
     return children[i];
   }
+
+  public String jjtGetVal() { return val; }
 
   public int jjtGetNumChildren() {
     return (children == null) ? 0 : children.length;

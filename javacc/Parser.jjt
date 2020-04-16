@@ -179,7 +179,7 @@ void ImpClass() #void: {Token t1, t2;}
     (<STATIC> #Static(0))?
     t1=<IDENTIFIER>  {jjtThis.val = t1.image;} #ClassName(0)
     (
-        ( <DOT> ImpFunc() ) #DotMethod(true)
+        <DOT> ImpFunc()
         ( t2=ImportType() {jjtThis.val=t2.image;} #ReturnType(0) )?
     )?
 }
@@ -240,19 +240,23 @@ Token Type() #void: {Token t1;}
 }
 
 // ############### MAIN METHOD #################
-void MainMethod() #Main: {}
+void MainMethod() #Method: {Token t1, t2;}
 {
-    <STATIC> <VOID> <MAIN>
+    <STATIC>
+    t1=<VOID> {jjtThis.val = t1.image;} #ReturnType(0)
+    t2=<MAIN> {jjtThis.val = t2.image;} #Identifier(0)
     MainMethodArguments()
     MainMethodBody()
 }
 
-void MainMethodArguments() #void: {Token t;}
+void MainMethodArguments() #Args: {Token t1, t2;}
 {
     <OPEN_PARENTHESIS>
-        <STRING>
-        <OPEN_BRACKET> <CLOSE_BRACKET>
-        t=<IDENTIFIER>  {jjtThis.val = t.image;} #ArgumentName(0)
+        (
+            ( t1=<STRING> {jjtThis.val = "String[]"; }
+            <OPEN_BRACKET> <CLOSE_BRACKET> ) #Type
+            t2=<IDENTIFIER>  {jjtThis.val = t2.image;} #Identifier(0)
+        ) #Arg(2)
     <CLOSE_PARENTHESIS>
 }
 

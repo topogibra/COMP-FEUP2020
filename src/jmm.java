@@ -25,11 +25,15 @@ public class jmm {
 
         Parser parser = new Parser(input);
 
+        SimpleNode root = null;
         try {
-            SimpleNode root = parser.parseProgram(args[0]);
+            root = parser.parseProgram(args[0]);
             root.dump("");
+            SemanticAnalyser.analyse(SymbolTablesGenerator.generate(root), root);
         } catch (Exception e) {
             throw new Exception();
         }
+
     }
+
 }
