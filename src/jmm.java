@@ -31,6 +31,7 @@ public class jmm {
             root.dump("");
             SemanticAnalyser.analyse(SymbolTablesGenerator.generate(root), root);
         } catch (Exception e) {
+            e.printStackTrace();
             throw new Exception();
         }
 

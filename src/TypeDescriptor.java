@@ -1,5 +1,5 @@
 public class TypeDescriptor {
-    String typeIdentifier;
+    private final String typeIdentifier;
     boolean isArray = false;
 
     public TypeDescriptor(String typeIdentifier) {
@@ -7,6 +7,10 @@ public class TypeDescriptor {
 
        if (this.typeIdentifier.equals("int[]"))
             this.isArray = true;
+    }
+
+    public String getTypeIdentifier() {
+        return this.typeIdentifier;
     }
 
 }

@@ -1,17 +1,18 @@
 public interface NodeName {
 
-    public String IMPORT = "Import";
-    public String CLASS = "Class";
-    public String STATIC = "Static";
-    public String CLASSNAME = "ClassName";
-    public String METHODNAME = "MethodName";
-    public String ARGTYPE = "ArgType";
-    public String RETURNTYPE = "ReturnType";
-    public String IDENTIFIER = "Identifier";
-    public String VARDECLARATION = "VarDeclaration";
-    public String METHOD = "Method";
-    public String ARGS = "Args";
-    public String METHODBODY = "MethodBody";
-
+    String IMPORT = "Import";
+    String CLASS = "Class";
+    String STATIC = "Static";
+    String CLASSNAME = "ClassName";
+    String METHODNAME = "MethodName";
+    String ARGTYPE = "ArgType";
+    String RETURNTYPE = "ReturnType";
+    String IDENTIFIER = "Identifier";
+    String VARDECLARATION = "VarDeclaration";
+    String METHOD = "Method";
+    String ARGS = "Args";
+    String METHODBODY = "MethodBody";
+    String ARRAYACCESS = "ArrayAccess";
+    String INT = "Int";
 
 }

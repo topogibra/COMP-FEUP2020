@@ -10,9 +10,11 @@ public class Scope {
     }
 
     public HashMap<String, TypeDescriptor> getVars() {
-        HashMap<String, TypeDescriptor> newHashMap = new HashMap<>();
-        newHashMap.putAll(this.vars);
-        newHashMap.putAll(this.parentScope.getVars());
+        HashMap<String, TypeDescriptor> newHashMap = new HashMap<>(this.vars);
+
+        /*if (this.parentScope != null)
+            newHashMap.putAll(this.parentScope.getVars());*/
+
         return newHashMap;
     }
 

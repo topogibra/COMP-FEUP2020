@@ -6,7 +6,7 @@ public class ImportDescriptor {
     private String methodName;
 
     private TypeDescriptor returnType;
-    private List<TypeDescriptor> arguments;
+    private final List<TypeDescriptor> arguments;
     private boolean isStatic = false;
 
     public ImportDescriptor() {
@@ -54,7 +54,14 @@ public class ImportDescriptor {
     }
 
     public String getIdentifier() {
-        return this.className + "." + this.methodName;
+        StringBuilder stringBuilder = new StringBuilder();
+
+        stringBuilder.append(this.className).append(this.methodName);
+
+        for (TypeDescriptor typeDescriptor : this.arguments)
+            stringBuilder.append(typeDescriptor.getTypeIdentifier());
+
+        return stringBuilder.toString();
     }
 
 }

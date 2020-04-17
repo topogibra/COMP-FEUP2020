@@ -176,32 +176,25 @@ void ImportDeclaration() #void: {}
 
 void ImpClass() #void: {Token t1, t2;}
 {
-    (<STATIC> #Static(0))?
+    [ <STATIC> #Static(0) ]
     t1=<IDENTIFIER>  {jjtThis.val = t1.image;} #ClassName(0)
-    (
-        <DOT> ImpFunc()
-        ( t2=ImportType() {jjtThis.val=t2.image;} #ReturnType(0) )?
-    )?
+    [ <DOT> t1=<IDENTIFIER> {jjtThis.val = t1.image;} #MethodName(0) ]
+    [ <OPEN_PARENTHESIS> ParamList() <CLOSE_PARENTHESIS> ]
+    [ t2=ImportType() {jjtThis.val=t2.image;} #ReturnType(0) ]
 }
 
-void ImpFunc() #void: {Token t1, t2;}
+void ParamList() #void: {Token t1, t2;}
 {
-    t1=<IDENTIFIER>  {jjtThis.val = t1.image;} #MethodName(0)
-    <OPEN_PARENTHESIS>
-    (
-        t2=ImportType() {jjtThis.val=t2.image;} #ArgType(0)
-        (
-        <COMMA>
-        t2=ImportType() {jjtThis.val=t2.image;} #ArgType(0)
-        )*
-    )?
-    <CLOSE_PARENTHESIS>
+    [
+        t1=ImportType() {jjtThis.val=t1.image;} #ArgType(0)
+        ( <COMMA> t2=ImportType() {jjtThis.val=t2.image;} #ArgType(0) )*
+    ]
 }
 
 Token ImportType() #void: {Token t1;}
 {
     ( t1=<VOID> | t1=Type() )
-    {return t1;}
+    { return t1; }
 }
 
 // ############### CLASS DECLARATION #################
