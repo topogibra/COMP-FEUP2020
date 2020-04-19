@@ -19,7 +19,7 @@ public class SymbolTablesGenerator {
             }
         }
 
-        symbolTables.print();
+//        symbolTables.print();
         return symbolTables;
     }
 

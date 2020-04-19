@@ -7,7 +7,7 @@ public class SemanticAnalyser {
 
         if (ParserTreeConstants.jjtNodeName[simpleNode.getId()].equals(NodeName.METHOD)) {
             String methodIdentifier = getMethodIdentifier(simpleNode);
-            System.out.print("Method id: " + methodIdentifier + "\n");
+//            System.out.print("Method id: " + methodIdentifier + "\n");
             analyseMethod(symbolTables, simpleNode, symbolTables.getFunctionDescriptor(methodIdentifier));
         }
 
