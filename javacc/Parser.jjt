@@ -1,6 +1,7 @@
 options
 {
     LOOKAHEAD=1;
+    TRACK_TOKENS = true;
 }
 
 PARSER_BEGIN(Parser)

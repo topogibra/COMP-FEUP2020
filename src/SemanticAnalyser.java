@@ -41,16 +41,17 @@ public class SemanticAnalyser {
         switch (ParserTreeConstants.jjtNodeName[simpleNode.getId()]) {
             case NodeName.ARRAYACCESS:
                 if (!analyseArray(false, symbolTables, simpleNode, functionDescriptor))
-                    throw new Exception("ola");
+                    throw new SemanticException(simpleNode);
                 break;
             case NodeName.ARRAYSIZE:
-                if (!analyseArray(true, symbolTables, simpleNode, functionDescriptor))
-                    throw new Exception("ola");
+                if (!analyseArray(true, symbolTables, simpleNode, functionDescriptor)){
+                    throw new SemanticException(simpleNode);
+                }
                 break;
             case NodeName.DOTMETHOD: {
                 String returnType = analyseDotMethod(symbolTables, simpleNode, functionDescriptor);
-                if ((returnType == null) || !returnType.equals("int"))
-                    throw new Exception("ola");
+//                if ((returnType == null) || !returnType.equals("int"))
+//                    throw new SemanticException(simpleNode);
             }
 
         }
@@ -61,7 +62,7 @@ public class SemanticAnalyser {
 
         Node[] children = simpleNode.jjtGetChildren();
 
-        stringBuilder.append( ((SimpleNode) children[1]).jjtGetVal()); // Method Name
+        stringBuilder.append(((SimpleNode) children[1]).jjtGetVal()); // Method Name
 
         if (!ParserTreeConstants.jjtNodeName[((SimpleNode) children[2]).getId()].equals(NodeName.ARGS))
             return stringBuilder.toString();
@@ -77,7 +78,7 @@ public class SemanticAnalyser {
 
     public static boolean analyseArray(boolean isArraySize, SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
 
-        SimpleNode grandchild = (SimpleNode) (isArraySize ? simpleNode.jjtGetChildren()[0] :  simpleNode.jjtGetChildren()[1]);
+        SimpleNode grandchild = (SimpleNode) (isArraySize ? simpleNode.jjtGetChildren()[0] : simpleNode.jjtGetChildren()[1]);
 
         String nodeName = ParserTreeConstants.jjtNodeName[grandchild.getId()];
         System.out.print("NodeName: " + nodeName + "\n");
@@ -107,8 +108,7 @@ public class SemanticAnalyser {
         if (ParserTreeConstants.jjtNodeName[firstChild.getId()].equals(NodeName.THIS)) {
             if (ParserTreeConstants.jjtNodeName[secondChild.getId()].equals(NodeName.METHODCALL))
                 return getMethodReturnType(symbolTables, secondChild, functionDescriptor);
-        }
-        else {
+        } else {
             switch (ParserTreeConstants.jjtNodeName[secondChild.getId()]) {
                 case NodeName.LENGTH:
                     return "int";
@@ -124,29 +124,31 @@ public class SemanticAnalyser {
 
     private static String getMethodReturnType(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
         SimpleNode firstChild = (SimpleNode) simpleNode.jjtGetChildren()[0];
-        SimpleNode secondChild = (SimpleNode) simpleNode.jjtGetChildren()[1];
 
         StringBuilder methodIdentifier = new StringBuilder();
 
         if (ParserTreeConstants.jjtNodeName[firstChild.getId()].equals(NodeName.METHODNAME))
             methodIdentifier.append(firstChild.jjtGetVal());
         else
-            throw new Exception("ola");
+            throw new SemanticException(simpleNode);
 
-        if (ParserTreeConstants.jjtNodeName[secondChild.getId()].equals(NodeName.ARGS)) {
-            Node[] grandchildren = secondChild.jjtGetChildren();
-            for (Node grandchildNode : grandchildren)  {
-                SimpleNode grandChild = (SimpleNode) grandchildNode;
-                String nodeName = ParserTreeConstants.jjtNodeName[grandChild.getId()];
-                if (nodeName.equals(NodeName.IDENTIFIER)) {
-                    String argIdentifier = grandChild.jjtGetVal();
-                    methodIdentifier.append(functionDescriptor.getTypeDescriptor(argIdentifier).getTypeIdentifier());
+        if (simpleNode.jjtGetChildren().length > 1) {
+
+            SimpleNode secondChild = (SimpleNode) simpleNode.jjtGetChildren()[1];
+            if (ParserTreeConstants.jjtNodeName[secondChild.getId()].equals(NodeName.ARGS)) {
+                Node[] grandchildren = secondChild.jjtGetChildren();
+                for (Node grandchildNode : grandchildren) {
+                    SimpleNode grandChild = (SimpleNode) grandchildNode;
+                    String nodeName = ParserTreeConstants.jjtNodeName[grandChild.getId()];
+                    if (nodeName.equals(NodeName.IDENTIFIER)) {
+                        String argIdentifier = grandChild.jjtGetVal();
+                        methodIdentifier.append(functionDescriptor.getTypeDescriptor(argIdentifier).getTypeIdentifier());
+                    } else if (nodeName.equals(NodeName.METHODCALL))
+                        methodIdentifier.append(getMethodReturnType(symbolTables, grandChild, functionDescriptor));
                 }
-                else if (nodeName.equals(NodeName.METHODCALL))
-                    methodIdentifier.append(getMethodReturnType(symbolTables, grandChild, functionDescriptor));
-            }
-        } else
-            throw new Exception("ola");
+            } else
+                throw new SemanticException(simpleNode);
+        }
 
         FunctionDescriptor functionDescriptor1 = symbolTables.getFunctionDescriptor(methodIdentifier.toString());
         return (functionDescriptor1 == null) ? null : functionDescriptor1.getReturnType();

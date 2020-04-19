@@ -8,9 +8,11 @@ class SimpleNode implements Node {
   protected int id;
   protected Object value;
   protected Parser parser;
+  protected Token firstToken;
+  protected Token lastToken;
 
-    // added
-    public String val;
+  // added
+  public String val;
 
   public SimpleNode(int i) {
     id = i;
@@ -56,6 +58,11 @@ class SimpleNode implements Node {
   public void jjtSetValue(Object value) { this.value = value; }
   public Object jjtGetValue() { return value; }
 
+  public Token jjtGetFirstToken() { return firstToken; }
+  public void jjtSetFirstToken(Token token) { this.firstToken = token; }
+  public Token jjtGetLastToken() { return lastToken; }
+  public void jjtSetLastToken(Token token) { this.lastToken = token; }
+
   /* You can override these two methods in subclasses of SimpleNode to
      customize the way the node appears when the tree is dumped.  If
      your output uses more than one line you should override
@@ -87,6 +94,8 @@ class SimpleNode implements Node {
       }
     }
   }
+
+  public SimpleNode getParent(){return (SimpleNode) parent;}
 
   public int getId() {
     return id;
