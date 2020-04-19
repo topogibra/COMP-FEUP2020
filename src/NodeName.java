@@ -14,5 +14,8 @@ public interface NodeName {
     String METHODBODY = "MethodBody";
     String ARRAYACCESS = "ArrayAccess";
     String INT = "Int";
-
+    String ARRAYSIZE = "ArraySize";
+    String DOTMETHOD = "DotMethod";
+    String LENGTH = "Length";
+    String THIS = "This";
 }

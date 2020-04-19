@@ -103,10 +103,10 @@ public class ParserTest {
         test("fixtures/public/fail/semantic/arr_index_not_int.jmm", true);
     }
 
-//    @Test
-//    public void testarr_size_not_int() {
-//        test("fixtures/public/fail/semantic/arr_size_not_int.jmm", true);
-//    }
+    @Test
+    public void testarr_size_not_int() {
+        test("fixtures/public/fail/semantic/arr_size_not_int.jmm", true);
+    }
 //
 //    @Test
 //    public void testbadArguments() {

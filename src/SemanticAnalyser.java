@@ -7,7 +7,7 @@ public class SemanticAnalyser {
 
         if (ParserTreeConstants.jjtNodeName[simpleNode.getId()].equals(NodeName.METHOD)) {
             String methodIdentifier = getMethodIdentifier(simpleNode);
-//            System.out.print("Method id: " + methodIdentifier + "\n");
+            System.out.print("Method id: " + methodIdentifier + "\n");
             analyseMethod(symbolTables, simpleNode, symbolTables.getFunctionDescriptor(methodIdentifier));
         }
 
@@ -40,9 +40,13 @@ public class SemanticAnalyser {
 
         switch (ParserTreeConstants.jjtNodeName[simpleNode.getId()]) {
             case NodeName.ARRAYACCESS:
-                if (!analyseArrayAccess(symbolTables, simpleNode, functionDescriptor))
+                if (!analyseArray(false, symbolTables, simpleNode, functionDescriptor))
                     throw new Exception("ola");
-
+                break;
+            case NodeName.ARRAYSIZE:
+                if (!analyseArray(true, symbolTables, simpleNode, functionDescriptor))
+                    throw new Exception("ola");
+                break;
         }
     }
 
@@ -65,23 +69,55 @@ public class SemanticAnalyser {
         return stringBuilder.toString();
     }
 
-    public static boolean analyseArrayAccess(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
+    public static boolean analyseArray(boolean isArraySize, SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
 
-        SimpleNode grandchild = (SimpleNode) simpleNode.jjtGetChildren()[1];
+        SimpleNode grandchild;
+
+        grandchild = (SimpleNode) (isArraySize ? simpleNode.jjtGetChildren()[0] :  simpleNode.jjtGetChildren()[1]);
+
         String nodeName = ParserTreeConstants.jjtNodeName[grandchild.getId()];
-        if (nodeName.equals(NodeName.INT)) {
-            return true;
-        }
-        else if (nodeName.equals(NodeName.IDENTIFIER) ) {
-            TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(grandchild.jjtGetVal());
-            if (typeDescriptor == null)
-                return false;
-            else return typeDescriptor.getTypeIdentifier().equals("int");
-        }
-        else if (nodeName.equals(NodeName.ARRAYACCESS)) {
-            return analyseArrayAccess(symbolTables, grandchild, functionDescriptor);
+        System.out.print("NodeName: " + nodeName + "\n");
+        System.out.print("NodeValue: " + grandchild.jjtGetVal() + "\n");
+
+        switch (nodeName) {
+            case NodeName.INT:
+                return true;
+            case NodeName.IDENTIFIER:
+                TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(grandchild.jjtGetVal());
+                if (typeDescriptor == null)
+                    return false;
+                else return typeDescriptor.getTypeIdentifier().equals("int");
+            case NodeName.ARRAYACCESS:
+                return analyseArray(false, symbolTables, grandchild, functionDescriptor);
+            case NodeName.ARRAYSIZE:
+                return analyseArray(true, symbolTables, grandchild, functionDescriptor);
+            case NodeName.DOTMETHOD:
+                return analyseDotMethod(symbolTables, grandchild, functionDescriptor);
         }
 
         return false;
+    }
+
+    private static boolean analyseDotMethod(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) {
+        SimpleNode firstChild = (SimpleNode) simpleNode.jjtGetChildren()[0];
+        SimpleNode secondChild = (SimpleNode) simpleNode.jjtGetChildren()[1];
+        if(ParserTreeConstants.jjtNodeName[firstChild.getId()].equals(NodeName.THIS)) {
+
+        }
+        else {
+
+            switch (ParserTreeConstants.jjtNodeName[secondChild.getId()]) {
+                case NodeName.LENGTH:
+                    return true;
+                case NodeName.DOTMETHOD:
+                    return analyseDotMethod(symbolTables, secondChild, functionDescriptor);
+                default:
+                    return false;
+            }
+        }
+    }
+
+    private static String getMethodReturnType(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) {
+
     }
 }
