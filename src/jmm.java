@@ -30,6 +30,7 @@ public class jmm {
             root = parser.parseProgram(args[0]);
             root.dump("");
             SemanticAnalyser.analyse(SymbolTablesGenerator.generate(root), root);
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new Exception();

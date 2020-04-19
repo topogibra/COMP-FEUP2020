@@ -7,7 +7,7 @@ public class SemanticAnalyser {
 
         if (ParserTreeConstants.jjtNodeName[simpleNode.getId()].equals(NodeName.METHOD)) {
             String methodIdentifier = getMethodIdentifier(simpleNode);
-            //System.out.print("Method id: " + methodIdentifier + "\n");
+            System.out.print("Method id: " + methodIdentifier + "\n");
             analyseMethod(symbolTables, simpleNode, symbolTables.getFunctionDescriptor(methodIdentifier));
         }
 
@@ -73,14 +73,15 @@ public class SemanticAnalyser {
             return true;
         }
         else if (nodeName.equals(NodeName.IDENTIFIER) ) {
-            System.out.println(functionDescriptor);
-            //System.out.println("Grandchild id: " + grandchild.jjtGetVal());
             TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(grandchild.jjtGetVal());
             if (typeDescriptor == null)
-                return true;
-            else return typeDescriptor.getTypeIdentifier().equals("Int");
+                return false;
+            else return typeDescriptor.getTypeIdentifier().equals("int");
+        }
+        else if (nodeName.equals(NodeName.ARRAYACCESS)) {
+            return analyseArrayAccess(symbolTables, grandchild, functionDescriptor);
         }
 
-        return true;
+        return false;
     }
 }

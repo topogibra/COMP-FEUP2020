@@ -38,8 +38,10 @@ public class SymbolTables {
     }
 
     public void print() {
-        for (Map.Entry<String, FunctionDescriptor> entry : this.methods.entrySet())
+        for (Map.Entry<String, FunctionDescriptor> entry : this.methods.entrySet()) {
             System.out.println("Saved methods: " + entry.getKey());
+            entry.getValue().printScope();
+        }
 
 
         System.out.print("\n\n");

@@ -47,10 +47,23 @@ public class FunctionDescriptor {
     }
 
     public TypeDescriptor getTypeDescriptor(String identifier) {
-       TypeDescriptor typeDescriptor = this.scope.getVars().get(identifier);
+        if(this.identifier.equals("winner"))
+            for (Map.Entry<String, TypeDescriptor> td : this.scope.getVars().entrySet()) {
+                System.out.println("KEY: ");
+                System.out.println(td.getKey());
+                System.out.println("Value: ");
+                System.out.println(td.getValue().getTypeIdentifier());
+            }
+
+        TypeDescriptor typeDescriptor = this.scope.getVars().get(identifier);
+
         if (typeDescriptor == null)
             typeDescriptor = this.params.get(identifier);
 
         return typeDescriptor;
+    }
+
+    public void printScope() {
+        this.scope.printScopeVars();
     }
 }

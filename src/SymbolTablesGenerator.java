@@ -20,7 +20,6 @@ public class SymbolTablesGenerator {
         }
 
         symbolTables.print();
-
         return symbolTables;
     }
 
@@ -125,7 +124,7 @@ public class SymbolTablesGenerator {
             SimpleNode child = (SimpleNode) node;
 
             if (child != null) {
-                if (ParserTreeConstants.jjtNodeName[child.getId()].toUpperCase().equals(NodeName.VARDECLARATION)) {
+                if (ParserTreeConstants.jjtNodeName[child.getId()].equals(NodeName.VARDECLARATION)) {
                     Node[] grandchildren = child.jjtGetChildren();
                     functionDescriptor.addVar(((SimpleNode) grandchildren[1]).jjtGetVal(), new TypeDescriptor(((SimpleNode) grandchildren[0]).jjtGetVal()));
                 }
