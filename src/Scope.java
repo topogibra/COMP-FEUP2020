@@ -1,13 +1,14 @@
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Scope {
-    private Scope parentScope;
-    private HashMap<String, TypeDescriptor> vars;
+    private final Scope parentScope;
+    private final LinkedHashMap<String, TypeDescriptor> vars;
 
     public Scope(Scope parentScope) {
         this.parentScope = parentScope;
-        this.vars = new HashMap<>();
+        this.vars = new LinkedHashMap<>();
     }
 
     public HashMap<String, TypeDescriptor> getVars() {

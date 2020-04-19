@@ -18,4 +18,5 @@ public interface NodeName {
     String DOTMETHOD = "DotMethod";
     String LENGTH = "Length";
     String THIS = "This";
+    String METHODCALL = "MethodCall";
 }

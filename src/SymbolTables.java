@@ -1,15 +1,16 @@
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class SymbolTables {
     private String className;
-    private final HashMap<String, ImportDescriptor> imports;
-    private final HashMap<String, FunctionDescriptor> methods;
+    private final LinkedHashMap<String, ImportDescriptor> imports;
+    private final LinkedHashMap<String, FunctionDescriptor> methods;
     private final Scope scope;
 
     public SymbolTables() {
-        this.imports = new HashMap<>();
-        this.methods = new HashMap<>();
+        this.imports = new LinkedHashMap<>();
+        this.methods = new LinkedHashMap<>();
         this.scope = new Scope(null);
     }
 
