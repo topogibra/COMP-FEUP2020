@@ -188,7 +188,7 @@ public class SemanticAnalyser {
                                 throw new SemanticException(grandChild);
                             break;
                         case NodeName.ARRAYACCESS:
-                            //TODO get return value of array access
+                            methodIdentifier.append("int");
                             break;
                         default:
                             throw new SemanticException(grandChild);
