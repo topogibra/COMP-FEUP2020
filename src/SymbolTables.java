@@ -1,4 +1,3 @@
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -38,6 +37,10 @@ public class SymbolTables {
         return this.methods.get(methodIdentifier);
     }
 
+    public ImportDescriptor getImportDescriptor(String importedMethodIdentifier) {
+        return this.imports.get(importedMethodIdentifier);
+    }
+
     public void print() {
         for (Map.Entry<String, FunctionDescriptor> entry : this.methods.entrySet()) {
             System.out.println("Saved methods: " + entry.getKey());
@@ -46,5 +49,9 @@ public class SymbolTables {
 
 
         System.out.print("\n\n");
+    }
+
+    public String getClassName() {
+        return className;
     }
 }

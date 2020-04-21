@@ -108,7 +108,7 @@ public class ParserTest {
         test("fixtures/public/fail/semantic/arr_size_not_int.jmm", true);
     }
 
-    @Test
+   @Test
    public void testbadArguments() {
         test("fixtures/public/fail/semantic/badArguments.jmm", true);
    }

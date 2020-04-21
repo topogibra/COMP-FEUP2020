@@ -7,7 +7,7 @@ import org.junit.Test;
 
 public class ImportTest {
 
-    private static String CLASS_WITH_MAIN = "Main";
+    private static String CLASS_WITH_MAIN = "jmm";
 
 
     @Test

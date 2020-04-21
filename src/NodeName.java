@@ -19,4 +19,10 @@ public interface NodeName {
     String LENGTH = "Length";
     String THIS = "This";
     String METHODCALL = "MethodCall";
+    String ADD = "Add";
+    String SUB = "Sub";
+    String DIV = "Div";
+    String MUL = "Mul";
+    String AND = "And";
+    String LESS = "Less";
 }
