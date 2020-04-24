@@ -375,36 +375,52 @@ public class SemanticAnalyser {
         SimpleNode rightSide = (SimpleNode) simpleNode.jjtGetChildren()[1];
 
         String leftSideName = ParserTreeConstants.jjtNodeName[leftSide.getId()];
+        String leftType;
         switch (leftSideName) {
             case NodeName.ARRAYACCESS: {
                 if (!analyseArray(false, symbolTables, leftSide, functionDescriptor))
                     throw new SemanticException(leftSide);
+                leftType = "int";
                 break;
             }
             case NodeName.IDENTIFIER: {
-                if (!functionDescriptor.isDeclared(leftSide.jjtGetVal()))
-                    throw new SemanticException(leftSide);
-                break;
+                TypeDescriptor tmp = functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal());
+                if (tmp == null)
+                    throw new NotDeclared(leftSide);
+                else
+                    leftType = tmp.getTypeIdentifier();
+            break;
+            }
+            default:{
+                throw new SemanticException(simpleNode);
             }
         }
 
         if (isExpression(rightSide)) {
-            analyseExpression(symbolTables, rightSide, functionDescriptor);
+            String rightType = analyseExpression(symbolTables, rightSide, functionDescriptor);
+            if(!leftType.equals(rightType)){
+                throw new NotSameType(simpleNode);
+            }
             return;
         }
 
         String rightSideName = ParserTreeConstants.jjtNodeName[rightSide.getId()];
         switch (rightSideName) {
-            case NodeName.IDENTIFIER: {
+            case NodeName.IDENTIFIER: { // a = anothervar;
                 String rightSideValue = rightSide.jjtGetVal();
-                System.out.println("Rigth side: " + rightSideValue);
-                if (!functionDescriptor.isDeclared(rightSideValue))
-                    throw new SemanticException(rightSide);
+                System.out.println("Right side: " + rightSideValue);
+                TypeDescriptor tmp = functionDescriptor.getTypeDescriptor(rightSide.jjtGetVal());
+                if (tmp == null) //Not declared
+                    throw new NotDeclared(rightSide);
+                else if(!tmp.getTypeIdentifier().equals(leftType))
+                    throw new NotSameType(rightSide);
+
+
                 break;
             }
             case NodeName.DOTMETHOD: {
                 if (analyseDotMethod(symbolTables, rightSide, functionDescriptor) == null)
-                    throw new SemanticException(rightSide);
+                    throw new NotDeclared(rightSide);
                 break;
             }
             case NodeName.ARRAYACCESS:{
@@ -412,7 +428,18 @@ public class SemanticAnalyser {
                     throw new SemanticException(rightSide);
                 break;
             }
-
+            case NodeName.BOOLEAN:{
+                if(!leftType.equals(VarTypes.BOOLEAN)){
+                    throw new NotSameType(rightSide);
+                }
+                break;
+            }
+            case NodeName.INT:{
+                if(!leftType.equals(VarTypes.INT)){
+                    throw new NotSameType(rightSide);
+                }
+                break;
+            }
             case NodeName.NEW: {
                 SimpleNode childNode = (SimpleNode) rightSide.jjtGetChild(0);
                 String childNodeName = ParserTreeConstants.jjtNodeName[childNode.getId()];
