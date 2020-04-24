@@ -18,7 +18,7 @@ class Life {
 		int unused;
 
 		l = new Life();
-		l.init();
+		l.init();l = new Life();
 
         while (true) {
             l.printField();

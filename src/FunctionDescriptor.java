@@ -35,6 +35,7 @@ public class FunctionDescriptor {
     }
 
     public void addParam(String identifier, TypeDescriptor typeDescriptor) {
+        typeDescriptor.init = true;
         this.params.put(identifier, typeDescriptor);
     }
 
@@ -44,6 +45,10 @@ public class FunctionDescriptor {
 
     public boolean isDeclared(String identifier) {
         return this.scope.getVars().containsKey(identifier) || this.params.containsKey(identifier);
+    }
+
+    public Scope getScope() {
+        return scope;
     }
 
     public TypeDescriptor getTypeDescriptor(String identifier) {

@@ -3,26 +3,34 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Scope {
-    private final Scope parentScope;
     private final LinkedHashMap<String, TypeDescriptor> vars;
 
     public Scope(Scope parentScope) {
-        this.parentScope = parentScope;
         this.vars = new LinkedHashMap<>();
+
+        if (parentScope != null)
+            this.vars.putAll(parentScope.getVars());
+
     }
 
     public HashMap<String, TypeDescriptor> getVars() {
-
-        HashMap<String, TypeDescriptor> newHashMap = new HashMap<>(this.vars);
-
-        if (this.parentScope != null)
-            newHashMap.putAll(this.parentScope.getVars());
-
-        return newHashMap;
+        return this.vars;
     }
 
     public void addVar(String localIdentifier, TypeDescriptor typeDescriptor) {
         this.vars.put(localIdentifier, typeDescriptor);
+    }
+
+    public void setInit(String key, boolean inited){
+        TypeDescriptor var = this.vars.get(key);
+        if(var != null){
+            var.init = inited;
+        }
+    }
+
+    public boolean getInit(String key){
+        TypeDescriptor var = this.vars.get(key);
+        return (var != null) && var.init;
     }
 
     public void printScopeVars() {
