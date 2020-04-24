@@ -35,7 +35,7 @@ public class SemanticAnalyser {
         }
     }
 
-    public static void analyseMethod(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
+    public static void analyseMethod(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws SemanticException {
         Node[] children = simpleNode.jjtGetChildren();
 
         if (children == null)
@@ -45,33 +45,47 @@ public class SemanticAnalyser {
             SimpleNode child = (SimpleNode) node;
             String childName = ParserTreeConstants.jjtNodeName[child.getId()];
 
-            if (childName.equals(NodeName.METHODBODY)) {
+            if (childName.equals(NodeName.METHODBODY))
+                analyseMethodBody(symbolTables, child, functionDescriptor);
+        }
+    }
 
-                switch (ParserTreeConstants.jjtNodeName[child.getId()]) {
-                    case NodeName.ARRAYACCESS:
-                        if (!analyseArray(false, symbolTables, child, functionDescriptor))
-                            throw new SemanticException(child);
-                        break;
-                    case NodeName.ARRAYSIZE:
-                        if (!analyseArray(true, symbolTables, child, functionDescriptor))
-                            throw new SemanticException(child);
-                        break;
-                    case NodeName.DOTMETHOD:
-                        if (analyseDotMethod(symbolTables, child, functionDescriptor) == null)
-                            throw new SemanticException(child);
-                        break;
-                    case NodeName.ASSIGNMENT: {
-                        analyseAssignment(symbolTables, child, functionDescriptor);
-                        break;
+    public static void analyseMethodBody(SymbolTables symbolTables, SimpleNode methodBodyNode, FunctionDescriptor functionDescriptor) throws SemanticException {
+        System.out.print("Analysing Method Body...\n");
+        Node[] children = methodBodyNode.jjtGetChildren();
+
+        if (children == null)
+            return;
+
+        for (Node node : children) {
+            SimpleNode child = (SimpleNode) node;
+            String childName = ParserTreeConstants.jjtNodeName[child.getId()];
+
+            switch (childName) {
+                case NodeName.ARRAYACCESS:
+                    if (!analyseArray(false, symbolTables, child, functionDescriptor)) {
+                        throw new SemanticException(child);
                     }
-                    default:
-                        break;
+                    break;
+                case NodeName.ARRAYSIZE:
+                    if (!analyseArray(true, symbolTables, child, functionDescriptor)) {
+                        throw new SemanticException(child);
+                    }
+                    break;
+                case NodeName.DOTMETHOD:
+                    if (analyseDotMethod(symbolTables, child, functionDescriptor) == null) {
+                        throw new SemanticException(child);
+                    }
+                    break;
+                case NodeName.ASSIGNMENT: {
+                    System.out.print("Analysing Assignment...\n");
+                    analyseAssignment(symbolTables, child, functionDescriptor);
+                    break;
                 }
-
+                default:
+                    break;
             }
         }
-
-
     }
 
     public static String getMethodIdentifier(SimpleNode simpleNode) {
@@ -370,18 +384,20 @@ public class SemanticAnalyser {
             }
         }
 
-        String rigthSideValue = rightSide.jjtGetVal();
-        System.out.println("Rigth side: " + rigthSideValue);
-        if (!functionDescriptor.isDeclared(rigthSideValue))
-            throw new SemanticException(rightSide);
-
         if (isExpression(rightSide)) {
             analyseExpression(symbolTables, rightSide, functionDescriptor);
+            return;
         }
 
-
-        String rightSideName = ParserTreeConstants.jjtNodeName[leftSide.getId()];
+        String rightSideName = ParserTreeConstants.jjtNodeName[rightSide.getId()];
         switch (rightSideName) {
+            case NodeName.IDENTIFIER: {
+                String rightSideValue = rightSide.jjtGetVal();
+                System.out.println("Rigth side: " + rightSideValue);
+                if (!functionDescriptor.isDeclared(rightSideValue))
+                    throw new SemanticException(rightSide);
+                break;
+            }
             case NodeName.DOTMETHOD: {
                 if (analyseDotMethod(symbolTables, rightSide, functionDescriptor) == null)
                     throw new SemanticException(rightSide);
