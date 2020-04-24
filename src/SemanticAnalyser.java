@@ -401,19 +401,28 @@ public class SemanticAnalyser {
             case NodeName.DOTMETHOD: {
                 if (analyseDotMethod(symbolTables, rightSide, functionDescriptor) == null)
                     throw new SemanticException(rightSide);
+                break;
             }
+            case NodeName.ARRAYACCESS:{
+                if(!analyseArray(false, symbolTables, rightSide, functionDescriptor))
+                    throw new SemanticException(rightSide);
+                break;
+            }
+
             case NodeName.NEW: {
                 SimpleNode childNode = (SimpleNode) rightSide.jjtGetChild(0);
                 String childNodeName = ParserTreeConstants.jjtNodeName[childNode.getId()];
                 switch (childNodeName) {
-                    case NodeName.ARRAYACCESS: {
+                    case NodeName.ARRAYSIZE: { // new int[1]
                         if(!analyseArray(true, symbolTables, childNode, functionDescriptor))
                             throw new SemanticException(childNode);
                         break;
                     }
-                    case NodeName.IDENTIFIER: {
-                        if (!functionDescriptor.getTypeDescriptor(childNode.jjtGetVal()).getTypeIdentifier().equals(symbolTables.getClassName()))
+                    case NodeName.IDENTIFIER: { // new ClassName();
+                        if (!symbolTables.getClassName().equals(childNode.jjtGetVal())){
                             throw new SemanticException(childNode);
+                        }
+                        break;
                     }
                 }
 
