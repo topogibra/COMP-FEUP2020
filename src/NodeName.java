@@ -25,4 +25,6 @@ public interface NodeName {
     String MUL = "Mul";
     String AND = "And";
     String LESS = "Less";
+    String BOOLEAN = "Boolean";
+    String NOT = "Not";
 }

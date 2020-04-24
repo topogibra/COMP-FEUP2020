@@ -9,5 +9,6 @@ public class SemanticException extends Exception {
         this.beginColumn = simpleNode.jjtGetFirstToken().beginColumn;
         this.beginLine = simpleNode.jjtGetFirstToken().beginLine;
         this.endLine = simpleNode.jjtGetLastToken().endLine;
+        simpleNode.getParent().dump(" ");
     }
 }
