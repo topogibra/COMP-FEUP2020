@@ -29,4 +29,5 @@ public interface NodeName {
     String NOT = "Not";
     String NEW = "New";
     String EXTENDS = "Extends";
+    String ASSIGNMENT = "Assignment";
 }

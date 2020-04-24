@@ -112,46 +112,46 @@ public class ParserTest {
    public void testbadArguments() {
         test("fixtures/public/fail/semantic/badArguments.jmm", true);
    }
-//
-//    @Test
-//    public void testbinop_incomp() {
-//        test("fixtures/public/fail/semantic/binop_incomp.jmm", true);
-//    }
-//
-//    @Test
-//    public void testfuncNotFound() {
-//        test("fixtures/public/fail/semantic/funcNotFound.jmm", true);
-//    }
-//
-//    @Test
-//    public void testsimple_length() {
-//        test("fixtures/public/fail/semantic/simple_length.jmm", true);
-//    }
-//
-//    @Test
-//    public void testvar_exp_incomp() {
-//        test("fixtures/public/fail/semantic/var_exp_incomp.jmm", true);
-//    }
-//
-//    @Test
-//    public void testvar_lit_incomp() {
-//        test("fixtures/public/fail/semantic/var_lit_incomp.jmm", true);
-//    }
-//
-//    @Test
-//    public void testvar_undef() {
-//        test("fixtures/public/fail/semantic/var_undef.jmm", true);
-//    }
-//
-//    @Test
-//    public void testvarNotInit() {
-//        test("fixtures/public/fail/semantic/varNotInit.jmm", true);
-//    }
-//
-//    @Test
-//    public void testmiss_type() {
-//        test("fixtures/public/fail/semantic/extra/miss_type.jmm", true);
-//    }
+
+   @Test
+    public void testbinop_incomp() {
+       test("fixtures/public/fail/semantic/binop_incomp.jmm", true);
+    }
+
+    @Test
+    public void testfuncNotFound() {
+       test("fixtures/public/fail/semantic/funcNotFound.jmm", true);
+    }
+
+   @Test
+   public void testsimple_length() {
+        test("fixtures/public/fail/semantic/simple_length.jmm", true);
+    }
+
+   @Test
+   public void testvar_exp_incomp() {
+       test("fixtures/public/fail/semantic/var_exp_incomp.jmm", true);
+   }
+
+   @Test
+   public void testvar_lit_incomp() {
+      test("fixtures/public/fail/semantic/var_lit_incomp.jmm", true);
+    }
+
+   @Test
+    public void testvar_undef() {
+        test("fixtures/public/fail/semantic/var_undef.jmm", true);
+    }
+
+    @Test
+    public void testvarNotInit() {
+        test("fixtures/public/fail/semantic/varNotInit.jmm", true);
+    }
+
+   @Test
+   public void testmiss_type() {
+        test("fixtures/public/fail/semantic/extra/miss_type.jmm", true);
+    }
 
     @Test
     public void testBlowUp() {
