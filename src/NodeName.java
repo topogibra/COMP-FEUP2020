@@ -27,4 +27,5 @@ public interface NodeName {
     String LESS = "Less";
     String BOOLEAN = "Boolean";
     String NOT = "Not";
+    String NEW = "New";
 }

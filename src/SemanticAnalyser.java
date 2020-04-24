@@ -117,11 +117,17 @@ public class SemanticAnalyser {
     private static boolean isClassVariable(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) {
         String nodeName = ParserTreeConstants.jjtNodeName[simpleNode.getId()];
 
-        if (nodeName.equals(NodeName.THIS))
-            return true;
-        else if (nodeName.equals(NodeName.IDENTIFIER)) {
-            TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(simpleNode.jjtGetVal());
-            return typeDescriptor != null && typeDescriptor.getTypeIdentifier().equals(symbolTables.getClassName());
+        switch (nodeName) {
+            case NodeName.THIS:
+                return true;
+            case NodeName.IDENTIFIER: {
+                TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(simpleNode.jjtGetVal());
+                return typeDescriptor != null && typeDescriptor.getTypeIdentifier().equals(symbolTables.getClassName());
+            }
+            case NodeName.NEW: {
+                SimpleNode firstChild = (SimpleNode) simpleNode.jjtGetChildren()[0];
+                return firstChild.jjtGetVal().equals(symbolTables.getClassName());
+            }
         }
 
         return false;
