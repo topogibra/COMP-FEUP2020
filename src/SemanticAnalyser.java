@@ -1,5 +1,3 @@
-import java.net.FileNameMap;
-
 public class SemanticAnalyser {
     private static final int MAX_NUM_ERRORS = 10;
     private int num_errors = 0;
@@ -18,6 +16,10 @@ public class SemanticAnalyser {
                 String extendedClassName = ((SimpleNode) simpleNode.jjtGetChild(0)).jjtGetVal();
                 if (!symbolTables.isImportedClass(extendedClassName))
                     throw new SemanticException(simpleNode);
+                break;
+            }
+            case NodeName.VARDECLARATION:{
+                analyseVarDeclaration(symbolTables, simpleNode);
                 break;
             }
         }
@@ -45,9 +47,27 @@ public class SemanticAnalyser {
             SimpleNode child = (SimpleNode) node;
             String childName = ParserTreeConstants.jjtNodeName[child.getId()];
 
-            if (childName.equals(NodeName.METHODBODY))
+            if(childName.equals(NodeName.VARDECLARATION)){
+                analyseVarDeclaration(symbolTables, simpleNode);
+            }else if (childName.equals(NodeName.METHODBODY))
                 analyseMethodBody(symbolTables, child, functionDescriptor);
         }
+    }
+
+    private static void analyseVarDeclaration(SymbolTables symbolTables, SimpleNode simpleNode) throws NotValidType {
+        SimpleNode typeNode = (SimpleNode) simpleNode.jjtGetChild(0);
+
+        String type = typeNode.jjtGetVal();
+        switch (type){
+            case VarTypes.INT: case VarTypes.INTARRAY : case VarTypes.BOOLEAN:
+                break;
+            default:
+                if(!symbolTables.getClassName().equals(type)){
+                    throw new NotValidType(simpleNode);
+                }
+
+        }
+
     }
 
     public static void analyseMethodBody(SymbolTables symbolTables, SimpleNode methodBodyNode, FunctionDescriptor functionDescriptor) throws SemanticException {
