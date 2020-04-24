@@ -2,10 +2,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ImportDescriptor {
-    private String className;
-    private String methodName;
+    private String className = null;
+    private String methodName = null;
 
-    private TypeDescriptor returnType;
+    private TypeDescriptor returnType = null;
     private final List<TypeDescriptor> arguments;
     private boolean isStatic = false;
 
@@ -56,7 +56,10 @@ public class ImportDescriptor {
     public String getIdentifier() {
         StringBuilder stringBuilder = new StringBuilder();
 
-        stringBuilder.append(this.className).append(this.methodName);
+        stringBuilder.append(this.className);
+
+        if (this.methodName != null)
+            stringBuilder.append(this.methodName);
 
         for (TypeDescriptor typeDescriptor : this.arguments)
             stringBuilder.append(typeDescriptor.getTypeIdentifier());

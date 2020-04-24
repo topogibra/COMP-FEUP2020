@@ -28,4 +28,5 @@ public interface NodeName {
     String BOOLEAN = "Boolean";
     String NOT = "Not";
     String NEW = "New";
+    String EXTENDS = "Extends";
 }

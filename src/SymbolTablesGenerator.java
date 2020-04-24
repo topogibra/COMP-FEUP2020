@@ -19,7 +19,7 @@ public class SymbolTablesGenerator {
             }
         }
 
-//        symbolTables.print();
+        symbolTables.print();
         return symbolTables;
     }
 
@@ -64,6 +64,10 @@ public class SymbolTablesGenerator {
                     case NodeName.IDENTIFIER:
                         symbolTables.setClassName(child.jjtGetVal());
                         break;
+                    case NodeName.EXTENDS:
+                        String extendedClassName = ((SimpleNode) child.jjtGetChild(0)).jjtGetVal();
+                        symbolTables.setExtendedClass(extendedClassName);
+                        break;
                     case NodeName.VARDECLARATION:
                         Node[] grandchildren = child.jjtGetChildren();
                         symbolTables.addVar(((SimpleNode) grandchildren[1]).jjtGetVal(), new TypeDescriptor(((SimpleNode) grandchildren[0]).jjtGetVal()));
@@ -89,7 +93,7 @@ public class SymbolTablesGenerator {
                         functionDescriptor.setReturnType(child.jjtGetVal());
                         break;
                     case NodeName.IDENTIFIER:
-                        functionDescriptor.setIdentifier(child.jjtGetVal());
+                        functionDescriptor.setMethodName(child.jjtGetVal());
                         break;
                     case NodeName.ARGS:
                         parseFunctionArguments(functionDescriptor, child);

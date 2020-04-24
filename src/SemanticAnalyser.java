@@ -5,10 +5,20 @@ public class SemanticAnalyser {
 
     public static void analyse(SymbolTables symbolTables, SimpleNode simpleNode) throws Exception {
 
-        if (ParserTreeConstants.jjtNodeName[simpleNode.getId()].equals(NodeName.METHOD)) {
-            String methodIdentifier = getMethodIdentifier(simpleNode);
-            System.out.print("Method id: " + methodIdentifier + "\n");
-            analyseMethod(symbolTables, simpleNode, symbolTables.getFunctionDescriptor(methodIdentifier));
+        String nodeName = ParserTreeConstants.jjtNodeName[simpleNode.getId()];
+        switch (nodeName) {
+            case NodeName.METHOD: {
+                String methodIdentifier = getMethodIdentifier(simpleNode);
+                System.out.print("Method id: " + methodIdentifier + "\n");
+                analyseMethod(symbolTables, simpleNode, symbolTables.getFunctionDescriptor(methodIdentifier));
+                break;
+            }
+            case NodeName.EXTENDS: {
+                String extendedClassName = ((SimpleNode) simpleNode.jjtGetChild(0)).jjtGetVal();
+                if (!symbolTables.isImportedClass(extendedClassName))
+                    throw new SemanticException(simpleNode);
+                break;
+            }
         }
 
         Node[] children = simpleNode.jjtGetChildren();
@@ -122,7 +132,12 @@ public class SemanticAnalyser {
                 return true;
             case NodeName.IDENTIFIER: {
                 TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(simpleNode.jjtGetVal());
-                return typeDescriptor != null && typeDescriptor.getTypeIdentifier().equals(symbolTables.getClassName());
+                if (typeDescriptor != null) {
+                    String typeIdentifier = typeDescriptor.getTypeIdentifier();
+                    System.out.println("Type identifier: " + typeIdentifier);
+                    return typeIdentifier.equals(symbolTables.getClassName());
+                }
+                return false;
             }
             case NodeName.NEW: {
                 SimpleNode firstChild = (SimpleNode) simpleNode.jjtGetChildren()[0];

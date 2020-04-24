@@ -3,6 +3,7 @@ import java.util.Map;
 
 public class SymbolTables {
     private String className;
+    private String extendedClassName;
     private final LinkedHashMap<String, ImportDescriptor> imports;
     private final LinkedHashMap<String, FunctionDescriptor> methods;
     private final Scope scope;
@@ -42,13 +43,48 @@ public class SymbolTables {
     }
 
     public void print() {
+
+        System.out.print("\n\n");
+
         for (Map.Entry<String, FunctionDescriptor> entry : this.methods.entrySet()) {
             System.out.println("Saved methods: " + entry.getKey());
-            entry.getValue().printScope();
+            //entry.getValue().printScope();
+        }
+
+        System.out.print("\n\n");
+
+        for (Map.Entry<String, ImportDescriptor> entry : this.imports.entrySet()) {
+            System.out.println("Saved import: " + entry.getKey());
         }
 
 
         System.out.print("\n\n");
+    }
+
+    public void setExtendedClass(String extendedClassName) {
+        this.extendedClassName = extendedClassName;
+
+        for (Map.Entry<String, ImportDescriptor> entry : this.imports.entrySet()) {
+            ImportDescriptor importDescriptor = entry.getValue();
+            if (importDescriptor.getClassName().equals(extendedClassName) && importDescriptor.getMethodName() != null) {
+                FunctionDescriptor functionDescriptor = new FunctionDescriptor(this.scope);
+                functionDescriptor.setMethodName(importDescriptor.getMethodName());
+                functionDescriptor.setReturnType(importDescriptor.getReturnType().getTypeIdentifier());
+
+                int id = 0;
+                for (TypeDescriptor typeDescriptor : importDescriptor.getArguments()) {
+                    functionDescriptor.addParam(Integer.toString(id), typeDescriptor);
+                    id++;
+                }
+
+                this.methods.put(functionDescriptor.getIdentifier(), functionDescriptor);
+            }
+        }
+    }
+
+    public boolean isImportedClass(String extendedClassName) {
+        System.out.println("Exnted class name: " + extendedClassName);
+        return this.imports.containsKey(extendedClassName);
     }
 
     public String getClassName() {
