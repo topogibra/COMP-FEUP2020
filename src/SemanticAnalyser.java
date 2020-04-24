@@ -115,8 +115,10 @@ public class SemanticAnalyser {
                 return getMethodReturnType(symbolTables, secondChild, functionDescriptor);
         } else {
             ImportDescriptor importDescriptor = getImportedMethod(symbolTables, simpleNode, functionDescriptor);
-            if (importDescriptor != null)
+            if (importDescriptor != null) {
+                System.out.println("Import class: " + importDescriptor.getClassName() + "; Method: " + importDescriptor.getMethodName());
                 return importDescriptor.getReturnType().getTypeIdentifier();
+            }
             else if (secondChildName.equals(NodeName.LENGTH))
                 return "int";
         }

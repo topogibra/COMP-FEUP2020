@@ -5,12 +5,13 @@ public class ImportDescriptor {
     private String className = null;
     private String methodName = null;
 
-    private TypeDescriptor returnType = null;
+    private TypeDescriptor returnType;
     private final List<TypeDescriptor> arguments;
     private boolean isStatic = false;
 
     public ImportDescriptor() {
         this.arguments = new ArrayList<>();
+        this.returnType = new TypeDescriptor("void");
     }
 
     public String getClassName() {
