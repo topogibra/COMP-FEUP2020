@@ -129,10 +129,14 @@ public class SemanticAnalyser {
 
         String secondChildName = ParserTreeConstants.jjtNodeName[secondChild.getId()];
 
-        if (isClassVariable(symbolTables, firstChild, functionDescriptor)) {
+        if(isInteger(symbolTables,firstChild,functionDescriptor) || isBoolean(symbolTables,firstChild,functionDescriptor)){
+            throw new SemanticException(firstChild);
+        }
+
+        if (isClassVariable(symbolTables, firstChild, functionDescriptor)) { // [ClassName | new ClassName].method
             if (secondChildName.equals(NodeName.METHODCALL))
                 return getMethodReturnType(symbolTables, secondChild, functionDescriptor);
-        } else {
+        } else { // Call a method from an import
             ImportDescriptor importDescriptor = getImportedMethod(symbolTables, simpleNode, functionDescriptor);
             if (importDescriptor != null) {
                 System.out.println("Import class: " + importDescriptor.getClassName() + "; Method: " + importDescriptor.getMethodName());
