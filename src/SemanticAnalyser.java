@@ -1,6 +1,18 @@
+import java.util.ArrayList;
+
 public class SemanticAnalyser {
     private static final int MAX_NUM_ERRORS = 10;
-    private int num_errors = 0;
+    private static int no_error = 0;
+
+    public static void startAnalyse(SimpleNode root) throws Exception{
+        analyse(SymbolTablesGenerator.generate(root),root);
+
+        if (no_error > 0){
+            no_error = 0;
+            throw new Exception("Reached max number of semantic errors");
+        }
+        no_error = 0;
+    }
 
     public static void analyse(SymbolTables symbolTables, SimpleNode simpleNode) throws Exception {
 
@@ -14,8 +26,10 @@ public class SemanticAnalyser {
             }
             case NodeName.EXTENDS: {
                 String extendedClassName = ((SimpleNode) simpleNode.jjtGetChild(0)).jjtGetVal();
-                if (!symbolTables.isImportedClass(extendedClassName))
-                    throw new SemanticException(simpleNode);
+                if (!symbolTables.isImportedClass(extendedClassName)){
+                    addException(new SemanticException(simpleNode));
+                    return;
+                }
                 break;
             }
             case NodeName.VARDECLARATION: {
@@ -37,7 +51,15 @@ public class SemanticAnalyser {
         }
     }
 
-    public static void analyseMethod(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws SemanticException {
+    public static void addException(SemanticException exception) throws Exception {
+        System.err.println(exception.getMessage());
+        no_error++;
+        if (no_error >= MAX_NUM_ERRORS){
+            throw new Exception("Reached max number of semantic errors");
+        }
+    }
+
+    public static void analyseMethod(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
         Node[] children = simpleNode.jjtGetChildren();
 
         if (children == null)
@@ -54,7 +76,7 @@ public class SemanticAnalyser {
         }
     }
 
-    private static void analyseVarDeclaration(SymbolTables symbolTables, SimpleNode simpleNode) throws NotValidType {
+    private static void analyseVarDeclaration(SymbolTables symbolTables, SimpleNode simpleNode) throws Exception {
         SimpleNode typeNode = (SimpleNode) simpleNode.jjtGetChild(0);
 
         String type = typeNode.jjtGetVal();
@@ -65,14 +87,14 @@ public class SemanticAnalyser {
                 break;
             default:
                 if (!symbolTables.getClassName().equals(type)) {
-                    throw new NotValidType(simpleNode);
+                    addException(new NotValidType(simpleNode));
                 }
 
         }
 
     }
 
-    public static void analyseMethodBody(SymbolTables symbolTables, SimpleNode methodBodyNode, FunctionDescriptor functionDescriptor) throws SemanticException {
+    public static void analyseMethodBody(SymbolTables symbolTables, SimpleNode methodBodyNode, FunctionDescriptor functionDescriptor) throws Exception {
         System.out.print("Analysing Method Body...\n");
         Node[] children = methodBodyNode.jjtGetChildren();
 
@@ -86,17 +108,18 @@ public class SemanticAnalyser {
             switch (childName) {
                 case NodeName.ARRAYACCESS:
                     if (!analyseArray(false, symbolTables, child, functionDescriptor)) {
-                        throw new SemanticException(child);
+                        continue;
                     }
                     break;
                 case NodeName.ARRAYSIZE:
                     if (!analyseArray(true, symbolTables, child, functionDescriptor)) {
-                        throw new SemanticException(child);
+                        continue;
                     }
                     break;
                 case NodeName.DOTMETHOD:
                     if (analyseDotMethod(symbolTables, child, functionDescriptor) == null) {
-                        throw new SemanticException(child);
+                        addException(new SemanticException(child));
+                        continue;
                     }
                     break;
                 case NodeName.ASSIGNMENT: {
@@ -128,34 +151,45 @@ public class SemanticAnalyser {
         return stringBuilder.toString();
     }
 
-    public static boolean analyseArray(boolean isArraySize, SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws SemanticException {
+    public static boolean analyseArray(boolean isArraySize, SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
         SimpleNode firstChild = (SimpleNode) simpleNode.jjtGetChildren()[0];
 
         if (!isArraySize) { //Check if it is an array that's being accessed
             TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(firstChild.jjtGetVal());
-            if (typeDescriptor == null)
-                throw new NotDeclared(firstChild);
-            if (!typeDescriptor.isArray())
-                throw new ExpectedArray(firstChild,typeDescriptor.getTypeIdentifier());
+            if (typeDescriptor == null){
+                addException(new NotDeclared(firstChild));
+                return false;
+            }
+            if (!typeDescriptor.isArray()){
+                addException(new ExpectedArray(firstChild,typeDescriptor.getTypeIdentifier()));
+                return false;
+            }
             if (!typeDescriptor.isInit()) {
-                throw new VarNotInitialized(simpleNode);
+                addException(new VarNotInitialized(simpleNode));
+                return false;
             }
         }
 
         SimpleNode analysedChild = (SimpleNode) (isArraySize ? firstChild : simpleNode.jjtGetChildren()[1]);
 
         // Analyses if value inside array access is integer
-        return isInteger(symbolTables, analysedChild, functionDescriptor);
+        if (!isInteger(symbolTables, analysedChild, functionDescriptor)){
+            addException(new IndexNotInt(analysedChild));
+            return false;
+        }
+
+        return true;
     }
 
-    private static String analyseDotMethod(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws SemanticException {
+    private static String analyseDotMethod(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
         SimpleNode firstChild = (SimpleNode) simpleNode.jjtGetChildren()[0];
         SimpleNode secondChild = (SimpleNode) simpleNode.jjtGetChildren()[1];
 
         String secondChildName = ParserTreeConstants.jjtNodeName[secondChild.getId()];
 
         if (isInteger(symbolTables, firstChild, functionDescriptor, true) || isBoolean(symbolTables, firstChild, functionDescriptor,true)) {
-            throw new SemanticException(firstChild);
+            addException(new SemanticException(firstChild));
+            return "";
         }
 
         if (isClassVariable(symbolTables, firstChild, functionDescriptor)) { // [ClassName | new ClassName].method
@@ -196,13 +230,13 @@ public class SemanticAnalyser {
         return false;
     }
 
-    private static String getMethodReturnType(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws SemanticException {
+    private static String getMethodReturnType(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
         String methodIdentifier = parseMethodIdentifier(symbolTables, simpleNode, functionDescriptor);
         FunctionDescriptor methodDescriptor = symbolTables.getFunctionDescriptor(methodIdentifier);
         return (methodDescriptor == null) ? null : methodDescriptor.getReturnType();
     }
 
-    private static String parseMethodIdentifier(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws SemanticException {
+    private static String parseMethodIdentifier(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
         StringBuilder methodIdentifier = new StringBuilder();
 
         if (simpleNode.jjtGetChildren() == null || simpleNode.jjtGetChildren().length == 0)
@@ -211,8 +245,10 @@ public class SemanticAnalyser {
         SimpleNode firstChild = (SimpleNode) simpleNode.jjtGetChildren()[0];
         if (ParserTreeConstants.jjtNodeName[firstChild.getId()].equals(NodeName.METHODNAME))
             methodIdentifier.append(firstChild.jjtGetVal());
-        else
-            throw new SemanticException(simpleNode);
+        else{
+            addException(new SemanticException(simpleNode));
+            return "";
+        }
 
         if (simpleNode.jjtGetChildren().length > 1) { //Check if method call has arguments
 
@@ -237,7 +273,7 @@ public class SemanticAnalyser {
                             if (typeDescriptor != null)
                                 methodIdentifier.append(typeDescriptor.getTypeIdentifier());
                             else
-                                throw new SemanticException(grandChild);
+                                addException(new SemanticException(grandChild));
                             break;
                         }
                         case NodeName.DOTMETHOD: {
@@ -245,7 +281,7 @@ public class SemanticAnalyser {
                             if (returnType != null)
                                 methodIdentifier.append(returnType);
                             else
-                                throw new SemanticException(grandChild);
+                                addException(new SemanticException(grandChild));
                             break;
                         }
                         case NodeName.ARRAYACCESS: {
@@ -263,17 +299,17 @@ public class SemanticAnalyser {
                             break;
                         }
                         default:
-                            throw new SemanticException(grandChild);
+                            addException(new SemanticException(grandChild));
                     }
                 }
             } else
-                throw new SemanticException(simpleNode);
+                addException(new SemanticException(simpleNode));
         }
 
         return methodIdentifier.toString();
     }
 
-    private static ImportDescriptor getImportedMethod(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws SemanticException {
+    private static ImportDescriptor getImportedMethod(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
         SimpleNode firstChild = (SimpleNode) simpleNode.jjtGetChildren()[0];
         SimpleNode secondChild = (SimpleNode) simpleNode.jjtGetChildren()[1];
 
@@ -298,7 +334,7 @@ public class SemanticAnalyser {
         }
     }
 
-    private static String analyseExpression(SymbolTables symbolTables, SimpleNode expressionNode, FunctionDescriptor functionDescriptor) throws SemanticException {
+    private static String analyseExpression(SymbolTables symbolTables, SimpleNode expressionNode, FunctionDescriptor functionDescriptor) throws Exception {
 
         String nodeName = ParserTreeConstants.jjtNodeName[expressionNode.getId()];
         switch (nodeName) {
@@ -310,11 +346,15 @@ public class SemanticAnalyser {
                 SimpleNode firstChild = (SimpleNode) expressionNode.jjtGetChildren()[0];
                 SimpleNode secondChild = (SimpleNode) expressionNode.jjtGetChildren()[1];
 
-                if (!isInteger(symbolTables, firstChild, functionDescriptor))
-                    throw new SemanticException(firstChild);
+                if (!isInteger(symbolTables, firstChild, functionDescriptor)){
+                    addException(new SemanticException(firstChild));
+                    return "";
+                }
 
-                if (!isInteger(symbolTables, secondChild, functionDescriptor))
-                    throw new SemanticException(secondChild);
+                if (!isInteger(symbolTables, secondChild, functionDescriptor)){
+                    addException(new SemanticException(secondChild));
+                    return "";
+                }
 
                 return nodeName.equals(NodeName.LESS) ? VarTypes.BOOLEAN : VarTypes.INT;
             }
@@ -323,11 +363,13 @@ public class SemanticAnalyser {
                 SimpleNode secondChild = (SimpleNode) expressionNode.jjtGetChildren()[1];
 
                 if (!isBoolean(symbolTables, firstChild, functionDescriptor)) {
-                    throw new SemanticException(firstChild);
+                    addException(new SemanticException(firstChild));
+                    return "";
                 }
 
                 if (!isBoolean(symbolTables, secondChild, functionDescriptor)) {
-                    throw new SemanticException(secondChild);
+                    addException(new SemanticException(secondChild));
+                    return "";
                 }
 
                 return VarTypes.BOOLEAN;
@@ -335,16 +377,18 @@ public class SemanticAnalyser {
             case NodeName.NOT: {
                 SimpleNode firstChild = (SimpleNode) expressionNode.jjtGetChildren()[0];
                 if (!isBoolean(symbolTables, firstChild, functionDescriptor)) {
-                    throw new SemanticException(firstChild);
+                    addException(new SemanticException(firstChild));
+                    return "";
                 }
                 return VarTypes.BOOLEAN;
             }
         }
 
-        throw new SemanticException(expressionNode);
+        addException(new SemanticException(expressionNode));
+        return "";
     }
 
-    private static boolean isInteger(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor, boolean ignore_init) throws SemanticException {
+    private static boolean isInteger(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor, boolean ignore_init) throws Exception {
         String nodeName = ParserTreeConstants.jjtNodeName[simpleNode.getId()];
 
         if (isExpression(simpleNode)) {
@@ -358,10 +402,14 @@ public class SemanticAnalyser {
             case NodeName.IDENTIFIER: {
                 TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(simpleNode.jjtGetVal());
                 if (!ignore_init) {
-                    if (typeDescriptor == null)
-                        throw new NotDeclared(simpleNode);
-                    if (!typeDescriptor.isInit())
-                        throw new VarNotInitialized(simpleNode);
+                    if (typeDescriptor == null){
+                        addException(new NotDeclared(simpleNode));
+                        return false;
+                    }
+                    if (!typeDescriptor.isInit()){
+                        addException(new VarNotInitialized(simpleNode));
+                        return false;
+                    }
                     return typeDescriptor.getTypeIdentifier().equals(VarTypes.INT);
                 }
                 break;
@@ -379,7 +427,7 @@ public class SemanticAnalyser {
         return false;
     }
 
-    private static boolean isBoolean(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor, boolean ignore_init) throws SemanticException {
+    private static boolean isBoolean(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor, boolean ignore_init) throws Exception {
         String nodeName = ParserTreeConstants.jjtNodeName[simpleNode.getId()];
 
         if (isExpression(simpleNode)) {
@@ -395,8 +443,10 @@ public class SemanticAnalyser {
                 if (!ignore_init) {
                     if (typeDescriptor == null)
                         return false;
-                    if (!typeDescriptor.isInit())
-                        throw new VarNotInitialized(simpleNode);
+                    if (!typeDescriptor.isInit()){
+                        addException(new VarNotInitialized(simpleNode));
+                        return false;
+                    }
                     return typeDescriptor.getTypeIdentifier().equals(VarTypes.BOOLEAN);
                 }
                 break;
@@ -409,16 +459,16 @@ public class SemanticAnalyser {
         return false;
     }
 
-    private static boolean isBoolean(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws SemanticException {
+    private static boolean isBoolean(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
         return isBoolean(symbolTables, simpleNode, functionDescriptor, false);
     }
 
-    private static boolean isInteger(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws SemanticException {
+    private static boolean isInteger(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
         return isInteger(symbolTables, simpleNode, functionDescriptor, false);
     }
 
 
-    private static void analyseAssignment(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws SemanticException {
+    private static void analyseAssignment(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
         SimpleNode leftSide = (SimpleNode) simpleNode.jjtGetChildren()[0];
         SimpleNode rightSide = (SimpleNode) simpleNode.jjtGetChildren()[1];
 
@@ -426,28 +476,33 @@ public class SemanticAnalyser {
         String leftType;
         switch (leftSideName) {
             case NodeName.ARRAYACCESS: {
-                if (!analyseArray(false, symbolTables, leftSide, functionDescriptor))
-                    throw new SemanticException(leftSide);
+                if (!analyseArray(false, symbolTables, leftSide, functionDescriptor)){
+                    return;
+                }
                 leftType = VarTypes.INT;
                 break;
             }
             case NodeName.IDENTIFIER: {
                 TypeDescriptor tmp = functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal());
-                if (tmp == null)
-                    throw new NotDeclared(leftSide);
+                if (tmp == null){
+                    addException(new NotDeclared(leftSide));
+                    return;
+                }
                 else
                     leftType = tmp.getTypeIdentifier();
                 break;
             }
             default: {
-                throw new SemanticException(simpleNode);
+                addException(new SemanticException(simpleNode));
+                return;
             }
         }
 
         if (isExpression(rightSide)) {
             String rightType = analyseExpression(symbolTables, rightSide, functionDescriptor);
             if (!leftType.equals(rightType)) {
-                throw new NotSameType(simpleNode,leftType,rightType);
+                addException(new NotSameType(simpleNode,leftType,rightType));
+                return;
             }
 
             functionDescriptor.getScope().setInit(leftSide.jjtGetVal(), true);
@@ -460,41 +515,51 @@ public class SemanticAnalyser {
                 String rightSideValue = rightSide.jjtGetVal();
                 System.out.println("Right side: " + rightSideValue);
                 TypeDescriptor tmp = functionDescriptor.getTypeDescriptor(rightSide.jjtGetVal());
-                if (tmp == null) //Not declared
-                    throw new NotDeclared(rightSide);
-                String rightType = tmp.getTypeIdentifier();
-                if (!rightType.equals(leftType))
-                    throw new NotSameType(rightSide,leftType,rightType);
-                else if (!tmp.isInit()){
-                    throw new VarNotInitialized(rightSide);
+                if (tmp == null){ //Not declared
+                    addException(new NotDeclared(rightSide));
+                    return;
                 }
 
+                String rightType = tmp.getTypeIdentifier();
+                if (!rightType.equals(leftType)){
+                    addException( new NotSameType(rightSide,leftType,rightType));
+                    return;
+                }
+                else if (!tmp.isInit()){
+                    addException(new VarNotInitialized(rightSide));
+                    return;
+                }
                 break;
             }
             case NodeName.DOTMETHOD: {
                 String returnType = analyseDotMethod(symbolTables, rightSide, functionDescriptor);
-                if ( returnType == null)
-                    throw new NotDeclared(rightSide);
+                if ( returnType == null){
+                    addException(new NotDeclared(rightSide));
+                    return;
+                }
                 else if (!returnType.equals(leftType)){
-                    throw new NotSameType(simpleNode,leftType,returnType);
+                    addException(new NotSameType(simpleNode,leftType,returnType));
+                    return;
                 }
                 break;
             }
             case NodeName.ARRAYACCESS: {
-                if (!analyseArray(false, symbolTables, rightSide, functionDescriptor))
-                    throw new SemanticException(rightSide);
-
+                if (!analyseArray(false, symbolTables, rightSide, functionDescriptor)){
+                    return;
+                }
                 break;
             }
             case NodeName.BOOLEAN: {
                 if (!leftType.equals(VarTypes.BOOLEAN)) {
-                    throw new NotSameType(rightSide,leftType,VarTypes.BOOLEAN);
+                    addException(new NotSameType(rightSide,leftType,VarTypes.BOOLEAN));
+                    return;
                 }
                 break;
             }
             case NodeName.INT: {
                 if (!leftType.equals(VarTypes.INT)) {
-                    throw new NotSameType(rightSide,leftType,VarTypes.INT);
+                    addException(new NotSameType(rightSide,leftType,VarTypes.INT));
+                    return;
                 }
                 break;
             }
@@ -504,12 +569,13 @@ public class SemanticAnalyser {
                 switch (childNodeName) {
                     case NodeName.ARRAYSIZE: { // new int[1]
                         if (!analyseArray(true, symbolTables, childNode, functionDescriptor))
-                            throw new SemanticException(childNode);
+                            return;
                         break;
                     }
                     case NodeName.IDENTIFIER: { // new ClassName();
                         if (!symbolTables.getClassName().equals(childNode.jjtGetVal())) {
-                            throw new SemanticException(childNode);
+                            addException(new SemanticException(childNode));
+                            return;
                         }
                         break;
                     }
@@ -517,7 +583,8 @@ public class SemanticAnalyser {
                 break;
             }
             default: {
-                throw new SemanticException(simpleNode);
+                addException(new SemanticException(simpleNode));
+                return;
             }
 
         }

@@ -14,7 +14,6 @@ public class jmm {
             System.err.println("Usage: java jmm <file_name>");
             return;
         }
-
         //Reading file with InputStream
         //The file is passed as argument (1st argument)
         File file = new File(args[0]);
@@ -35,7 +34,7 @@ public class jmm {
         try {
             root = parser.parseProgram(args[0]);
             root.dump("");
-            SemanticAnalyser.analyse(SymbolTablesGenerator.generate(root), root);
+            SemanticAnalyser.startAnalyse(root);
         } catch (Exception e) {
             System.err.println(e.getMessage());
             throw new Exception();
