@@ -29,16 +29,19 @@ public class SemanticException extends Exception {
         return this.messages;
     }
 
-    public static String printTokenErrorMessage(Token firstToken, Token lastToken, String message) {
+    public String printTokenErrorMessage(Token firstToken, Token lastToken, String message) {
         int line = firstToken.beginLine;
         int col = firstToken.beginColumn;
-
+        String path = jmm.filepath.toAbsolutePath().toString();
+        String classname = this.getClass().toString().substring(6);
         StringBuilder errorMessage = new StringBuilder();
-        errorMessage.append(message);
-        errorMessage.append(": line " + line + ", column " + col + ":\n");
+        errorMessage.append(path).append(":");
+        errorMessage.append(line);
+        errorMessage.append(": error: ");
+        errorMessage.append(classname).append(": \n");
 
         try {
-            FileInputStream fileStream = new FileInputStream(jmm.filepath);
+            FileInputStream fileStream = new FileInputStream(path);
             InputStreamReader inputStream = new InputStreamReader(fileStream);
             BufferedReader reader = new BufferedReader(inputStream);
 
