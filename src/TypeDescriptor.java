@@ -1,11 +1,15 @@
 public class TypeDescriptor {
     private final String typeIdentifier;
-    protected boolean isArray = false;
-    protected boolean init;
+    private boolean isArray = false;
+    private boolean init;
 
     public TypeDescriptor(String typeIdentifier) {
         this.typeIdentifier = typeIdentifier;
         this.init = false;
+
+
+       if (this.typeIdentifier.equals("int[]"))
+            this.isArray = true;
     }
 
     public String getTypeIdentifier() {

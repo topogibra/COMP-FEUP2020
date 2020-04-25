@@ -41,12 +41,9 @@ public class SymbolTablesGenerator {
                     case NodeName.METHODNAME:
                         importDescriptor.setMethodName(child.jjtGetVal());
                         break;
-                    case NodeName.ARGTYPE: {
-                        String type = child.jjtGetVal();
-                        if (!type.equals(VarTypes.VOID))
-                            importDescriptor.addArgument(new TypeDescriptor(child.jjtGetVal()));
+                    case NodeName.ARGTYPE:
+                        importDescriptor.addArgument(new TypeDescriptor(child.jjtGetVal()));
                         break;
-                    }
                     case NodeName.RETURNTYPE:
                         importDescriptor.setReturnType(new TypeDescriptor(child.jjtGetVal()));
                 }
@@ -73,13 +70,7 @@ public class SymbolTablesGenerator {
                         break;
                     case NodeName.VARDECLARATION:
                         Node[] grandchildren = child.jjtGetChildren();
-                        String type = ((SimpleNode) grandchildren[0]).jjtGetVal();
-                        TypeDescriptor typeDescriptor;
-                        if (type.equals(VarTypes.INTARRAY))
-                            typeDescriptor = new ArrayDescriptor(type);
-                        else
-                            typeDescriptor = new TypeDescriptor(type);
-                        symbolTables.addVar(((SimpleNode) grandchildren[1]).jjtGetVal(), typeDescriptor);
+                        symbolTables.addVar(((SimpleNode) grandchildren[1]).jjtGetVal(), new TypeDescriptor(((SimpleNode) grandchildren[0]).jjtGetVal()));
                         break;
                     case NodeName.METHOD:
                         symbolTables.addMethod(createFunctionDescriptor(child, symbolTables.getScope()));
@@ -125,14 +116,7 @@ public class SymbolTablesGenerator {
 
             if (child != null) {
                 Node[] grandchildren = child.jjtGetChildren();
-                String type = ((SimpleNode) grandchildren[0]).jjtGetVal();
-                TypeDescriptor typeDescriptor;
-                if (type.equals(VarTypes.INTARRAY))
-                    typeDescriptor = new ArrayDescriptor(type);
-                else
-                    typeDescriptor = new TypeDescriptor(type);
-
-                functionDescriptor.addParam(((SimpleNode) grandchildren[1]).jjtGetVal(), typeDescriptor);
+                functionDescriptor.addParam( ((SimpleNode) grandchildren[1]).jjtGetVal(), new TypeDescriptor( ((SimpleNode) grandchildren[0]).jjtGetVal()) );
             }
         }
     }
@@ -146,13 +130,7 @@ public class SymbolTablesGenerator {
             if (child != null) {
                 if (ParserTreeConstants.jjtNodeName[child.getId()].equals(NodeName.VARDECLARATION)) {
                     Node[] grandchildren = child.jjtGetChildren();
-                    String type = ((SimpleNode) grandchildren[0]).jjtGetVal();
-                    TypeDescriptor typeDescriptor;
-                    if (type.equals(VarTypes.INTARRAY))
-                        typeDescriptor = new ArrayDescriptor(type);
-                    else
-                        typeDescriptor = new TypeDescriptor(type);
-                    functionDescriptor.addVar(((SimpleNode) grandchildren[1]).jjtGetVal(), typeDescriptor);
+                    functionDescriptor.addVar(((SimpleNode) grandchildren[1]).jjtGetVal(), new TypeDescriptor(((SimpleNode) grandchildren[0]).jjtGetVal()));
                 }
             }
         }
