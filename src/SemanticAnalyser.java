@@ -27,7 +27,7 @@ public class SemanticAnalyser {
             case NodeName.EXTENDS: {
                 String extendedClassName = ((SimpleNode) simpleNode.jjtGetChild(0)).jjtGetVal();
                 if (!symbolTables.isImportedClass(extendedClassName)){
-                    addException(new SemanticException(simpleNode));
+                    addException(new SemanticException(simpleNode)); // TODO Make the exception more specific
                     return;
                 }
                 break;
@@ -118,7 +118,7 @@ public class SemanticAnalyser {
                     break;
                 case NodeName.DOTMETHOD:
                     if (analyseDotMethod(symbolTables, child, functionDescriptor) == null) {
-                        addException(new SemanticException(child));
+                        addException(new SemanticException(child)); // TODO Make the exception more specific
                         continue;
                     }
                     break;
@@ -246,7 +246,7 @@ public class SemanticAnalyser {
         if (ParserTreeConstants.jjtNodeName[firstChild.getId()].equals(NodeName.METHODNAME))
             methodIdentifier.append(firstChild.jjtGetVal());
         else{
-            addException(new SemanticException(simpleNode));
+            addException(new SemanticException(simpleNode)); // TODO Make the exception more specific
             return "";
         }
 
@@ -273,7 +273,7 @@ public class SemanticAnalyser {
                             if (typeDescriptor != null)
                                 methodIdentifier.append(typeDescriptor.getTypeIdentifier());
                             else
-                                addException(new SemanticException(grandChild));
+                                addException(new SemanticException(grandChild)); // TODO Make the exception more specific
                             break;
                         }
                         case NodeName.DOTMETHOD: {
@@ -281,7 +281,7 @@ public class SemanticAnalyser {
                             if (returnType != null)
                                 methodIdentifier.append(returnType);
                             else
-                                addException(new SemanticException(grandChild));
+                                addException(new SemanticException(grandChild)); // TODO Make the exception more specific
                             break;
                         }
                         case NodeName.ARRAYACCESS: {
@@ -299,11 +299,11 @@ public class SemanticAnalyser {
                             break;
                         }
                         default:
-                            addException(new SemanticException(grandChild));
+                            addException(new SemanticException(grandChild)); // TODO Make the exception more specific
                     }
                 }
             } else
-                addException(new SemanticException(simpleNode));
+                addException(new SemanticException(simpleNode)); // TODO Make the exception more specific
         }
 
         return methodIdentifier.toString();
@@ -347,12 +347,12 @@ public class SemanticAnalyser {
                 SimpleNode secondChild = (SimpleNode) expressionNode.jjtGetChildren()[1];
 
                 if (!isInteger(symbolTables, firstChild, functionDescriptor)){
-                    addException(new SemanticException(firstChild));
+                    addException(new SemanticException(firstChild)); // TODO Make the exception more specific
                     return "";
                 }
 
                 if (!isInteger(symbolTables, secondChild, functionDescriptor)){
-                    addException(new SemanticException(secondChild));
+                    addException(new SemanticException(secondChild)); // TODO Make the exception more specific
                     return "";
                 }
 
@@ -363,12 +363,12 @@ public class SemanticAnalyser {
                 SimpleNode secondChild = (SimpleNode) expressionNode.jjtGetChildren()[1];
 
                 if (!isBoolean(symbolTables, firstChild, functionDescriptor)) {
-                    addException(new SemanticException(firstChild));
+                    addException(new SemanticException(firstChild)); // TODO Make the exception more specific
                     return "";
                 }
 
                 if (!isBoolean(symbolTables, secondChild, functionDescriptor)) {
-                    addException(new SemanticException(secondChild));
+                    addException(new SemanticException(secondChild)); // TODO Make the exception more specific
                     return "";
                 }
 
@@ -377,14 +377,14 @@ public class SemanticAnalyser {
             case NodeName.NOT: {
                 SimpleNode firstChild = (SimpleNode) expressionNode.jjtGetChildren()[0];
                 if (!isBoolean(symbolTables, firstChild, functionDescriptor)) {
-                    addException(new SemanticException(firstChild));
+                    addException(new SemanticException(firstChild)); // TODO Make the exception more specific
                     return "";
                 }
                 return VarTypes.BOOLEAN;
             }
         }
 
-        addException(new SemanticException(expressionNode));
+        addException(new SemanticException(expressionNode)); // TODO Make the exception more specific
         return "";
     }
 
@@ -493,7 +493,7 @@ public class SemanticAnalyser {
                 break;
             }
             default: {
-                addException(new SemanticException(simpleNode));
+                addException(new SemanticException(simpleNode)); // TODO Make the exception more specific
                 return;
             }
         }
@@ -574,7 +574,7 @@ public class SemanticAnalyser {
                     }
                     case NodeName.IDENTIFIER: { // new ClassName();
                         if (!symbolTables.getClassName().equals(childNode.jjtGetVal())) {
-                            addException(new SemanticException(childNode));
+                            addException(new SemanticException(childNode)); // TODO Make the exception more specific
                             return;
                         }
                         break;
@@ -583,7 +583,7 @@ public class SemanticAnalyser {
                 break;
             }
             default: {
-                addException(new SemanticException(simpleNode));
+                addException(new SemanticException(simpleNode)); // TODO Make the exception more specific
                 return;
             }
 
