@@ -16,9 +16,8 @@ public class SemanticException extends Exception {
 
     public SemanticException(SimpleNode simpleNode,String errormessage) {
         super();
-        SimpleNode tmp = (simpleNode.getParent() == null) ? simpleNode : simpleNode.getParent();
         this.simpleNode = simpleNode;
-        this.messages = printTokenErrorMessage(tmp.jjtGetFirstToken(),tmp.jjtGetLastToken(),errormessage);
+        this.messages = printTokenErrorMessage(simpleNode.jjtGetFirstToken(), simpleNode.jjtGetLastToken(),errormessage);
 
 
         //simpleNode.getParent().dump(" ");
@@ -33,12 +32,12 @@ public class SemanticException extends Exception {
         int line = firstToken.beginLine;
         int col = firstToken.beginColumn;
         String path = jmm.filepath.toAbsolutePath().toString();
-        String classname = this.getClass().toString().substring(6);
+        String classname = this.getClass().toString().substring(6).toLowerCase();
         StringBuilder errorMessage = new StringBuilder();
         errorMessage.append(path).append(":");
         errorMessage.append(line);
         errorMessage.append(": error: ");
-        errorMessage.append(classname).append(": \n");
+        errorMessage.append(classname).append(": ").append(message).append(": \n");
 
         try {
             FileInputStream fileStream = new FileInputStream(path);
@@ -56,10 +55,10 @@ public class SemanticException extends Exception {
             return "";
         }
 
-        for (int i = 0; i < col - 1; i++)
+        for (int i = 0; i < col -2; i++)
             errorMessage.append(" ");
 
-        for (int i=0; i < Math.abs(col - lastToken.endColumn - 1); i++){
+        for (int i=0; i < Math.abs(col - lastToken.endColumn); i++){
             errorMessage.append("^");
         }
 

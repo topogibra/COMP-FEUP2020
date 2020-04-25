@@ -3,7 +3,7 @@ class HelloWorld {
 	public static void main(String[] args) {
 	    boolean j;
 	    boolean i;
-	    i = ioPlus.printHelloWorld();
+	    i = j[1];
 	    j = i;
 	    i = true;
 

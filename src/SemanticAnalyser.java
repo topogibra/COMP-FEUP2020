@@ -136,8 +136,8 @@ public class SemanticAnalyser {
             if (typeDescriptor == null)
                 throw new NotDeclared(firstChild);
             if (!typeDescriptor.isArray())
-                throw new ExpectedArray(simpleNode);
-            if (!typeDescriptor.isInit()) { //TODO: Make initialized check for all the entries in the array
+                throw new ExpectedArray(firstChild,typeDescriptor.getTypeIdentifier());
+            if (!typeDescriptor.isInit()) {
                 throw new VarNotInitialized(simpleNode);
             }
         }
@@ -476,7 +476,7 @@ public class SemanticAnalyser {
                 if ( returnType == null)
                     throw new NotDeclared(rightSide);
                 else if (!returnType.equals(leftType)){
-                    throw new NotSameType(rightSide,leftType,returnType);
+                    throw new NotSameType(simpleNode,leftType,returnType);
                 }
                 break;
             }
