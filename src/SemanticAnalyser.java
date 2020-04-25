@@ -137,7 +137,7 @@ public class SemanticAnalyser {
                 throw new NotDeclared(firstChild);
             if (!typeDescriptor.isArray())
                 throw new ExpectedArray(simpleNode);
-            if (!functionDescriptor.getScope().getInit(firstChild.jjtGetVal())) { //TODO: Make initialized check for all the entries in the array
+            if (!typeDescriptor.isInit()) { //TODO: Make initialized check for all the entries in the array
                 throw new VarNotInitialized(simpleNode);
             }
         }
@@ -360,10 +360,8 @@ public class SemanticAnalyser {
                 if (!ignore_init) {
                     if (typeDescriptor == null)
                         throw new NotDeclared(simpleNode);
-                    if (!functionDescriptor.getScope().getInit(simpleNode.jjtGetVal())) {
-                        System.out.println("Vallll: " + simpleNode.jjtGetVal());
+                    if (!typeDescriptor.isInit())
                         throw new VarNotInitialized(simpleNode);
-                    }
                     return typeDescriptor.getTypeIdentifier().equals("int");
                 }
                 break;
@@ -441,6 +439,7 @@ public class SemanticAnalyser {
             if (!leftType.equals(rightType)) {
                 throw new NotSameType(simpleNode);
             }
+
             functionDescriptor.getScope().setInit(leftSide.jjtGetVal(), true);
             return;
         }

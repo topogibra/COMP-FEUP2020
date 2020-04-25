@@ -23,14 +23,9 @@ public class Scope {
 
     public void setInit(String key, boolean inited){
         TypeDescriptor var = this.vars.get(key);
-        if(var != null){
-            var.init = inited;
+        if(var != null) {
+            var.setInit(inited);
         }
-    }
-
-    public boolean getInit(String key){
-        TypeDescriptor var = this.vars.get(key);
-        return (var != null) && var.init;
     }
 
     public void printScopeVars() {

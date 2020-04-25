@@ -1,7 +1,7 @@
 public class TypeDescriptor {
     private final String typeIdentifier;
     private boolean isArray = false;
-    public boolean init;
+    private boolean init;
 
     public TypeDescriptor(String typeIdentifier) {
         this.typeIdentifier = typeIdentifier;
@@ -18,5 +18,13 @@ public class TypeDescriptor {
 
     public boolean isArray() {
         return isArray;
+    }
+
+    public boolean isInit() {
+        return init;
+    }
+
+    public void setInit(boolean init) {
+        this.init = init;
     }
 }

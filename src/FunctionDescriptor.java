@@ -35,7 +35,7 @@ public class FunctionDescriptor {
     }
 
     public void addParam(String identifier, TypeDescriptor typeDescriptor) {
-        typeDescriptor.init = true;
+        typeDescriptor.setInit(true);
         this.params.put(identifier, typeDescriptor);
     }
 
