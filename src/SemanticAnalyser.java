@@ -143,7 +143,6 @@ public class SemanticAnalyser {
         }
 
         SimpleNode analysedChild = (SimpleNode) (isArraySize ? firstChild : simpleNode.jjtGetChildren()[1]);
-        String nodeName = ParserTreeConstants.jjtNodeName[analysedChild.getId()];
 
         // Analyses if value inside array access is integer
         return isInteger(symbolTables, analysedChild, functionDescriptor);
@@ -362,6 +361,7 @@ public class SemanticAnalyser {
                     if (typeDescriptor == null)
                         throw new NotDeclared(simpleNode);
                     if (!functionDescriptor.getScope().getInit(simpleNode.jjtGetVal())) {
+                        System.out.println("Vallll: " + simpleNode.jjtGetVal());
                         throw new VarNotInitialized(simpleNode);
                     }
                     return typeDescriptor.getTypeIdentifier().equals("int");

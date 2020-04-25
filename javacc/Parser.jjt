@@ -92,6 +92,7 @@ TOKEN :
     | <INT_ARR : "int[]">
     | <BOOL : "boolean">
     | <STRING : "String">
+    | <VOID : "void">
 }
 
 //Dedicated words
@@ -103,7 +104,6 @@ TOKEN :
     | <PUBLIC : "public">
     | <RETURN : "return">
     | <STATIC : "static">
-    | <VOID : "void">
     | <MAIN : "main">
     | <IF : "if">
     | <ELSE : "else">
