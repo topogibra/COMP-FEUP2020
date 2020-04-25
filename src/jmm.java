@@ -5,11 +5,14 @@ import java.io.InputStream;
 
 public class jmm {
 
+    public static String filepath;
+
     public static void main(String[] args) throws Exception {
         if (args.length != 1) {
             System.err.println("Usage: java jmm <file_name>");
             return;
         }
+
 
         //Reading file with InputStream
         //The file is passed as argument (1st argument)
@@ -22,6 +25,8 @@ public class jmm {
             System.out.println("File not Found.");
             return;
         }
+
+        jmm.filepath = args[0];
 
         Parser parser = new Parser(input);
 

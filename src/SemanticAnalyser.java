@@ -447,7 +447,7 @@ public class SemanticAnalyser {
         if (isExpression(rightSide)) {
             String rightType = analyseExpression(symbolTables, rightSide, functionDescriptor);
             if (!leftType.equals(rightType)) {
-                throw new NotSameType(simpleNode);
+                throw new NotSameType(simpleNode,leftType,rightType);
             }
 
             functionDescriptor.getScope().setInit(leftSide.jjtGetVal(), true);
@@ -462,8 +462,9 @@ public class SemanticAnalyser {
                 TypeDescriptor tmp = functionDescriptor.getTypeDescriptor(rightSide.jjtGetVal());
                 if (tmp == null) //Not declared
                     throw new NotDeclared(rightSide);
-                else if (!tmp.getTypeIdentifier().equals(leftType)) // TODO check returtype of import
-                    throw new NotSameType(rightSide);
+                String rightType = tmp.getTypeIdentifier();
+                if (!rightType.equals(leftType))
+                    throw new NotSameType(rightSide,leftType,rightType);
                 else if (!tmp.isInit()){
                     throw new VarNotInitialized(rightSide);
                 }
@@ -475,7 +476,7 @@ public class SemanticAnalyser {
                 if ( returnType == null)
                     throw new NotDeclared(rightSide);
                 else if (!returnType.equals(leftType)){
-                    throw new NotSameType(rightSide);
+                    throw new NotSameType(rightSide,leftType,returnType);
                 }
                 break;
             }
@@ -487,13 +488,13 @@ public class SemanticAnalyser {
             }
             case NodeName.BOOLEAN: {
                 if (!leftType.equals(VarTypes.BOOLEAN)) {
-                    throw new NotSameType(rightSide);
+                    throw new NotSameType(rightSide,leftType,VarTypes.BOOLEAN);
                 }
                 break;
             }
             case NodeName.INT: {
                 if (!leftType.equals(VarTypes.INT)) {
-                    throw new NotSameType(rightSide);
+                    throw new NotSameType(rightSide,leftType,VarTypes.INT);
                 }
                 break;
             }
