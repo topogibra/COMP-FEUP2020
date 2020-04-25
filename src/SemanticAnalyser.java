@@ -137,7 +137,7 @@ public class SemanticAnalyser {
                 throw new NotDeclared(firstChild);
             if (!typeDescriptor.isArray())
                 throw new ExpectedArray(simpleNode);
-            if (!typeDescriptor.isInit()) { //TODO: Make initialized check for all the entries in the array
+            if (!typeDescriptor.isInit()) {
                 throw new VarNotInitialized(simpleNode);
             }
         }
@@ -399,6 +399,8 @@ public class SemanticAnalyser {
                 TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(simpleNode.jjtGetVal());
                 if (typeDescriptor == null)
                     return false;
+                else if (typeDescriptor.isInit())
+                    throw new VarNotInitialized(simpleNode);
                 else return typeDescriptor.getTypeIdentifier().equals("boolean");
             case NodeName.DOTMETHOD:
                 String returnType = analyseDotMethod(symbolTables, simpleNode, functionDescriptor);
@@ -412,12 +414,16 @@ public class SemanticAnalyser {
         SimpleNode leftSide = (SimpleNode) simpleNode.jjtGetChildren()[0];
         SimpleNode rightSide = (SimpleNode) simpleNode.jjtGetChildren()[1];
 
+        boolean leftSideIsArray = false;
+        String leftSideArrayIdentifier = null;
+
         String leftSideName = ParserTreeConstants.jjtNodeName[leftSide.getId()];
         String leftType;
         switch (leftSideName) {
             case NodeName.ARRAYACCESS: {
                 if (!analyseArray(false, symbolTables, leftSide, functionDescriptor))
                     throw new SemanticException(leftSide);
+                setArrayInit(symbolTables, leftSide, functionDescriptor);
                 leftType = "int";
                 break;
             }
@@ -425,8 +431,13 @@ public class SemanticAnalyser {
                 TypeDescriptor tmp = functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal());
                 if (tmp == null)
                     throw new NotDeclared(leftSide);
-                else
+                else {
+                    if (tmp.isArray()) {
+                        leftSideIsArray = true;
+                        leftSideArrayIdentifier = tmp.getTypeIdentifier();
+                    }
                     leftType = tmp.getTypeIdentifier();
+                }
                 break;
             }
             default: {
@@ -447,8 +458,6 @@ public class SemanticAnalyser {
         String rightSideName = ParserTreeConstants.jjtNodeName[rightSide.getId()];
         switch (rightSideName) {
             case NodeName.IDENTIFIER: { // a = anothervar;
-                String rightSideValue = rightSide.jjtGetVal();
-                System.out.println("Right side: " + rightSideValue);
                 TypeDescriptor tmp = functionDescriptor.getTypeDescriptor(rightSide.jjtGetVal());
                 if (tmp == null) //Not declared
                     throw new NotDeclared(rightSide);
@@ -465,7 +474,7 @@ public class SemanticAnalyser {
             case NodeName.ARRAYACCESS: {
                 if (!analyseArray(false, symbolTables, rightSide, functionDescriptor))
                     throw new SemanticException(rightSide);
-
+                checkArrayValIsInited(symbolTables, rightSide, functionDescriptor);
                 break;
             }
             case NodeName.BOOLEAN: {
@@ -487,6 +496,10 @@ public class SemanticAnalyser {
                     case NodeName.ARRAYSIZE: { // new int[1]
                         if (!analyseArray(true, symbolTables, childNode, functionDescriptor))
                             throw new SemanticException(childNode);
+                        else if (leftSideIsArray && leftSideArrayIdentifier != null) {
+                            int arraySize = Integer.parseInt( ((SimpleNode) childNode.jjtGetChild(0)).jjtGetVal());
+                            ((ArrayDescriptor) functionDescriptor.getTypeDescriptor(leftSideArrayIdentifier)).init(arraySize);
+                        }
                         break;
                     }
                     case NodeName.IDENTIFIER: { // new ClassName();
@@ -505,5 +518,37 @@ public class SemanticAnalyser {
         }
 
         functionDescriptor.getScope().setInit(leftSide.jjtGetVal(), true);
+    }
+
+    public static void setArrayInit(SymbolTables symbolTables, SimpleNode arrayAccessNode, FunctionDescriptor functionDescriptor) throws ArrayAccessOutOfBounds {
+        SimpleNode leftSide = (SimpleNode) arrayAccessNode.jjtGetChildren()[0];
+        SimpleNode rightSide = (SimpleNode) arrayAccessNode.jjtGetChildren()[1];
+
+        String rightSideName = ParserTreeConstants.jjtNodeName[rightSide.getId()];
+        if (rightSideName.equals(NodeName.INT)) {
+            int arrayVal = Integer.parseInt(rightSide.jjtGetVal());
+            ArrayDescriptor arrayDescriptor = (ArrayDescriptor) functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal());
+            if (arrayDescriptor.isOutOfBounds(arrayVal))
+                throw new ArrayAccessOutOfBounds(arrayAccessNode);
+            else {
+                arrayDescriptor.initVal(arrayVal);
+            }
+        }
+    }
+
+    public static void checkArrayValIsInited(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws SemanticException {
+        SimpleNode leftSide = (SimpleNode) simpleNode.jjtGetChildren()[0];
+        SimpleNode rightSide = (SimpleNode) simpleNode.jjtGetChildren()[1];
+
+        String rightSideName = ParserTreeConstants.jjtNodeName[rightSide.getId()];
+        if (rightSideName.equals(NodeName.INT)) {
+            int arrayVal = Integer.parseInt(rightSide.jjtGetVal());
+            ArrayDescriptor arrayDescriptor = (ArrayDescriptor) functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal());
+            if (arrayDescriptor.isOutOfBounds(arrayVal))
+                throw new ArrayAccessOutOfBounds(simpleNode);
+            else if (!arrayDescriptor.posIsInited(arrayVal)) {
+                throw new SemanticException(simpleNode);
+            }
+        }
     }
 }

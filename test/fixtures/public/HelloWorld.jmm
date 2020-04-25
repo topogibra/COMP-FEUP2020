@@ -1,4 +1,4 @@
-import static ioPlus.printHelloWorld() void;
+import static ioPlus.printHelloWorld(void) void;
 class HelloWorld {
 	public static void main(String[] args) {
 		ioPlus.printHelloWorld();
