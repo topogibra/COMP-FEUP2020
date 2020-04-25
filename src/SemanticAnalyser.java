@@ -471,8 +471,12 @@ public class SemanticAnalyser {
                 break;
             }
             case NodeName.DOTMETHOD: {
-                if (analyseDotMethod(symbolTables, rightSide, functionDescriptor) == null)
+                String returnType = analyseDotMethod(symbolTables, rightSide, functionDescriptor);
+                if ( returnType == null)
                     throw new NotDeclared(rightSide);
+                else if (!returnType.equals(leftType)){
+                    throw new NotSameType(rightSide);
+                }
                 break;
             }
             case NodeName.ARRAYACCESS: {
