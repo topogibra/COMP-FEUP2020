@@ -104,6 +104,12 @@ public class CodeGenerator {
         }
 
         stringBuilder.append("\n");
+
+        //### Method body ####
+        //Var declarations
+
+
+
         stringBuilder.append(".end method\n");
         this.write(stringBuilder.toString());
     }
