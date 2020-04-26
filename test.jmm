@@ -2,6 +2,12 @@ import static MathUtils.random(int,int) int; //lowerLimit,upperLimit
 import static ioPlus.requestNumber() int;
 import static ioPlus.printResult(int) void;
 class MonteCarloPi {
+
+    int a;
+    int[] b;
+    boolean ola;
+    MonteCarloPi pir;
+
 	public boolean performSingleEstimate() {
 		int rand1;
 		int rand2;

@@ -27,4 +27,14 @@ public class TypeDescriptor {
     public void setInit(boolean init) {
         this.init = init;
     }
+
+    public String toJVM() {
+        switch (this.typeIdentifier) {
+            case VarTypes.INT:
+            case VarTypes.BOOLEAN:
+                return "I";
+            case VarTypes.INTARRAY: return "[I";
+            default: return this.typeIdentifier;
+        }
+    }
 }

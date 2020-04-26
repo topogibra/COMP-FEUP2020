@@ -31,10 +31,13 @@ public class jmm {
         Parser parser = new Parser(input);
 
         SimpleNode root = null;
+
+        CodeGenerator codeGenerator = new CodeGenerator();
         try {
             root = parser.parseProgram(args[0]);
             root.dump("");
-            SemanticAnalyser.startAnalyse(root);
+            SymbolTables symbolTables = SemanticAnalyser.startAnalyse(root);
+            codeGenerator.generate(symbolTables, root);
         } catch (Exception e) {
             System.err.println(e.getMessage());
             throw new Exception();

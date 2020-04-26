@@ -90,4 +90,12 @@ public class SymbolTables {
     public String getClassName() {
         return className;
     }
+
+    public String getExtendedClassName() {
+        return extendedClassName;
+    }
+
+    public void setExtendedClassName(String extendedClassName) {
+        this.extendedClassName = extendedClassName;
+    }
 }

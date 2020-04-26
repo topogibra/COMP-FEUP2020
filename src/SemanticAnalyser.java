@@ -4,14 +4,17 @@ public class SemanticAnalyser {
     private static final int MAX_NUM_ERRORS = 10;
     private static int no_error = 0;
 
-    public static void startAnalyse(SimpleNode root) throws Exception{
-        analyse(SymbolTablesGenerator.generate(root),root);
+    public static SymbolTables startAnalyse(SimpleNode root) throws Exception{
+        SymbolTables symbolTables = SymbolTablesGenerator.generate(root);
+        analyse(symbolTables, root);
 
         if (no_error > 0){
             no_error = 0;
             throw new Exception("Reached max number of semantic errors");
         }
         no_error = 0;
+
+        return symbolTables;
     }
 
     public static void analyse(SymbolTables symbolTables, SimpleNode simpleNode) throws Exception {
