@@ -151,15 +151,14 @@ public class CodeGenerator {
         FunctionDescriptor descriptor = symbolTables.getFunctionDescriptor(methodId);
 
         if(SemanticAnalyser.isClassVariable(symbolTables,leftSide,functionDescriptor)){
-
             stringBuilder.append((descriptor.isFromSuper()) ? ".invokespecial " : ".invokevirtual ");
             stringBuilder.append((descriptor.isFromSuper()) ? symbolTables.getExtendedClassName() : symbolTables.getClassName());
             stringBuilder.append("/").append(printMethod(descriptor)).append("\n");
-            return stringBuilder.toString();
         } else {
             ImportDescriptor importDescriptor = SemanticAnalyser.getImportedMethod(symbolTables,dotMethodNode,functionDescriptor);
             if (importDescriptor != null) { // Invoke imported method
-
+                stringBuilder.append(".invokestatic ");
+                stringBuilder.append(printMethod(importDescriptor)).append("\n");
             }
         }
 
@@ -180,6 +179,24 @@ public class CodeGenerator {
         }
         stringBuilder.append(")");
         stringBuilder.append(TypeDescriptor.toJVM(descriptor.getReturnType()));
+        return  stringBuilder.toString();
+    }
+
+    private String printMethod(ImportDescriptor descriptor){
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(descriptor.getClassName()).append("/");
+        stringBuilder.append(descriptor.getMethodName());
+        stringBuilder.append("(");
+        if (descriptor.getArguments().size() > 0) {
+            for (TypeDescriptor param : descriptor.getArguments()) {
+                stringBuilder.append(param.toJVM());
+                stringBuilder.append(",");
+            }
+
+            stringBuilder.setLength(stringBuilder.length() - 1);
+        }
+        stringBuilder.append(")");
+        stringBuilder.append(descriptor.getReturnType().toJVM());
         return  stringBuilder.toString();
     }
 }

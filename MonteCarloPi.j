@@ -33,7 +33,8 @@
 	.limit stack 99
 	.limit locals 99
 
-	
+	.invokestatic ioPlus/printResult(I)V
+
 .end method
 
 
