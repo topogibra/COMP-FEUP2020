@@ -1,6 +1,10 @@
 import static MathUtils.random(int,int) int; //lowerLimit,upperLimit
 import static ioPlus.requestNumber() int;
 import static ioPlus.printResult(int) void;
+import Math;
+import Math.cenas() int;
+
+
 class MonteCarloPi extends Math{
 
     int a;
@@ -8,13 +12,24 @@ class MonteCarloPi extends Math{
     boolean ola;
     MonteCarloPi pir;
 
+//    public int cenas(){
+//        return 1;
+//    }
+
+
 	public boolean performSingleEstimate() {
 		int rand1;
 		int rand2;
 		boolean in_circle;
 		int squareDist;
+		MonteCarloPi m;
+
+		m = new MonteCarloPi();
 
         this.performSingleEstimate();
+        m.performSingleEstimate();
+        new MonteCarloPi().performSingleEstimate();
+        this.cenas();
 		rand1 = MathUtils.random(0-100, 100);
 		rand2 = MathUtils.random(0-100, 100);
 

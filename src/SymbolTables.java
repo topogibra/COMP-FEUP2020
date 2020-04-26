@@ -73,6 +73,7 @@ public class SymbolTables {
             ImportDescriptor importDescriptor = entry.getValue();
             if (importDescriptor.getClassName().equals(extendedClassName) && importDescriptor.getMethodName() != null) {
                 FunctionDescriptor functionDescriptor = new FunctionDescriptor(this.scope, null);
+                functionDescriptor.setFromSuper(true);
                 functionDescriptor.setMethodName(importDescriptor.getMethodName());
                 functionDescriptor.setReturnType(importDescriptor.getReturnType().getTypeIdentifier());
 

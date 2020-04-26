@@ -38,6 +38,7 @@ public class TypeDescriptor {
             case VarTypes.BOOLEAN:
                 return "I";
             case VarTypes.INTARRAY: return "[I";
+            case VarTypes.VOID: return "V";
             default: return typeIdentifier;
         }
     }

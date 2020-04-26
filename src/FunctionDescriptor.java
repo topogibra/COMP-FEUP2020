@@ -6,6 +6,7 @@ public class FunctionDescriptor {
     private String methodName;
     private final LinkedHashMap<String, TypeDescriptor> params;
     private final Scope scope;
+    private boolean fromSuper;
 
     private final SimpleNode methodNode;
 
@@ -13,6 +14,7 @@ public class FunctionDescriptor {
         this.params = new LinkedHashMap<>();
         this.scope = new Scope(parentScope);
         this.methodNode = methodNode;
+        this.fromSuper = false;
     }
 
     public String getIdentifier() {
@@ -23,6 +25,14 @@ public class FunctionDescriptor {
             stringBuilder.append(entry.getValue().getTypeIdentifier());
 
         return stringBuilder.toString();
+    }
+
+    public boolean isFromSuper() {
+        return fromSuper;
+    }
+
+    public void setFromSuper(boolean fromSuper) {
+        this.fromSuper = fromSuper;
     }
 
     public String getReturnType() {

@@ -6,11 +6,18 @@
 .field public ola I
 .field public pir MonteCarloPi
 
+
 .method public performSingleEstimate()I
 	.limit stack 99
 	.limit locals 99
 
 	.invokevirtual MonteCarloPi/performSingleEstimate()I
+
+	.invokevirtual MonteCarloPi/performSingleEstimate()I
+
+	.invokevirtual MonteCarloPi/performSingleEstimate()I
+
+	.invokespecial Math/cenas()I
 
 .end method
 

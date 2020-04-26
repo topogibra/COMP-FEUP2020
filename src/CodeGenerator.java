@@ -147,17 +147,20 @@ public class CodeGenerator {
         SimpleNode leftSide = (SimpleNode) dotMethodNode.jjtGetChild(0);
         SimpleNode rightSide = (SimpleNode) dotMethodNode.jjtGetChild(1);
 
-        switch (leftSide.getNodeName()){
-            case NodeName.THIS:{
-                String methodId = SemanticAnalyser.parseMethodIdentifier(symbolTables,rightSide,functionDescriptor);
-                FunctionDescriptor descriptor = symbolTables.getFunctionDescriptor(methodId);
-                stringBuilder.append(".invokevirtual ");
-                stringBuilder.append(symbolTables.getClassName()).append("/");
-                stringBuilder.append(printMethod(descriptor)).append("\n");
-                break;
+        String methodId = SemanticAnalyser.parseMethodIdentifier(symbolTables,rightSide,functionDescriptor);
+        FunctionDescriptor descriptor = symbolTables.getFunctionDescriptor(methodId);
+
+        if(SemanticAnalyser.isClassVariable(symbolTables,leftSide,functionDescriptor)){
+
+            stringBuilder.append((descriptor.isFromSuper()) ? ".invokespecial " : ".invokevirtual ");
+            stringBuilder.append((descriptor.isFromSuper()) ? symbolTables.getExtendedClassName() : symbolTables.getClassName());
+            stringBuilder.append("/").append(printMethod(descriptor)).append("\n");
+            return stringBuilder.toString();
+        } else {
+            ImportDescriptor importDescriptor = SemanticAnalyser.getImportedMethod(symbolTables,dotMethodNode,functionDescriptor);
+            if (importDescriptor != null) { // Invoke imported method
+
             }
-            default:
-                break;
         }
 
         return stringBuilder.toString();

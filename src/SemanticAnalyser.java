@@ -216,7 +216,7 @@ public class SemanticAnalyser {
         return null;
     }
 
-    private static boolean isClassVariable(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) {
+    public static boolean isClassVariable(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) {
         String nodeName = ParserTreeConstants.jjtNodeName[simpleNode.getId()];
 
         switch (nodeName) {
@@ -318,7 +318,7 @@ public class SemanticAnalyser {
         return methodIdentifier.toString();
     }
 
-    private static ImportDescriptor getImportedMethod(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
+    public static ImportDescriptor getImportedMethod(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
         SimpleNode firstChild = (SimpleNode) simpleNode.jjtGetChildren()[0];
         SimpleNode secondChild = (SimpleNode) simpleNode.jjtGetChildren()[1];
 
