@@ -81,7 +81,7 @@ public class SymbolTablesGenerator {
     }
 
     public static FunctionDescriptor createFunctionDescriptor(SimpleNode simpleNode, Scope parentScope) {
-        FunctionDescriptor functionDescriptor = new FunctionDescriptor(parentScope);
+        FunctionDescriptor functionDescriptor = new FunctionDescriptor(parentScope, simpleNode);
 
         Node[] children = simpleNode.jjtGetChildren();
         for (Node node : children) {

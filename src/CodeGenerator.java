@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class CodeGenerator {
@@ -27,9 +28,11 @@ public class CodeGenerator {
         this.createFile(symbolTables.getClassName());
 
         this.generateClass(symbolTables);
-
+        this.write("\n");
         this.generateFields(symbolTables);
-
+        this.write("\n");
+        this.generateMethods(symbolTables);
+        this.write("\n");
 
     }
 
@@ -48,7 +51,7 @@ public class CodeGenerator {
         else
             stringBuilder.append("java/lang/Object");
 
-        stringBuilder.append("\n\n");
+        stringBuilder.append("\n");
 
         this.write(stringBuilder.toString());
     }
@@ -64,4 +67,45 @@ public class CodeGenerator {
 
         this.write(stringBuilder.toString());
     }
+
+    public void generateMethods(SymbolTables symbolTables) throws IOException {
+        for (Map.Entry<String, FunctionDescriptor> method : symbolTables.getMethods().entrySet()) {
+            this.generateMethod(symbolTables, method.getValue());
+            this.write("\n");
+        }
+    }
+
+    public void generateMethod(SymbolTables symbolTables, FunctionDescriptor functionDescriptor) throws IOException {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        if (functionDescriptor.getMethodNode() == null)
+            return;
+
+        stringBuilder.append(".method public ");
+
+        //Method header
+        if (functionDescriptor.getMethodName().equals("main"))
+            stringBuilder.append("static main([Ljava/lang/String;)V");
+        else {
+            stringBuilder.append(functionDescriptor.getMethodName());
+            stringBuilder.append("(");
+
+            //Method parameters
+            if (functionDescriptor.getParams().size() > 0) {
+                for (Map.Entry<String, TypeDescriptor> param : functionDescriptor.getParams().entrySet()) {
+                    stringBuilder.append(param.getValue().toJVM());
+                    stringBuilder.append(",");
+                }
+
+                stringBuilder.setLength(stringBuilder.length() - 1);
+            }
+            stringBuilder.append(")");
+            stringBuilder.append(TypeDescriptor.toJVM(functionDescriptor.getReturnType()));
+        }
+
+        stringBuilder.append("\n");
+        stringBuilder.append(".end method\n");
+        this.write(stringBuilder.toString());
+    }
 }
+

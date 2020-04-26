@@ -1,3 +1,4 @@
+import javax.swing.plaf.FontUIResource;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -42,6 +43,10 @@ public class SymbolTables {
         return this.imports.get(importedMethodIdentifier);
     }
 
+    public LinkedHashMap<String, FunctionDescriptor> getMethods() {
+        return this.methods;
+    }
+
     public void print() {
 
         System.out.print("\n\n");
@@ -67,7 +72,7 @@ public class SymbolTables {
         for (Map.Entry<String, ImportDescriptor> entry : this.imports.entrySet()) {
             ImportDescriptor importDescriptor = entry.getValue();
             if (importDescriptor.getClassName().equals(extendedClassName) && importDescriptor.getMethodName() != null) {
-                FunctionDescriptor functionDescriptor = new FunctionDescriptor(this.scope);
+                FunctionDescriptor functionDescriptor = new FunctionDescriptor(this.scope, null);
                 functionDescriptor.setMethodName(importDescriptor.getMethodName());
                 functionDescriptor.setReturnType(importDescriptor.getReturnType().getTypeIdentifier());
 

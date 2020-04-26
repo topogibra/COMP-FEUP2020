@@ -29,12 +29,16 @@ public class TypeDescriptor {
     }
 
     public String toJVM() {
-        switch (this.typeIdentifier) {
+        return toJVM(this.typeIdentifier);
+    }
+
+    public static String toJVM(String typeIdentifier) {
+        switch (typeIdentifier) {
             case VarTypes.INT:
             case VarTypes.BOOLEAN:
                 return "I";
             case VarTypes.INTARRAY: return "[I";
-            default: return this.typeIdentifier;
+            default: return typeIdentifier;
         }
     }
 }

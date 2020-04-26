@@ -7,9 +7,12 @@ public class FunctionDescriptor {
     private final LinkedHashMap<String, TypeDescriptor> params;
     private final Scope scope;
 
-    public FunctionDescriptor(Scope parentScope) {
+    private final SimpleNode methodNode;
+
+    public FunctionDescriptor(Scope parentScope, SimpleNode methodNode) {
         this.params = new LinkedHashMap<>();
         this.scope = new Scope(parentScope);
+        this.methodNode = methodNode;
     }
 
     public String getIdentifier() {
@@ -24,6 +27,14 @@ public class FunctionDescriptor {
 
     public String getReturnType() {
         return returnType;
+    }
+
+    public String getMethodName() {
+        return this.methodName;
+    }
+
+    public LinkedHashMap<String, TypeDescriptor> getParams() {
+        return this.params;
     }
 
     public void setReturnType(String returnType) {
@@ -62,5 +73,9 @@ public class FunctionDescriptor {
 
     public void printScope() {
         this.scope.printScopeVars();
+    }
+
+    public SimpleNode getMethodNode() {
+        return methodNode;
     }
 }
