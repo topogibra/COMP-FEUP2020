@@ -100,6 +100,11 @@ class SimpleNode implements Node{
   public int getId() {
     return id;
   }
+
+  public String getNodeName(){
+     return ParserTreeConstants.jjtNodeName[id];
+  }
+
 }
 
 /* JavaCC - OriginalChecksum=d33fdb2b8063d5de3474649324d5d160 (do not edit this line) */
