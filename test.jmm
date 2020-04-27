@@ -8,7 +8,7 @@ class Simple {
 		int c;
 
 		a = 30 / (4 * 5);
-		b = 0-10;
+		b = 0 - 10 + a;
 
 		simple = new Simple();
 
@@ -17,6 +17,6 @@ class Simple {
 	}
 
 	public int add(int a, int b) {
-		return a+b;
+	    return a + b;
 	}
 }

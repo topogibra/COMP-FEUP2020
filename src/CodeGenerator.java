@@ -115,7 +115,7 @@ public class CodeGenerator {
             stringBuilder.append("static main([Ljava/lang/String;)V");
         else {
             //Method parameters
-            stringBuilder.append(printMethod(functionDescriptor));
+            stringBuilder.append(this.generateMethodHeader(functionDescriptor));
         }
 
         stringBuilder.append("\n");
@@ -126,8 +126,10 @@ public class CodeGenerator {
         stringBuilder.append("\n");
 
         //Method Body
-        stringBuilder.append(generateMethodBody(functionDescriptor));
+        stringBuilder.append(this.generateMethodBody(functionDescriptor));
 
+        if (functionDescriptor.getMethodName().equals("main"))
+            stringBuilder.append(this.generateReturn(functionDescriptor));
 
         stringBuilder.append(".end method\n");
         this.write(stringBuilder.toString());
@@ -163,6 +165,10 @@ public class CodeGenerator {
                     stringBuilder.append(this.generateAssignment(child, functionDescriptor));
                     break;
                 }
+                case NodeName.RETURN: {
+                    stringBuilder.append(this.generateReturn(functionDescriptor, child));
+                    break;
+                }
                 default:
                     break;
             }
@@ -180,18 +186,18 @@ public class CodeGenerator {
         FunctionDescriptor descriptor = symbolTables.getFunctionDescriptor(methodId);
 
         if (rightSide.jjtGetNumChildren() > 1)
-            stringBuilder.append(this.generateArgumentsLoading(functionDescriptor, rightSide));
+            stringBuilder.append(this.generateArgumentsLoading(functionDescriptor, (SimpleNode) rightSide.jjtGetChild(1)));
 
         if (SemanticAnalyser.isClassVariable(symbolTables,leftSide,functionDescriptor)) {
             stringBuilder.append(INDENTATION);
             stringBuilder.append((descriptor.isFromSuper()) ? ".invokespecial " : ".invokevirtual ");
             stringBuilder.append((descriptor.isFromSuper()) ? symbolTables.getExtendedClassName() : symbolTables.getClassName());
-            stringBuilder.append("/").append(printMethod(descriptor)).append("\n");
+            stringBuilder.append("/").append(this.generateMethodHeader(descriptor)).append("\n");
         } else {
             ImportDescriptor importDescriptor = SemanticAnalyser.getImportedMethod(symbolTables,dotMethodNode,functionDescriptor);
             if (importDescriptor != null) { // Invoke imported method
                 stringBuilder.append(INDENTATION).append(".invokestatic "); //TODO: only invoke static if imported static
-                stringBuilder.append(printMethod(importDescriptor)).append("\n");
+                stringBuilder.append(this.generateMethodHeader(importDescriptor)).append("\n");
             }
         }
 
@@ -254,16 +260,14 @@ public class CodeGenerator {
                     stringBuilder.append(INDENTATION).append("astore ").append(typeDescriptor.getIndex()).append("\n");
                     break;
                 }
-
             }
-
         }
 
         stringBuilder.append("\n");
         return stringBuilder.toString();
     }
 
-    private String printMethod(FunctionDescriptor descriptor){
+    private String generateMethodHeader(FunctionDescriptor descriptor){
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(descriptor.getMethodName());
 
@@ -276,7 +280,7 @@ public class CodeGenerator {
         return  stringBuilder.toString();
     }
 
-    private String printMethod(ImportDescriptor descriptor){
+    private String generateMethodHeader(ImportDescriptor descriptor){
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(descriptor.getClassName()).append("/");
         stringBuilder.append(descriptor.getMethodName());
@@ -294,7 +298,6 @@ public class CodeGenerator {
         StringBuilder stringBuilder = new StringBuilder();
 
         String nodeName = simpleNode.getNodeName();
-
         Node[] children = simpleNode.jjtGetChildren();
 
         // Primitives
@@ -310,6 +313,11 @@ public class CodeGenerator {
                     stringBuilder.append(val).append("\n");
                     break;
                 }
+                case NodeName.IDENTIFIER: {
+                    TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(simpleNode.jjtGetVal());
+                    stringBuilder.append(this.parseTypeDescriptorLoader(typeDescriptor)).append("\n");
+                    break;
+                }
             }
 
             return stringBuilder.toString();
@@ -322,64 +330,118 @@ public class CodeGenerator {
                 stringBuilder.append(generateArithmeticExpression(child, functionDescriptor));
         }
 
-        stringBuilder.append(INDENTATION).append("i").append(nodeName.toLowerCase()).append("\n");
-
         // Operations
-        /*
         switch (nodeName) {
-            case NodeName.ADD: {
-                stringBuilder.append(INDENTATION).append("iadd\n");
-                break;
-            }
-            case NodeName.SUB: {
-                stringBuilder.append(INDENTATION).append("isub\n");
-                break;
-            }
-            case NodeName.DIV: {
-                stringBuilder.append(INDENTATION).append("idiv\n");
-                break;
-            }
+            case NodeName.ADD:
+            case NodeName.SUB:
+            case NodeName.DIV:
             case NodeName.MUL: {
-                stringBuilder.append(INDENTATION).append("imul\n");
+                stringBuilder.append(INDENTATION).append("i").append(nodeName.toLowerCase()).append("\n");
                 break;
             }
-        }*/
+            case NodeName.NOT: {
+
+                break;
+            }
+            case NodeName.LESS: {
+
+                break;
+            }
+        }
 
         return stringBuilder.toString();
     }
 
-    public String generateArgumentsLoading(FunctionDescriptor functionDescriptor, SimpleNode methodCallNode) {
+    public String generateArgumentsLoading(FunctionDescriptor functionDescriptor, SimpleNode argsNode) {
         StringBuilder stringBuilder = new StringBuilder();
-
-        SimpleNode methodNameNode = (SimpleNode) methodCallNode.jjtGetChild(0);
-        SimpleNode argsNode = (SimpleNode) methodCallNode.jjtGetChild(1);
 
         for (int i = argsNode.jjtGetNumChildren() - 1; i >= 0; i--) {
             SimpleNode arg = (SimpleNode) argsNode.jjtGetChild(i);
 
             TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(arg.jjtGetVal());
+            stringBuilder.append(parseTypeDescriptorLoader(typeDescriptor));
+            stringBuilder.append("\n");
+        }
 
-            switch (typeDescriptor.getTypeIdentifier()) {
-                case VarTypes.INT:
-                case VarTypes.BOOLEAN: {
-                    stringBuilder.append(INDENTATION).append("iload ").append(typeDescriptor.getIndex());
+        return stringBuilder.toString();
+    }
+
+    private String generateReturn(FunctionDescriptor functionDescriptor) {
+        return this.generateReturn(functionDescriptor, null);
+    }
+
+    private String generateReturn(FunctionDescriptor functionDescriptor, SimpleNode returnNode) {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        if (returnNode != null && returnNode.jjtGetNumChildren() > 0) {
+            SimpleNode child = returnNode.getChild(0);
+
+            // return EXPRESSION;
+            switch (child.getNodeName()) {
+                case NodeName.IDENTIFIER: {
+                    TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(child.jjtGetVal());
+                    stringBuilder.append(this.parseTypeDescriptorLoader(typeDescriptor)).append("\n");
                     break;
                 }
-                case VarTypes.INTARRAY: {
-                    //TODO
+                case NodeName.INT: {
+                    stringBuilder.append(INDENTATION).append("bipush ").append(child.jjtGetVal()).append("\n");
+                    break;
+                }
+                case NodeName.BOOLEAN: {
+                    stringBuilder.append(INDENTATION).append(this.parseBoolean(child)).append("\n");
                     break;
                 }
                 default: {
-                    if (symbolTables.getClassName().equals(typeDescriptor.getTypeIdentifier()))
-                        stringBuilder.append(INDENTATION).append("aload ").append(typeDescriptor.getIndex());
-                    break;
+                    if (SemanticAnalyser.isExpression(child))
+                        stringBuilder.append(this.generateArithmeticExpression(child, functionDescriptor));
                 }
             }
 
             stringBuilder.append("\n");
         }
 
+
+        switch (functionDescriptor.getReturnType()) {
+            case VarTypes.INT:
+            case VarTypes.BOOLEAN: {
+                stringBuilder.append(INDENTATION).append("ireturn\n");
+                break;
+            }
+            case VarTypes.INTARRAY: {
+                stringBuilder.append(INDENTATION).append("areturn\n");
+                break;
+            }
+            case VarTypes.VOID: {
+                stringBuilder.append(INDENTATION).append("return\n");
+                break;
+            }
+            default: {
+                if (functionDescriptor.getReturnType().equals(symbolTables.getClassName()))
+                    stringBuilder.append(INDENTATION).append("areturn\n");
+                break;
+            }
+        }
+
         return stringBuilder.toString();
+    }
+
+    private String parseTypeDescriptorLoader(TypeDescriptor typeDescriptor) {
+        switch (typeDescriptor.getTypeIdentifier()) {
+            case VarTypes.INT:
+            case VarTypes.BOOLEAN: {
+               return INDENTATION + "iload " + typeDescriptor.getIndex();
+            }
+            case VarTypes.INTARRAY: {
+                //TODO
+                break;
+            }
+            default: {
+                if (symbolTables.getClassName().equals(typeDescriptor.getTypeIdentifier()))
+                    return INDENTATION + "aload " + typeDescriptor.getIndex();
+                break;
+            }
+        }
+        return null;
     }
 
 }

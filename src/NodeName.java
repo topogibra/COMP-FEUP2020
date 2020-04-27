@@ -30,4 +30,5 @@ public interface NodeName {
     String NEW = "New";
     String EXTENDS = "Extends";
     String ASSIGNMENT = "Assignment";
+    String RETURN = "Return";
 }

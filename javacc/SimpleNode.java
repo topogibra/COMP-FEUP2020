@@ -95,6 +95,10 @@ class SimpleNode implements Node{
     }
   }
 
+  public SimpleNode getChild(int i) {
+    return (SimpleNode) children[i];
+  }
+
   public SimpleNode getParent(){return (SimpleNode) parent;}
 
   public int getId() {

@@ -110,20 +110,22 @@ public class SymbolTablesGenerator {
 
     public static void parseFunctionArguments(FunctionDescriptor functionDescriptor, SimpleNode simpleNode) {
 
+        int index = 1;
         Node[] children = simpleNode.jjtGetChildren();
         for (Node node : children) {
             SimpleNode child = (SimpleNode) node;
 
             if (child != null) {
                 Node[] grandchildren = child.jjtGetChildren();
-                functionDescriptor.addParam( ((SimpleNode) grandchildren[1]).jjtGetVal(), new TypeDescriptor( ((SimpleNode) grandchildren[0]).jjtGetVal()) );
+                functionDescriptor.addParam( ((SimpleNode) grandchildren[1]).jjtGetVal(), new TypeDescriptor( ((SimpleNode) grandchildren[0]).jjtGetVal(), index));
             }
+
+            index++;
         }
     }
 
     public static void parseMethodBody(FunctionDescriptor functionDescriptor, SimpleNode simpleNode) {
-
-        int index = 1;
+        int index = functionDescriptor.getParams().size() + 1;
         Node[] children = simpleNode.jjtGetChildren();
         for (Node node : children) {
             SimpleNode child = (SimpleNode) node;
