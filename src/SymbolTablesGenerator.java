@@ -110,7 +110,7 @@ public class SymbolTablesGenerator {
 
     public static void parseFunctionArguments(FunctionDescriptor functionDescriptor, SimpleNode simpleNode) {
 
-        int index = 1;
+        int index = 0;
         Node[] children = simpleNode.jjtGetChildren();
         for (Node node : children) {
             SimpleNode child = (SimpleNode) node;
@@ -125,7 +125,7 @@ public class SymbolTablesGenerator {
     }
 
     public static void parseMethodBody(FunctionDescriptor functionDescriptor, SimpleNode simpleNode) {
-        int index = functionDescriptor.getParams().size() + 1;
+        int index = functionDescriptor.getParams().size();
         Node[] children = simpleNode.jjtGetChildren();
         for (Node node : children) {
             SimpleNode child = (SimpleNode) node;

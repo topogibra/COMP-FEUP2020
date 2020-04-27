@@ -6,9 +6,15 @@ class Simple {
 		int b;
 		Simple simple;
 		int c;
+	    boolean f;
 
 		a = 30 / (4 * 5);
 		b = 0 - 10 + a;
+
+		f = a < b; //TODO
+		c = this.add(a, this.getB());
+		c = this.add(this.getB(), a);
+		c = this.add(this.getB(), this.getB());
 
 		simple = new Simple();
 
@@ -16,7 +22,15 @@ class Simple {
 		io.println(c);
 	}
 
+	public int getB() {
+	    return 2;
+	}
+
 	public int add(int a, int b) {
+	    //a, b
+
+	    int c;
+
 	    return a + b;
 	}
 }

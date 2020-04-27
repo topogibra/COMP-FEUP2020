@@ -294,7 +294,7 @@ public class CodeGenerator {
         return  stringBuilder.toString();
     }
 
-    private String generateArithmeticExpression(SimpleNode simpleNode, FunctionDescriptor functionDescriptor) {
+    private String generateArithmeticExpression(SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
         StringBuilder stringBuilder = new StringBuilder();
 
         String nodeName = simpleNode.getNodeName();
@@ -316,6 +316,10 @@ public class CodeGenerator {
                 case NodeName.IDENTIFIER: {
                     TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(simpleNode.jjtGetVal());
                     stringBuilder.append(this.parseTypeDescriptorLoader(typeDescriptor)).append("\n");
+                    break;
+                }
+                case NodeName.DOTMETHOD: {
+                    stringBuilder.append(this.generateDotMethod(functionDescriptor, simpleNode));
                     break;
                 }
             }
@@ -340,11 +344,11 @@ public class CodeGenerator {
                 break;
             }
             case NodeName.NOT: {
-
+                //TODO
                 break;
             }
             case NodeName.LESS: {
-
+                //TODO
                 break;
             }
         }
@@ -352,25 +356,34 @@ public class CodeGenerator {
         return stringBuilder.toString();
     }
 
-    public String generateArgumentsLoading(FunctionDescriptor functionDescriptor, SimpleNode argsNode) {
+    public String generateArgumentsLoading(FunctionDescriptor functionDescriptor, SimpleNode argsNode) throws Exception {
         StringBuilder stringBuilder = new StringBuilder();
 
         for (int i = argsNode.jjtGetNumChildren() - 1; i >= 0; i--) {
             SimpleNode arg = (SimpleNode) argsNode.jjtGetChild(i);
 
-            TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(arg.jjtGetVal());
-            stringBuilder.append(parseTypeDescriptorLoader(typeDescriptor));
-            stringBuilder.append("\n");
+            switch (arg.getNodeName()) {
+                case NodeName.IDENTIFIER: {
+                    TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(arg.jjtGetVal());
+                    stringBuilder.append(parseTypeDescriptorLoader(typeDescriptor));
+                    stringBuilder.append("\n");
+                    break;
+                }
+                case NodeName.DOTMETHOD: {
+                    stringBuilder.append(this.generateDotMethod(functionDescriptor, arg));
+                    break;
+                }
+            }
         }
 
         return stringBuilder.toString();
     }
 
-    private String generateReturn(FunctionDescriptor functionDescriptor) {
+    private String generateReturn(FunctionDescriptor functionDescriptor) throws Exception {
         return this.generateReturn(functionDescriptor, null);
     }
 
-    private String generateReturn(FunctionDescriptor functionDescriptor, SimpleNode returnNode) {
+    private String generateReturn(FunctionDescriptor functionDescriptor, SimpleNode returnNode) throws Exception {
         StringBuilder stringBuilder = new StringBuilder();
 
         if (returnNode != null && returnNode.jjtGetNumChildren() > 0) {
