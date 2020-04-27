@@ -10,7 +10,7 @@ gradle/
 *.jar
 .classpath
 .project
-
+*.j
 # Ignore Gradle GUI config
 gradle-app.setting
 
