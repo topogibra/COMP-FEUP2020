@@ -32,14 +32,16 @@ public class jmm {
 
         SimpleNode root = null;
 
-        CodeGenerator codeGenerator = new CodeGenerator();
+        CodeGenerator codeGenerator;
         try {
             root = parser.parseProgram(args[0]);
             root.dump("");
             SymbolTables symbolTables = SemanticAnalyser.startAnalyse(root);
-            codeGenerator.generate(symbolTables, root);
+            codeGenerator = new CodeGenerator(symbolTables);
+            codeGenerator.generate(root);
         } catch (Exception e) {
             System.err.println(e.getMessage());
+            e.printStackTrace();
             throw new Exception();
         }
 

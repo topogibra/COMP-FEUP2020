@@ -2,14 +2,19 @@ public class TypeDescriptor {
     private final String typeIdentifier;
     private boolean isArray = false;
     private boolean init;
+    private int index;
 
-    public TypeDescriptor(String typeIdentifier) {
+    public TypeDescriptor(String typeIdentifier, int index) {
         this.typeIdentifier = typeIdentifier;
         this.init = false;
-
+        this.index = index;
 
        if (this.typeIdentifier.equals("int[]"))
             this.isArray = true;
+    }
+
+    public TypeDescriptor(String typeIdentifier) {
+        this(typeIdentifier, -1);
     }
 
     public String getTypeIdentifier() {
@@ -41,5 +46,13 @@ public class TypeDescriptor {
             case VarTypes.VOID: return "V";
             default: return typeIdentifier;
         }
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
     }
 }

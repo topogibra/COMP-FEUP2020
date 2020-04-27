@@ -1,76 +1,22 @@
-import static MathUtils.random(int,int) int; //lowerLimit,upperLimit
-import static ioPlus.requestNumber() int;
-import static ioPlus.printResult(int) void;
-import Math;
-import Math.cenas() int;
+import io.println(int);
 
-
-class MonteCarloPi extends Math{
-
-    int a;
-    int[] b;
-    boolean ola;
-    MonteCarloPi pir;
-
-//    public int cenas(){
-//        return 1;
-//    }
-
-
-	public MonteCarloPi performSingleEstimate() {
-		int rand1;
-		int rand2;
-		boolean in_circle;
-		int squareDist;
-		MonteCarloPi m;
-
-		m = new MonteCarloPi();
-
-        this.performSingleEstimate();
-        m.performSingleEstimate();
-        new MonteCarloPi().performSingleEstimate();
-        this.cenas();
-		rand1 = MathUtils.random(0-100, 100);
-		rand2 = MathUtils.random(0-100, 100);
-
-		squareDist = (rand1 * rand1 + rand2 * rand2) / 100;
-		if (squareDist < 100) {
-			in_circle = true;
-		} else {
-			in_circle = false;
-		}
-
-		return in_circle;
-	}
-
-	public int estimatePi100(int n) {
-		int samples_in_circle;
-		int samples_so_far;
-		int pi_estimate;
-
-		samples_so_far = 0;
-		samples_in_circle = 0;
-
-        this.estimatePi100(n);
-		while (samples_so_far < n) {
-			if (this.performSingleEstimate()) {
-				samples_in_circle = samples_in_circle + 1;
-			} else {
-			}
-			samples_so_far = samples_so_far + 1;
-		}
-
-		pi_estimate = 400 * samples_in_circle / n;
-		return pi_estimate;
-	}
-
+class Simple {
 	public static void main(String[] args) {
-		int pi_estimate_times_100;
-		int num_samples;
+		int a;
+		int b;
+		Simple simple;
+		int c;
 
-		num_samples = ioPlus.requestNumber();
-		pi_estimate_times_100 = new MonteCarloPi().estimatePi100(num_samples);
+		a = 30 / (4 * 5);
+		b = 0-10;
 
-		ioPlus.printResult(pi_estimate_times_100);
+		simple = new Simple();
+
+		c = simple.add(a,b);
+		io.println(c);
+	}
+
+	public int add(int a, int b) {
+		return a+b;
 	}
 }

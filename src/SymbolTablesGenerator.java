@@ -123,6 +123,7 @@ public class SymbolTablesGenerator {
 
     public static void parseMethodBody(FunctionDescriptor functionDescriptor, SimpleNode simpleNode) {
 
+        int index = 1;
         Node[] children = simpleNode.jjtGetChildren();
         for (Node node : children) {
             SimpleNode child = (SimpleNode) node;
@@ -130,9 +131,10 @@ public class SymbolTablesGenerator {
             if (child != null) {
                 if (ParserTreeConstants.jjtNodeName[child.getId()].equals(NodeName.VARDECLARATION)) {
                     Node[] grandchildren = child.jjtGetChildren();
-                    functionDescriptor.addVar(((SimpleNode) grandchildren[1]).jjtGetVal(), new TypeDescriptor(((SimpleNode) grandchildren[0]).jjtGetVal()));
+                    functionDescriptor.addVar(((SimpleNode) grandchildren[1]).jjtGetVal(), new TypeDescriptor(((SimpleNode) grandchildren[0]).jjtGetVal(), index));
                 }
             }
+            index++;
         }
     }
 }

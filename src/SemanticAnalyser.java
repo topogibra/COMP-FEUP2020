@@ -7,7 +7,7 @@ public class SemanticAnalyser {
 
     public static SymbolTables startAnalyse(SimpleNode root) throws Exception {
         SymbolTables symbolTables = SymbolTablesGenerator.generate(root);
-        ignore_exceptions = true;
+        ignore_exceptions = false;
         analyse(symbolTables, root);
 
         if (no_error > 0) {
@@ -328,7 +328,7 @@ public class SemanticAnalyser {
         return symbolTables.getImportDescriptor(importedMethodIdentifier);
     }
 
-    private static boolean isExpression(SimpleNode simpleNode) {
+    public static boolean isExpression(SimpleNode simpleNode) {
         switch (ParserTreeConstants.jjtNodeName[simpleNode.getId()]) {
             case NodeName.ADD:
             case NodeName.SUB:
@@ -581,6 +581,10 @@ public class SemanticAnalyser {
                     case NodeName.IDENTIFIER: { // new ClassName();
                         if (!symbolTables.getClassName().equals(childNode.jjtGetVal())) {
                             addException(new SemanticException(childNode)); // TODO Make the exception more specific
+                            return;
+                        }
+                        else if (!leftType.equals(symbolTables.getClassName())) {
+                            addException(new SemanticException(childNode));
                             return;
                         }
                         break;
