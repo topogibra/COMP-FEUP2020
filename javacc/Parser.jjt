@@ -243,14 +243,14 @@ void MainMethod() #Method: {Token t1, t2;}
     MainMethodBody()
 }
 
-void MainMethodArguments() #Args: {Token t1, t2;}
+void MainMethodArguments() #void: {}
 {
     <OPEN_PARENTHESIS>
-        (
-            ( t1=<STRING> {jjtThis.val = "String[]"; }
-            <OPEN_BRACKET> <CLOSE_BRACKET> ) #Type
-            t2=<IDENTIFIER>  {jjtThis.val = t2.image;} #Identifier(0)
-        ) #Arg(2)
+
+            <STRING>
+            <OPEN_BRACKET> <CLOSE_BRACKET>
+            <IDENTIFIER>
+
     <CLOSE_PARENTHESIS>
 }
 

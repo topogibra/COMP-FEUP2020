@@ -89,20 +89,21 @@ public class SymbolTablesGenerator {
 
             if (child != null) {
                 switch (ParserTreeConstants.jjtNodeName[child.getId()]) {
-                    case NodeName.RETURNTYPE:
+                    case NodeName.RETURNTYPE:{
                         functionDescriptor.setReturnType(child.jjtGetVal());
-                        break;
-                    case NodeName.IDENTIFIER:
+                        break;}
+                    case NodeName.IDENTIFIER:{
                         functionDescriptor.setMethodName(child.jjtGetVal());
-                        break;
-                    case NodeName.ARGS:
+                        break;}
+                    case NodeName.ARGS:{
                         parseFunctionArguments(functionDescriptor, child);
-                        break;
-                    case NodeName.METHODBODY:
+                        break;}
+                    case NodeName.METHODBODY:{
                         parseMethodBody(functionDescriptor, child);
-                        break;
+                        break;}
                 }
             }
+
         }
 
         return functionDescriptor;
@@ -110,7 +111,8 @@ public class SymbolTablesGenerator {
 
     public static void parseFunctionArguments(FunctionDescriptor functionDescriptor, SimpleNode simpleNode) {
 
-        int index = 0;
+        int index = 1;
+
         Node[] children = simpleNode.jjtGetChildren();
         for (Node node : children) {
             SimpleNode child = (SimpleNode) node;

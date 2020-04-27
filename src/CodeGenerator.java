@@ -190,13 +190,13 @@ public class CodeGenerator {
 
         if (SemanticAnalyser.isClassVariable(symbolTables,leftSide,functionDescriptor)) {
             stringBuilder.append(INDENTATION);
-            stringBuilder.append((descriptor.isFromSuper()) ? ".invokespecial " : ".invokevirtual ");
+            stringBuilder.append((descriptor.isFromSuper()) ? "invokespecial " : "invokevirtual ");
             stringBuilder.append((descriptor.isFromSuper()) ? symbolTables.getExtendedClassName() : symbolTables.getClassName());
             stringBuilder.append("/").append(this.generateMethodHeader(descriptor)).append("\n");
         } else {
             ImportDescriptor importDescriptor = SemanticAnalyser.getImportedMethod(symbolTables,dotMethodNode,functionDescriptor);
             if (importDescriptor != null) { // Invoke imported method
-                stringBuilder.append(INDENTATION).append(".invokestatic "); //TODO: only invoke static if imported static
+                stringBuilder.append(INDENTATION).append("invokestatic "); //TODO: only invoke static if imported static
                 stringBuilder.append(this.generateMethodHeader(importDescriptor)).append("\n");
             }
         }
