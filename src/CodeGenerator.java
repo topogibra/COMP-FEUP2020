@@ -9,7 +9,7 @@ import java.util.Map;
 public class CodeGenerator {
     private Path path;
     private final String FILE_EXTENSION = ".j";
-    private final String IDENTATION = "\t";
+    private final String INDENTATION = "\t";
 
     private void createFile(String className) {
         this.path = Paths.get(className + FILE_EXTENSION);
@@ -30,6 +30,8 @@ public class CodeGenerator {
         this.generateClass(symbolTables);
         this.write("\n");
         this.generateFields(symbolTables);
+        this.write("\n");
+        this.generateConstructor(symbolTables);
         this.write("\n");
         this.generateMethods(symbolTables);
         this.write("\n");
@@ -68,6 +70,24 @@ public class CodeGenerator {
         this.write(stringBuilder.toString());
     }
 
+    public void generateConstructor(SymbolTables symbolTables) throws IOException {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        stringBuilder.append(".method public<init>()V\n");
+        stringBuilder.append(INDENTATION).append("aload_0\n");
+        stringBuilder.append(INDENTATION).append("invokenonvirtual ");
+
+        if (symbolTables.getExtendedClassName() == null)
+            stringBuilder.append("java/lang/Object/<init>()V\n");
+        else
+            stringBuilder.append(symbolTables.getExtendedClassName()).append("/<init>()V\n");
+
+        stringBuilder.append(INDENTATION).append("return\n");
+        stringBuilder.append(".end method");
+
+        this.write(stringBuilder.toString());
+    }
+
     public void generateMethods(SymbolTables symbolTables) throws Exception {
         for (Map.Entry<String, FunctionDescriptor> method : symbolTables.getMethods().entrySet()) {
             this.generateMethod(symbolTables, method.getValue());
@@ -95,8 +115,8 @@ public class CodeGenerator {
 
         //### Method body ####
         //Var declarations
-        stringBuilder.append(IDENTATION).append(".limit stack 99\n");
-        stringBuilder.append(IDENTATION).append(".limit locals 99\n");
+        stringBuilder.append(INDENTATION).append(".limit stack 99\n");
+        stringBuilder.append(INDENTATION).append(".limit locals 99\n");
         stringBuilder.append("\n");
 
         //Method Body
@@ -130,7 +150,7 @@ public class CodeGenerator {
 
             switch (child.getNodeName()){
                 case NodeName.DOTMETHOD:{
-                    stringBuilder.append(IDENTATION);
+                    stringBuilder.append(INDENTATION);
                     stringBuilder.append(generateDotMethod(symbolTables,functionDescriptor,child)).append("\n");
                     break;
                 }

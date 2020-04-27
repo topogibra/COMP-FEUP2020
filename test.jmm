@@ -17,7 +17,7 @@ class MonteCarloPi extends Math{
 //    }
 
 
-	public boolean performSingleEstimate() {
+	public MonteCarloPi performSingleEstimate() {
 		int rand1;
 		int rand2;
 		boolean in_circle;
