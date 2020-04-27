@@ -80,7 +80,7 @@ public class CodeGenerator {
     public void generateConstructor() throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
 
-        stringBuilder.append(".method public<init>()V\n");
+        stringBuilder.append(".method public <init>()V\n");
         stringBuilder.append(INDENTATION).append("aload_0\n");
         stringBuilder.append(INDENTATION).append("invokenonvirtual ");
 

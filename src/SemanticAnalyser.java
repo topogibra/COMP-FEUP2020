@@ -98,13 +98,12 @@ public class SemanticAnalyser {
                 if (!symbolTables.getClassName().equals(type)) {
                     addException(new NotValidType(simpleNode));
                 }
-
+                break;
         }
 
     }
 
     public static void analyseMethodBody(SymbolTables symbolTables, SimpleNode methodBodyNode, FunctionDescriptor functionDescriptor) throws Exception {
-        System.out.print("Analysing Method Body...\n");
         Node[] children = methodBodyNode.jjtGetChildren();
 
         if (children == null)
