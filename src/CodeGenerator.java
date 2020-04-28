@@ -368,7 +368,15 @@ public class CodeGenerator {
                 break;
             }
             case NodeName.AND: {
-                //TODO
+                stringBuilder.append(INDENTATION).append("iconst_0\n");
+                stringBuilder.append(INDENTATION).append("if_icmpeq put_false_&_pop\n");
+                stringBuilder.append(INDENTATION).append("iconst_0\n");
+                stringBuilder.append(INDENTATION).append("if_icmpeq put_false\n");
+                stringBuilder.append(INDENTATION).append("iconst_1\n");
+                stringBuilder.append(INDENTATION).append("goto end_and\n");
+                stringBuilder.append(INDENTATION).append("put_false_&_pop: pop\n");
+                stringBuilder.append(INDENTATION).append("put_false iconst_0\n");
+                stringBuilder.append(INDENTATION).append("end_and:\n");
                 break;
             }
             case NodeName.LESS: {
