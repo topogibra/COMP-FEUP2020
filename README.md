@@ -8,13 +8,13 @@ Todas as verificações feitas na análise semantica devem reportar erro excepto
 
 **Symbol Table:**
 
-* **global**: inclui info de imports e a classe declarada
-* **classe-specific**: inclui info de extends, fields e methods
-* **method-specific**: inclui info dos arguments e local variables
+* **global**: inclui info de imports e a classe declarada ✅
+* **classe-specific**: inclui info de extends, fields e methods ✅
+* **method-specific**: inclui info dos arguments e local variables ✅
 * **sub topics**:
-    - tem de permitir method overload (i.e. métodos com mesmo nome mas assinatura de parâmetros diferente)
-    - tem de permitir consulta da tabela por parte da análise semantica (e geração de código)
-    - tem de permitir ligar e desligar a sua impressão para fins de debug (neste caso para fins de avaliação)
+    - tem de permitir method overload (i.e. métodos com mesmo nome mas assinatura de parâmetros diferente) ✅
+    - tem de permitir consulta da tabela por parte da análise semantica (e geração de código) ✅
+    - tem de permitir ligar e desligar a sua impressão para fins de debug (neste caso para fins de avaliação) ✅
 
 **Type Verification:**
 
@@ -33,12 +33,13 @@ Todas as verificações feitas na análise semantica devem reportar erro excepto
 	    - caso pretendam fazer esta abordagem com erros adicionem uma forma de ativar/desativar o erro para facilitar no caso de haver problemas.
 			
 **Function Verification:**
+
 * verificar se o "target" do método existe, e se este contém o método (e.g. a.foo, ver se 'a' existe e se tem um método 'foo')
-    * caso seja do tipo da classe declarada (e.g. a usar o this), verificar se é método do extends olhando para o que foi importado (isto se a classe fizer extends de outra classe importada)
+    - caso seja do tipo da classe declarada (e.g. a usar o this), verificar se é método do extends olhando para o que foi importado (isto se a classe fizer extends de outra classe importada)
 * caso o método não seja da classe declarada, isto é importada, verificar se método foi importado
 * verificar se o número de argumentos na invocação é igual ao número de parâmetros da declaração
 * verificar se o tipo dos parâmetros coincide com o tipo dos argumentos
-    * não esquecer que existe method overloading
+    - não esquecer que existe method overloading
     
 ### Code Generation
 * estrutura básica de classe (incluindo construtor <init>)

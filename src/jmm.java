@@ -46,7 +46,8 @@ public class jmm {
             throw new Exception();
         }
 
-        root.dump("");
+        if (!ignoreExceptions)
+            root.dump("");
 
         symbolTablesGenerator = new SymbolTablesGenerator(root);
         symbolTables = symbolTablesGenerator.generate();
