@@ -3,24 +3,19 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 
 public class SemanticException extends Exception {
-    public SimpleNode simpleNode;
-    private String messages;
+    public final SimpleNode simpleNode;
+    private final String messages;
 
     public SemanticException(SimpleNode simpleNode) {
         super();
         this.simpleNode = simpleNode;
         this.messages = simpleNode.toString() + " Line " + simpleNode.jjtGetFirstToken().beginLine + " Column " + simpleNode.jjtGetFirstToken().beginColumn;
-
-        //simpleNode.getParent().dump(" ");
     }
 
-    public SemanticException(SimpleNode simpleNode,String errormessage) {
+    public SemanticException(SimpleNode simpleNode, String errormessage) {
         super();
         this.simpleNode = simpleNode;
         this.messages = printTokenErrorMessage(simpleNode.jjtGetFirstToken(), simpleNode.jjtGetLastToken(),errormessage);
-
-
-        //simpleNode.getParent().dump(" ");
     }
 
     @Override
@@ -29,11 +24,14 @@ public class SemanticException extends Exception {
     }
 
     public String printTokenErrorMessage(Token firstToken, Token lastToken, String message) {
+        StringBuilder errorMessage = new StringBuilder();
+
         int line = firstToken.beginLine;
         int col = firstToken.beginColumn;
+
         String path = jmm.filepath.toAbsolutePath().toString();
         String classname = this.getClass().toString().substring(6).toLowerCase();
-        StringBuilder errorMessage = new StringBuilder();
+
         errorMessage.append(path).append(":");
         errorMessage.append(line);
         errorMessage.append(": error: ");
@@ -55,8 +53,7 @@ public class SemanticException extends Exception {
             return "";
         }
 
-        for (int i = 0; i < col -2; i++)
-            errorMessage.append(" ");
+        errorMessage.append(" ".repeat(Math.max(0, col - 2)));
 
         for (int i=0; i < Math.abs(col - lastToken.endColumn); i++){
             errorMessage.append("^");

@@ -3,36 +3,22 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.List;
 import java.util.Map;
 
-
 public class CodeGenerator {
-    private SymbolTables symbolTables;
-    private Path path;
+    private final String DEST_DIRECTORY = "jasminCode/";
     private final String FILE_EXTENSION = ".j";
     private final String INDENTATION = "\t";
 
+    private final SymbolTables symbolTables;
+    private Path filePath;
 
     public CodeGenerator(SymbolTables symbolTables) {
         this.symbolTables = symbolTables;
     }
 
-    private void createFile(String className) {
-        this.path = Paths.get(className + FILE_EXTENSION);
-
-        try {
-            if (!Files.exists(this.path))
-                Files.createFile(this.path);
-            else
-                Files.write(this.path, "".getBytes());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void generate(SimpleNode rootNode) throws Exception {
-        this.createFile(symbolTables.getClassName());
+    public void generate() throws Exception {
+        this.createFile(this.symbolTables.getClassName());
 
         this.generateClass();
         this.write("\n");
@@ -42,14 +28,36 @@ public class CodeGenerator {
         this.write("\n");
         this.generateMethods();
         this.write("\n");
-
     }
 
-    public void write(String string) throws IOException {
-        Files.write(this.path, string.getBytes(), StandardOpenOption.APPEND);
+    private void createFile(String className) {
+
+        Path directory = Paths.get(DEST_DIRECTORY);
+        if (!Files.exists(directory)) {
+            try {
+                Files.createDirectory(directory);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+        }
+
+        this.filePath = Paths.get(DEST_DIRECTORY + className + FILE_EXTENSION);
+        try {
+            if (!Files.exists(this.filePath))
+                Files.createFile(this.filePath);
+            else
+                Files.write(this.filePath, "".getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public void generateClass() throws IOException {
+    private void write(String string) throws IOException {
+        Files.write(this.filePath, string.getBytes(), StandardOpenOption.APPEND);
+    }
+
+    private void generateClass() throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
 
         stringBuilder.append(".class public ").append(symbolTables.getClassName()).append("\n");
@@ -65,7 +73,7 @@ public class CodeGenerator {
         this.write(stringBuilder.toString());
     }
 
-    public void generateFields() throws IOException {
+    private void generateFields() throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
 
         for (Map.Entry<String, TypeDescriptor> field : symbolTables.getScope().getVars().entrySet()) {
@@ -77,7 +85,7 @@ public class CodeGenerator {
         this.write(stringBuilder.toString());
     }
 
-    public void generateConstructor() throws IOException {
+    private void generateConstructor() throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
 
         stringBuilder.append(".method public <init>()V\n");
@@ -95,14 +103,14 @@ public class CodeGenerator {
         this.write(stringBuilder.toString());
     }
 
-    public void generateMethods() throws Exception {
+    private void generateMethods() throws Exception {
         for (Map.Entry<String, FunctionDescriptor> method : symbolTables.getMethods().entrySet()) {
             this.generateMethod(method.getValue());
             this.write("\n");
         }
     }
 
-    public void generateMethod(FunctionDescriptor functionDescriptor) throws Exception {
+    private void generateMethod(FunctionDescriptor functionDescriptor) throws Exception {
         StringBuilder stringBuilder = new StringBuilder();
 
         if (functionDescriptor.getMethodNode() == null)
@@ -128,10 +136,12 @@ public class CodeGenerator {
         //Method Body
         stringBuilder.append(this.generateMethodBody(functionDescriptor));
 
+        // Return expression
         if (functionDescriptor.getMethodName().equals("main"))
             stringBuilder.append(this.generateReturn(functionDescriptor));
 
         stringBuilder.append(".end method\n");
+
         this.write(stringBuilder.toString());
     }
 
@@ -139,6 +149,7 @@ public class CodeGenerator {
         StringBuilder stringBuilder = new StringBuilder();
         SimpleNode methodBody = null;
 
+        // Look for method body node
         for (Node node: functionDescriptor.getMethodNode().jjtGetChildren()) {
             SimpleNode child = (SimpleNode) node;
 
@@ -146,7 +157,6 @@ public class CodeGenerator {
                 methodBody = child;
                 break;
             }
-
         }
 
         if (methodBody == null){
@@ -157,18 +167,15 @@ public class CodeGenerator {
             SimpleNode child = (SimpleNode) node;
 
             switch (child.getNodeName()){
-                case NodeName.DOTMETHOD:{
-                    stringBuilder.append(this.generateDotMethod(functionDescriptor,child)).append("\n");
+                case NodeName.DOTMETHOD:
+                    stringBuilder.append(this.generateDotMethod(functionDescriptor, child)).append("\n");
                     break;
-                }
-                case NodeName.ASSIGNMENT: {
+                case NodeName.ASSIGNMENT:
                     stringBuilder.append(this.generateAssignment(child, functionDescriptor));
                     break;
-                }
-                case NodeName.RETURN: {
+                case NodeName.RETURN:
                     stringBuilder.append(this.generateReturn(functionDescriptor, child));
                     break;
-                }
                 default:
                     break;
             }
@@ -179,22 +186,23 @@ public class CodeGenerator {
 
     private String generateDotMethod(FunctionDescriptor functionDescriptor, SimpleNode dotMethodNode) throws Exception {
         StringBuilder stringBuilder = new StringBuilder();
+
         SimpleNode leftSide = (SimpleNode) dotMethodNode.jjtGetChild(0);
         SimpleNode rightSide = (SimpleNode) dotMethodNode.jjtGetChild(1);
 
-        String methodId = SemanticAnalyser.parseMethodIdentifier(symbolTables,rightSide,functionDescriptor);
+        String methodId = Utils.parseMethodIdentifier(this.symbolTables, rightSide, functionDescriptor);
         FunctionDescriptor descriptor = symbolTables.getFunctionDescriptor(methodId);
 
         if (rightSide.jjtGetNumChildren() > 1)
             stringBuilder.append(this.generateArgumentsLoading(functionDescriptor, (SimpleNode) rightSide.jjtGetChild(1)));
 
-        if (SemanticAnalyser.isClassVariable(symbolTables,leftSide,functionDescriptor)) {
+        if (Utils.isClassVariable(this.symbolTables,leftSide,functionDescriptor)) {
             stringBuilder.append(INDENTATION);
             stringBuilder.append((descriptor.isFromSuper()) ? "invokespecial " : "invokevirtual ");
             stringBuilder.append((descriptor.isFromSuper()) ? symbolTables.getExtendedClassName() : symbolTables.getClassName());
             stringBuilder.append("/").append(this.generateMethodHeader(descriptor)).append("\n");
         } else {
-            ImportDescriptor importDescriptor = SemanticAnalyser.getImportedMethod(symbolTables,dotMethodNode,functionDescriptor);
+            ImportDescriptor importDescriptor = Utils.getImportedMethod(this.symbolTables,dotMethodNode,functionDescriptor);
             if (importDescriptor != null) { // Invoke imported method
                 stringBuilder.append(INDENTATION).append("invokestatic "); //TODO: only invoke static if imported static
                 stringBuilder.append(this.generateMethodHeader(importDescriptor)).append("\n");
@@ -239,7 +247,7 @@ public class CodeGenerator {
                 break;
             }
             default: {
-                if (SemanticAnalyser.isExpression(rightSide))
+                if (Utils.isExpression(rightSide))
                     stringBuilder.append(this.generateArithmeticExpression(rightSide, functionDescriptor));
                 break;
             }
@@ -269,6 +277,7 @@ public class CodeGenerator {
 
     private String generateMethodHeader(FunctionDescriptor descriptor){
         StringBuilder stringBuilder = new StringBuilder();
+
         stringBuilder.append(descriptor.getMethodName());
 
         stringBuilder.append("(");
@@ -282,6 +291,7 @@ public class CodeGenerator {
 
     private String generateMethodHeader(ImportDescriptor descriptor){
         StringBuilder stringBuilder = new StringBuilder();
+
         stringBuilder.append(descriptor.getClassName()).append("/");
         stringBuilder.append(descriptor.getMethodName());
 
@@ -405,7 +415,7 @@ public class CodeGenerator {
                     break;
                 }
                 default: {
-                    if (SemanticAnalyser.isExpression(child))
+                    if (Utils.isExpression(child))
                         stringBuilder.append(this.generateArithmeticExpression(child, functionDescriptor));
                 }
             }

@@ -1,4 +1,3 @@
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -9,42 +8,77 @@ public class jmm {
 
     public static Path filepath;
 
+    private boolean ignoreExceptions = false;
+
+    Parser parser;
+    SymbolTables symbolTables;
+    SymbolTablesGenerator symbolTablesGenerator;
+    SemanticAnalyser semanticAnalyser;
+    CodeGenerator codeGenerator;
+
     public static void main(String[] args) throws Exception {
-        if (args.length != 1) {
-            System.err.println("Usage: java jmm <file_name>");
-            return;
-        }
-        //Reading file with InputStream
-        //The file is passed as argument (1st argument)
-        File file = new File(args[0]);
-        InputStream input;
-
-        try {
-            input = new FileInputStream(file);
-        } catch (FileNotFoundException e) {
-            System.out.println("File not Found.");
+        if (args.length < 1 || args.length > 2) {
+            System.err.println("Usage: java jmm <file_name> <ignore_exceptions>");
             return;
         }
 
-        jmm.filepath = Paths.get(args[0]);
+        jmm compiler = new jmm(args[0]);
 
-        Parser parser = new Parser(input);
+        if (args.length == 2)
+            compiler.setIgnoreExceptions(Boolean.parseBoolean(args[1]));
 
-        SimpleNode root = null;
+        compiler.compileFile();
+    }
 
-        CodeGenerator codeGenerator;
+    public jmm(String pathname) {
+        filepath = Paths.get(pathname);
+    }
+
+    public void compileFile() throws Exception {
+        SimpleNode root;
+
+        // Parsing
+        parser = new Parser(this.createInputStream());
         try {
-            root = parser.parseProgram(args[0]);
-            root.dump("");
-            SymbolTables symbolTables = SemanticAnalyser.startAnalyse(root);
-            codeGenerator = new CodeGenerator(symbolTables);
-            codeGenerator.generate(root);
+            root = parser.parseProgram(filepath.toString());
         } catch (Exception e) {
             System.err.println(e.getMessage());
-            e.printStackTrace();
             throw new Exception();
         }
 
+        root.dump("");
+
+        symbolTablesGenerator = new SymbolTablesGenerator(root);
+        symbolTables = symbolTablesGenerator.generate();
+
+        // Semantic analysis
+        semanticAnalyser = new SemanticAnalyser(symbolTables, root, ignoreExceptions);
+        try {
+            semanticAnalyser.startAnalyse();
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            throw new Exception();
+        }
+
+        codeGenerator = new CodeGenerator(symbolTables);
+        codeGenerator.generate();
+    }
+
+    private InputStream createInputStream() {
+        InputStream input;
+
+        try {
+            input = new FileInputStream(filepath.toFile());
+        } catch (FileNotFoundException e) {
+            System.out.println("File not Found.");
+            return null;
+        }
+
+        return input;
+    }
+
+    public void setIgnoreExceptions(boolean ignoreExceptions) {
+        this.ignoreExceptions = ignoreExceptions;
     }
 
 }

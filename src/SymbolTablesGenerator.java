@@ -1,9 +1,14 @@
 public class SymbolTablesGenerator {
+    private final SimpleNode root;
 
-    public static SymbolTables generate(SimpleNode root) {
+    public SymbolTablesGenerator(SimpleNode root) {
+        this.root = root;
+    }
+
+    public SymbolTables generate() {
         SymbolTables symbolTables = new SymbolTables();
 
-        Node[] children = root.jjtGetChildren();
+        Node[] children = this.root.jjtGetChildren();
         for (Node node : children) {
             SimpleNode child = (SimpleNode) node;
 
@@ -13,7 +18,7 @@ public class SymbolTablesGenerator {
                         symbolTables.addImport(createImportDescriptor(child));
                         break;
                    case NodeName.CLASS:
-                        parseClass(child, symbolTables);
+                        this.parseClass(child, symbolTables);
                         break;
                 }
             }
@@ -23,7 +28,7 @@ public class SymbolTablesGenerator {
         return symbolTables;
     }
 
-    public static ImportDescriptor createImportDescriptor(SimpleNode simpleNode) {
+    private ImportDescriptor createImportDescriptor(SimpleNode simpleNode) {
         ImportDescriptor importDescriptor = new ImportDescriptor();
 
         Node[] children = simpleNode.jjtGetChildren();
@@ -53,7 +58,7 @@ public class SymbolTablesGenerator {
         return importDescriptor;
     }
 
-    public static void parseClass(SimpleNode simpleNode, SymbolTables symbolTables) {
+    private void parseClass(SimpleNode simpleNode, SymbolTables symbolTables) {
 
         Node[] children = simpleNode.jjtGetChildren();
         for (Node node : children) {
@@ -73,14 +78,14 @@ public class SymbolTablesGenerator {
                         symbolTables.addVar(((SimpleNode) grandchildren[1]).jjtGetVal(), new TypeDescriptor(((SimpleNode) grandchildren[0]).jjtGetVal()));
                         break;
                     case NodeName.METHOD:
-                        symbolTables.addMethod(createFunctionDescriptor(child, symbolTables.getScope()));
+                        symbolTables.addMethod(this.createFunctionDescriptor(child, symbolTables.getScope()));
                         break;
                 }
             }
         }
     }
 
-    public static FunctionDescriptor createFunctionDescriptor(SimpleNode simpleNode, Scope parentScope) {
+    private FunctionDescriptor createFunctionDescriptor(SimpleNode simpleNode, Scope parentScope) {
         FunctionDescriptor functionDescriptor = new FunctionDescriptor(parentScope, simpleNode);
 
         Node[] children = simpleNode.jjtGetChildren();
@@ -96,23 +101,20 @@ public class SymbolTablesGenerator {
                         functionDescriptor.setMethodName(child.jjtGetVal());
                         break;}
                     case NodeName.ARGS:{
-                        parseFunctionArguments(functionDescriptor, child);
+                        this.parseFunctionArguments(functionDescriptor, child);
                         break;}
                     case NodeName.METHODBODY:{
-                        parseMethodBody(functionDescriptor, child);
+                        this.parseMethodBody(functionDescriptor, child);
                         break;}
                 }
             }
-
         }
 
         return functionDescriptor;
     }
 
-    public static void parseFunctionArguments(FunctionDescriptor functionDescriptor, SimpleNode simpleNode) {
-
+    private void parseFunctionArguments(FunctionDescriptor functionDescriptor, SimpleNode simpleNode) {
         int index = 1;
-
         Node[] children = simpleNode.jjtGetChildren();
         for (Node node : children) {
             SimpleNode child = (SimpleNode) node;
@@ -126,7 +128,7 @@ public class SymbolTablesGenerator {
         }
     }
 
-    public static void parseMethodBody(FunctionDescriptor functionDescriptor, SimpleNode simpleNode) {
+    private void parseMethodBody(FunctionDescriptor functionDescriptor, SimpleNode simpleNode) {
         int index = functionDescriptor.getParams().size() + 1;
         Node[] children = simpleNode.jjtGetChildren();
         for (Node node : children) {
