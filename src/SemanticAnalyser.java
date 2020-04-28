@@ -1,3 +1,6 @@
+import Types.NodeName;
+import Types.VarTypes;
+
 public class SemanticAnalyser {
     private final int MAX_NUM_ERRORS = 10;
     private int no_error = 0;
@@ -14,11 +17,14 @@ public class SemanticAnalyser {
 
     private void addException(SemanticException exception) throws Exception {
         if (!ignore_exceptions) {
-            System.err.println(exception.getMessage());
-            no_error++;
-            if (no_error >= MAX_NUM_ERRORS) {
-                throw new Exception("Reached max number of semantic errors");
-            }
+            if (exception.isError()) {
+                System.err.println(exception.getMessage());
+                no_error++;
+                if (no_error >= MAX_NUM_ERRORS) {
+                    throw new Exception("Reached max number of semantic errors");
+                }
+            } else
+                System.out.println(exception.getMessage());
         }
     }
 
@@ -26,12 +32,8 @@ public class SemanticAnalyser {
         this.analyse();
 
         if (this.no_error > 0) {
-            int errors = this.no_error;
-            this.no_error = 0;
-            throw new Exception("Found " + errors + " semantic errors");
+            throw new Exception("Found " + this.no_error + " semantic errors");
         }
-
-        this.no_error = 0;
     }
 
     private void analyse() throws Exception {
@@ -112,7 +114,6 @@ public class SemanticAnalyser {
                 break;
             }
         }
-
     }
 
     private void analyseMethodBody(SimpleNode methodBodyNode, FunctionDescriptor functionDescriptor) throws Exception {
@@ -129,9 +130,6 @@ public class SemanticAnalyser {
                 case NodeName.ARRAYACCESS:
                     this.analyseArray(false, child, functionDescriptor);
                     break;
-                case NodeName.ARRAYSIZE:
-                    this.analyseArray(true, child, functionDescriptor);
-                    break;
                 case NodeName.DOTMETHOD:
                     this.analyseDotMethod(child, functionDescriptor);
                     break;
@@ -142,12 +140,26 @@ public class SemanticAnalyser {
                     this.analyseVarDeclaration(child);
                     break;
                 }
+                case NodeName.IF:
+                case NodeName.WHILE: {
+                    String conditionType = this.analyseExpression(child.getChild(0), functionDescriptor);
+                    if (conditionType != null)
+                        if (!conditionType.equals(VarTypes.BOOLEAN))
+                            addException(new SemanticException(child.getChild(0))); //TODO contition not boolean
+                    break;
+                }
+                case NodeName.RETURN: {
+                    String returnType = this.analyseExpression(child.getChild(0), functionDescriptor);
+                    if (returnType != null)
+                        if (!returnType.equals(functionDescriptor.getReturnType()))
+                            addException(new SemanticException(child.getChild(0))); //TODO expression return type not equal to function return type
+                    break;
+                }
                 default:
                     break;
             }
         }
     }
-
 
     private boolean analyseArray(boolean isArraySize, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
         SimpleNode firstChild = (SimpleNode) simpleNode.jjtGetChildren()[0];
@@ -186,7 +198,7 @@ public class SemanticAnalyser {
         String secondChildName = ParserTreeConstants.jjtNodeName[secondChild.getId()];
 
         if (isInteger(firstChild, functionDescriptor, true) || isBoolean(firstChild, functionDescriptor, true)) {
-            addException(new SemanticException(firstChild));
+            addException(new SemanticException(firstChild)); //TODO method called on primitive type (ADD array type)
             return null;
         }
 
@@ -195,13 +207,20 @@ public class SemanticAnalyser {
                 return getMethodReturnType(secondChild, functionDescriptor);
         } else { // Call a method from an import
             ImportDescriptor importDescriptor = Utils.getImportedMethod(symbolTables, dotMethodNode, functionDescriptor);
-            if (importDescriptor != null) {
+            if (importDescriptor == null) {
+                if (secondChildName.equals(NodeName.LENGTH)) {
+                    if (this.analyseExpression(firstChild, functionDescriptor).equals(VarTypes.INTARRAY))
+                        return VarTypes.INT;
+                    else
+                        this.addException(new SemanticException(dotMethodNode)); //TODO ATRIBUTO LENGTH NÃO EXISTE
+                }
+                else
+                    this.addException(new SemanticException(dotMethodNode)); // TODO: Metodo não encontrado
+            }
+            else
                 return importDescriptor.getReturnType().getTypeIdentifier();
-            } else if (secondChildName.equals(NodeName.LENGTH))
-                return VarTypes.INT;
         }
 
-        addException(new SemanticException(dotMethodNode));
         return null;
     }
 
@@ -226,65 +245,20 @@ public class SemanticAnalyser {
         }
 
         if (methodCallNode.jjtGetChildren().length > 1) { //Check if method call has arguments
-
             SimpleNode secondChild = (SimpleNode) methodCallNode.jjtGetChildren()[1];
-            if (ParserTreeConstants.jjtNodeName[secondChild.getId()].equals(NodeName.ARGS)) {
+            for (Node grandchildNode : secondChild.jjtGetChildren()) {
+                SimpleNode argNode = (SimpleNode) grandchildNode;
 
-                for (Node grandchildNode : secondChild.jjtGetChildren()) {
-                    SimpleNode grandChild = (SimpleNode) grandchildNode;
-
-                    String nodeName = ParserTreeConstants.jjtNodeName[grandChild.getId()];
-                    if (Utils.isExpression(grandChild)) {
-                        String returnType = analyseExpression(grandChild, functionDescriptor);
-                        methodIdentifier.append(returnType);
-                        continue;
-                    }
-
-                    switch (nodeName) {
-                        case NodeName.IDENTIFIER: {
-                            String argIdentifier = grandChild.jjtGetVal();
-                            TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(argIdentifier);
-                            if (typeDescriptor != null)
-                                methodIdentifier.append(typeDescriptor.getTypeIdentifier());
-                            else
-                                addException(new SemanticException(grandChild)); // TODO Make the exception more specific
-                            break;
-                        }
-                        case NodeName.DOTMETHOD: {
-                            String returnType = analyseDotMethod(grandChild, functionDescriptor);
-                            if (returnType != null)
-                                methodIdentifier.append(returnType);
-                            else
-                                addException(new SemanticException(grandChild)); // TODO Make the exception more specific
-                            break;
-                        }
-                        case NodeName.ARRAYACCESS: {
-                            if (analyseArray(false, grandChild, functionDescriptor)) {
-                                methodIdentifier.append(VarTypes.INT);
-                            }
-                            break;
-                        }
-                        case NodeName.INT: {
-                            methodIdentifier.append(VarTypes.INT);
-                            break;
-                        }
-                        case NodeName.BOOLEAN: {
-                            methodIdentifier.append(VarTypes.BOOLEAN);
-                            break;
-                        }
-                        default:
-                            addException(new SemanticException(grandChild)); // TODO Make the exception more specific
-                    }
-                }
-            } else
-                addException(new SemanticException(methodCallNode)); // TODO Make the exception more specific
+                String type = this.analyseExpression(argNode, functionDescriptor);
+                if (type != null)
+                    methodIdentifier.append(type);
+            }
         }
 
         return methodIdentifier.toString();
     }
 
-    private String analyseExpression(SimpleNode expressionNode, FunctionDescriptor functionDescriptor) throws Exception {
-
+    private String analyseArithmeticExpression(SimpleNode expressionNode, FunctionDescriptor functionDescriptor) throws Exception {
         String nodeName = ParserTreeConstants.jjtNodeName[expressionNode.getId()];
         switch (nodeName) {
             case NodeName.SUB:
@@ -328,7 +302,7 @@ public class SemanticAnalyser {
 
                 if (!isBoolean(firstChild, functionDescriptor)) {
                     addException(new SemanticException(firstChild)); // TODO Make the exception more specific
-                    return "";
+                    return null;
                 }
 
                 return VarTypes.BOOLEAN;
@@ -340,73 +314,13 @@ public class SemanticAnalyser {
     }
 
     private boolean isInteger(SimpleNode simpleNode, FunctionDescriptor functionDescriptor, boolean ignore_init) throws Exception {
-        String nodeName = ParserTreeConstants.jjtNodeName[simpleNode.getId()];
-
-        if (Utils.isExpression(simpleNode)) {
-            String returnType = analyseExpression(simpleNode, functionDescriptor);
-            return returnType.equals(VarTypes.INT);
-        }
-
-        switch (nodeName) {
-            case NodeName.INT:
-                return true;
-            case NodeName.IDENTIFIER: {
-                TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(simpleNode.jjtGetVal());
-                if (!ignore_init) {
-                    if (typeDescriptor == null) {
-                        addException(new NotDeclared(simpleNode));
-                        return false;
-                    }
-                    if (!typeDescriptor.isInit()) {
-                        addException(new VarNotInitialized(simpleNode));
-                        return false;
-                    }
-                    return typeDescriptor.getTypeIdentifier().equals(VarTypes.INT);
-                }
-                break;
-            }
-
-            case NodeName.ARRAYACCESS:
-                return analyseArray(false, simpleNode, functionDescriptor);
-            case NodeName.DOTMETHOD: {
-                String returnType = analyseDotMethod(simpleNode, functionDescriptor);
-                return (returnType != null) && returnType.equals(VarTypes.INT);
-            }
-        }
-
-        return false;
+        String type = this.analyseExpression(simpleNode, functionDescriptor, ignore_init);
+        return type != null && type.equals(VarTypes.INT);
     }
 
     private boolean isBoolean(SimpleNode simpleNode, FunctionDescriptor functionDescriptor, boolean ignore_init) throws Exception {
-        String nodeName = simpleNode.getNodeName();
-
-        if (Utils.isExpression(simpleNode)) {
-            String returnType = analyseExpression(simpleNode, functionDescriptor);
-            return returnType.equals(VarTypes.BOOLEAN);
-        }
-
-        switch (nodeName) {
-            case NodeName.BOOLEAN:
-                return true;
-            case NodeName.IDENTIFIER: {
-                TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(simpleNode.jjtGetVal());
-                if (!ignore_init) {
-                    if (typeDescriptor == null)
-                        return false;
-                    if (!typeDescriptor.isInit()) {
-                        addException(new VarNotInitialized(simpleNode));
-                        return false;
-                    }
-                    return typeDescriptor.getTypeIdentifier().equals(VarTypes.BOOLEAN);
-                }
-                break;
-            }
-            case NodeName.DOTMETHOD:
-                String returnType = analyseDotMethod(simpleNode, functionDescriptor);
-                return (returnType != null) && returnType.equals(VarTypes.BOOLEAN);
-        }
-
-        return false;
+        String type = this.analyseExpression(simpleNode, functionDescriptor, ignore_init);
+        return type != null && type.equals(VarTypes.BOOLEAN);
     }
 
     private boolean isBoolean(SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
@@ -416,7 +330,6 @@ public class SemanticAnalyser {
     private boolean isInteger(SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
         return isInteger(simpleNode, functionDescriptor, false);
     }
-
 
     private void analyseAssignment(SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
         SimpleNode leftSide = (SimpleNode) simpleNode.jjtGetChildren()[0];
@@ -447,8 +360,8 @@ public class SemanticAnalyser {
             }
         }
 
-        if (Utils.isExpression(rightSide)) {
-            String rightType = analyseExpression(rightSide, functionDescriptor);
+        if (Utils.isArithmeticExpression(rightSide)) {
+            String rightType = analyseArithmeticExpression(rightSide, functionDescriptor);
             if (!leftType.equals(rightType)) {
                 addException(new NotSameType(simpleNode, leftType, rightType));
                 return;
@@ -458,86 +371,78 @@ public class SemanticAnalyser {
             return;
         }
 
-        String rightSideName = rightSide.getNodeName();
-        switch (rightSideName) {
-            case NodeName.IDENTIFIER: { // a = anothervar;
-                TypeDescriptor tmp = functionDescriptor.getTypeDescriptor(rightSide.jjtGetVal());
-                if (tmp == null) { //Not declared
-                    addException(new NotDeclared(rightSide));
-                    return;
-                }
+        String rightType = this.analyseExpression(rightSide, functionDescriptor);
+        if (rightType != null) {
+            if (!leftType.equals(rightType))
+                this.addException(new NotSameType(simpleNode, leftType, rightType));
+        }
 
-                String rightType = tmp.getTypeIdentifier();
-                if (!rightType.equals(leftType)) {
-                    addException(new NotSameType(rightSide, leftType, rightType));
-                    return;
-                } else if (!tmp.isInit()) {
-                    addException(new VarNotInitialized(rightSide));
-                    return;
-                }
+        functionDescriptor.getScope().setInit(leftSide.jjtGetVal(), true);
+    }
+
+    private String analyseExpression(SimpleNode expressionNode, FunctionDescriptor functionDescriptor) throws Exception {
+        return this.analyseExpression(expressionNode, functionDescriptor, false);
+    }
+
+    private String analyseExpression(SimpleNode expressionNode, FunctionDescriptor functionDescriptor, boolean ignore_init) throws Exception {
+
+        switch (expressionNode.getNodeName()) {
+            case NodeName.ARRAYACCESS: {
+                if (this.analyseArray(false, expressionNode, functionDescriptor))
+                    return VarTypes.INT;
                 break;
             }
             case NodeName.DOTMETHOD: {
-                String returnType = analyseDotMethod(rightSide, functionDescriptor);
-                if (returnType == null) {
-                    addException(new NotDeclared(rightSide));
-                    return;
-                } else if (!returnType.equals(leftType)) {
-                    addException(new NotSameType(simpleNode, leftType, returnType));
-                    return;
-                }
-                break;
+                return this.analyseDotMethod(expressionNode, functionDescriptor);
             }
-            case NodeName.ARRAYACCESS: {
-                if (!analyseArray(false, rightSide, functionDescriptor)) {
-                    return;
-                }
-                break;
-            }
-            case NodeName.BOOLEAN: {
-                if (!leftType.equals(VarTypes.BOOLEAN)) {
-                    addException(new NotSameType(rightSide, leftType, VarTypes.BOOLEAN));
-                    return;
-                }
-                break;
-            }
-            case NodeName.INT: {
-                if (!leftType.equals(VarTypes.INT)) {
-                    addException(new NotSameType(rightSide, leftType, VarTypes.INT));
-                    return;
+            case NodeName.IDENTIFIER: {
+                TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(expressionNode.jjtGetVal());
+                if (!ignore_init) {
+                    if (typeDescriptor == null) {
+                        this.addException(new SemanticException(expressionNode));
+                        return null;
+                    }
+                    if (!typeDescriptor.isInit())
+                        this.addException(new VarNotInitialized(expressionNode));
+                    return typeDescriptor.getTypeIdentifier();
                 }
                 break;
             }
             case NodeName.NEW: {
-                SimpleNode childNode = (SimpleNode) rightSide.jjtGetChild(0);
-                String childNodeName = ParserTreeConstants.jjtNodeName[childNode.getId()];
-                switch (childNodeName) {
+                SimpleNode childNode = (SimpleNode) expressionNode.jjtGetChild(0);
+                switch (childNode.getNodeName()) {
                     case NodeName.ARRAYSIZE: { // new int[1]
-                        if (!analyseArray(true, childNode, functionDescriptor))
-                            return;
-                        break;
+                        if (!analyseArray(true, childNode, functionDescriptor)) {
+                            this.addException(new SemanticException(childNode));
+                            return null;
+                        } else
+                            return VarTypes.INTARRAY;
                     }
                     case NodeName.IDENTIFIER: { // new ClassName();
                         if (!symbolTables.getClassName().equals(childNode.jjtGetVal())) {
                             addException(new SemanticException(childNode)); // TODO Make the exception more specific
-                            return;
-                        }
-                        else if (!leftType.equals(symbolTables.getClassName())) {
-                            addException(new SemanticException(childNode));
-                            return;
-                        }
-                        break;
+                            return null;
+                        } else return expressionNode.jjtGetVal();
                     }
                 }
                 break;
             }
-            default: {
-                addException(new SemanticException(simpleNode)); // TODO Make the exception more specific
-                return;
+            case NodeName.BOOLEAN: {
+                return VarTypes.BOOLEAN;
             }
-
+            case NodeName.INT: {
+                return VarTypes.INT;
+            }
+            case NodeName.THIS: {
+                return this.symbolTables.getClassName();
+            }
+            default: {
+                if (Utils.isArithmeticExpression(expressionNode))
+                    return this.analyseArithmeticExpression(expressionNode, functionDescriptor);
+                break;
+            }
         }
 
-        functionDescriptor.getScope().setInit(leftSide.jjtGetVal(), true);
+        return null;
     }
 }

@@ -58,6 +58,7 @@ public class jmm {
             semanticAnalyser.startAnalyse();
         } catch (Exception e) {
             System.err.println(e.getMessage());
+            e.printStackTrace();
             throw new Exception();
         }
 

@@ -1,3 +1,5 @@
+package Types;
+
 public interface NodeName {
 
     String IMPORT = "Import";
@@ -31,4 +33,6 @@ public interface NodeName {
     String EXTENDS = "Extends";
     String ASSIGNMENT = "Assignment";
     String RETURN = "Return";
+    String IF = "If";
+    String WHILE = "While";
 }

@@ -1,3 +1,5 @@
+import Types.NodeName;
+
 public class SymbolTablesGenerator {
     private final SimpleNode root;
 

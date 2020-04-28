@@ -5,17 +5,27 @@ import java.io.InputStreamReader;
 public class SemanticException extends Exception {
     public final SimpleNode simpleNode;
     private final String messages;
+    private final boolean is_error;
 
     public SemanticException(SimpleNode simpleNode) {
         super();
         this.simpleNode = simpleNode;
         this.messages = simpleNode.toString() + " Line " + simpleNode.jjtGetFirstToken().beginLine + " Column " + simpleNode.jjtGetFirstToken().beginColumn;
+        this.is_error = true;
     }
 
     public SemanticException(SimpleNode simpleNode, String errormessage) {
         super();
         this.simpleNode = simpleNode;
         this.messages = printTokenErrorMessage(simpleNode.jjtGetFirstToken(), simpleNode.jjtGetLastToken(),errormessage);
+        this.is_error = true;
+    }
+
+    public SemanticException(SimpleNode simpleNode, String errormessage, boolean is_error) {
+        super();
+        this.simpleNode = simpleNode;
+        this.messages = printTokenErrorMessage(simpleNode.jjtGetFirstToken(), simpleNode.jjtGetLastToken(),errormessage);
+        this.is_error = is_error;
     }
 
     @Override
@@ -32,9 +42,9 @@ public class SemanticException extends Exception {
         String path = jmm.filepath.toAbsolutePath().toString();
         String classname = this.getClass().toString().substring(6).toLowerCase();
 
+        errorMessage.append(this.is_error ? "ERROR: " : "WARNING: ");
         errorMessage.append(path).append(":");
-        errorMessage.append(line);
-        errorMessage.append(": error: ");
+        errorMessage.append(line).append("\n");
         errorMessage.append(classname).append(": ").append(message).append(": \n");
 
         try {
@@ -60,5 +70,9 @@ public class SemanticException extends Exception {
         }
 
         return errorMessage.toString();
+    }
+
+    public boolean isError() {
+        return this.is_error;
     }
 }

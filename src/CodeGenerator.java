@@ -1,3 +1,6 @@
+import Types.NodeName;
+import Types.VarTypes;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -190,21 +193,24 @@ public class CodeGenerator {
         SimpleNode leftSide = (SimpleNode) dotMethodNode.jjtGetChild(0);
         SimpleNode rightSide = (SimpleNode) dotMethodNode.jjtGetChild(1);
 
-        String methodId = Utils.parseMethodIdentifier(this.symbolTables, rightSide, functionDescriptor);
-        FunctionDescriptor descriptor = symbolTables.getFunctionDescriptor(methodId);
-
         if (rightSide.jjtGetNumChildren() > 1)
             stringBuilder.append(this.generateArgumentsLoading(functionDescriptor, (SimpleNode) rightSide.jjtGetChild(1)));
 
-        if (Utils.isClassVariable(this.symbolTables,leftSide,functionDescriptor)) {
+        if (Utils.isClassVariable(this.symbolTables, leftSide, functionDescriptor)) {
+            String methodId = Utils.parseMethodIdentifier(this.symbolTables, rightSide, functionDescriptor);
+            FunctionDescriptor descriptor = symbolTables.getFunctionDescriptor(methodId);
+
             stringBuilder.append(INDENTATION);
             stringBuilder.append((descriptor.isFromSuper()) ? "invokespecial " : "invokevirtual ");
             stringBuilder.append((descriptor.isFromSuper()) ? symbolTables.getExtendedClassName() : symbolTables.getClassName());
             stringBuilder.append("/").append(this.generateMethodHeader(descriptor)).append("\n");
         } else {
-            ImportDescriptor importDescriptor = Utils.getImportedMethod(this.symbolTables,dotMethodNode,functionDescriptor);
+            ImportDescriptor importDescriptor = Utils.getImportedMethod(this.symbolTables, dotMethodNode, functionDescriptor);
             if (importDescriptor != null) { // Invoke imported method
-                stringBuilder.append(INDENTATION).append("invokestatic "); //TODO: only invoke static if imported static
+                if (importDescriptor.isStatic())
+                    stringBuilder.append(INDENTATION).append("invokestatic ");
+                else
+                    stringBuilder.append(INDENTATION).append("invokevirtual ");
                 stringBuilder.append(this.generateMethodHeader(importDescriptor)).append("\n");
             }
         }
@@ -247,7 +253,7 @@ public class CodeGenerator {
                 break;
             }
             default: {
-                if (Utils.isExpression(rightSide))
+                if (Utils.isArithmeticExpression(rightSide))
                     stringBuilder.append(this.generateArithmeticExpression(rightSide, functionDescriptor));
                 break;
             }
@@ -354,6 +360,14 @@ public class CodeGenerator {
                 break;
             }
             case NodeName.NOT: {
+                stringBuilder.append(INDENTATION).append("iconst_0\n"); // Push 0 (false) to stack
+                stringBuilder.append(INDENTATION).append("if_icmpeq put_true\n"); // Compare previous top value with 0: if previous_value == false
+                                                                                // If yes, goto put_true, to put 1 in top of stack
+                stringBuilder.append(INDENTATION).append("iconst_0\n");
+                stringBuilder.append(INDENTATION).append("put_true: iconst_1\n");
+                break;
+            }
+            case NodeName.AND: {
                 //TODO
                 break;
             }
@@ -415,7 +429,7 @@ public class CodeGenerator {
                     break;
                 }
                 default: {
-                    if (Utils.isExpression(child))
+                    if (Utils.isArithmeticExpression(child))
                         stringBuilder.append(this.generateArithmeticExpression(child, functionDescriptor));
                 }
             }

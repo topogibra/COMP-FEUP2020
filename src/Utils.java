@@ -1,3 +1,5 @@
+import Types.NodeName;
+
 public class Utils {
 
     public static String getMethodIdentifier(SimpleNode simpleNode) {
@@ -42,7 +44,7 @@ public class Utils {
         return false;
     }
 
-    public static boolean isExpression(SimpleNode simpleNode) {
+    public static boolean isArithmeticExpression(SimpleNode simpleNode) {
         switch (ParserTreeConstants.jjtNodeName[simpleNode.getId()]) {
             case NodeName.ADD:
             case NodeName.SUB:

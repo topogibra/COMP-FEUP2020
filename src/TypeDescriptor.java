@@ -1,3 +1,5 @@
+import Types.VarTypes;
+
 public class TypeDescriptor {
     private final String typeIdentifier;
     private boolean isArray = false;
