@@ -3,19 +3,18 @@ import io.println(int);
 class Simple {
 	public static void main(String[] args) {
 		int a;
-		int b;
-		Simple simple;
-		int c;
+		int[] b;
+		int[] c;
+		boolean d;
+		boolean f;
 
-		a = 30;
-		b = 0-10;
-		simple = new Simple();
-		c = simple.add(a,b);
+        a = 1;
+		d = false;
 
-		io.println(c);
+        f = !true && d;
+
+        io.println(a);
 	}
 
-	public int add(int a, int b) {
-		return a+b;
-	}
+
 }
