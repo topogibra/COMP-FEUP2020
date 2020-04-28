@@ -203,8 +203,13 @@ public class SemanticAnalyser {
         }
 
         if (Utils.isClassVariable(symbolTables, firstChild, functionDescriptor)) { // [ClassName | new ClassName].method
-            if (secondChildName.equals(NodeName.METHODCALL))
-                return getMethodReturnType(secondChild, functionDescriptor);
+            if (secondChildName.equals(NodeName.METHODCALL)) {
+                String returnType = getMethodReturnType(secondChild, functionDescriptor);
+                if (returnType == null)
+                    addException(new SemanticException(dotMethodNode)); // TODO method not found
+                else
+                    return returnType;
+            }
         } else { // Call a method from an import
             ImportDescriptor importDescriptor = Utils.getImportedMethod(symbolTables, dotMethodNode, functionDescriptor);
             if (importDescriptor == null) {

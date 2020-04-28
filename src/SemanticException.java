@@ -8,17 +8,11 @@ public class SemanticException extends Exception {
     private final boolean is_error;
 
     public SemanticException(SimpleNode simpleNode) {
-        super();
-        this.simpleNode = simpleNode;
-        this.messages = simpleNode.toString() + " Line " + simpleNode.jjtGetFirstToken().beginLine + " Column " + simpleNode.jjtGetFirstToken().beginColumn;
-        this.is_error = true;
+        this(simpleNode, "");
     }
 
     public SemanticException(SimpleNode simpleNode, String errormessage) {
-        super();
-        this.simpleNode = simpleNode;
-        this.messages = printTokenErrorMessage(simpleNode.jjtGetFirstToken(), simpleNode.jjtGetLastToken(),errormessage);
-        this.is_error = true;
+        this(simpleNode, errormessage, true);
     }
 
     public SemanticException(SimpleNode simpleNode, String errormessage, boolean is_error) {
@@ -44,8 +38,8 @@ public class SemanticException extends Exception {
 
         errorMessage.append(this.is_error ? "ERROR: " : "WARNING: ");
         errorMessage.append(path).append(":");
-        errorMessage.append(line).append("\n");
-        errorMessage.append(classname).append(": ").append(message).append(": \n");
+        errorMessage.append(line).append(" ");
+        errorMessage.append(classname).append(": ").append(message.isEmpty() ? "" : message + ":").append("\n");
 
         try {
             FileInputStream fileStream = new FileInputStream(path);
