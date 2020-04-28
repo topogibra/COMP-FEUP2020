@@ -8,8 +8,16 @@ class Simple extends Hoi {
 		boolean b;
 
 		a = true && true;
-
-		this.println(2);
 	}
+
+    public int ola() {
+        boolean a;
+        int b;
+
+        a = true && true;
+        b = 2+true;
+
+        return b;
+    }
 
 }

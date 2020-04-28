@@ -8,7 +8,7 @@ public class SemanticException extends Exception {
     private final boolean is_error;
 
     public SemanticException(SimpleNode simpleNode) {
-        this(simpleNode, "");
+        this(simpleNode, "", true);
     }
 
     public SemanticException(SimpleNode simpleNode, String errormessage) {
@@ -18,8 +18,8 @@ public class SemanticException extends Exception {
     public SemanticException(SimpleNode simpleNode, String errormessage, boolean is_error) {
         super();
         this.simpleNode = simpleNode;
-        this.messages = printTokenErrorMessage(simpleNode.jjtGetFirstToken(), simpleNode.jjtGetLastToken(),errormessage);
         this.is_error = is_error;
+        this.messages = printTokenErrorMessage(simpleNode.jjtGetFirstToken(), simpleNode.jjtGetLastToken(),errormessage);
     }
 
     @Override

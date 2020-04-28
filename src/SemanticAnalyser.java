@@ -275,12 +275,12 @@ public class SemanticAnalyser {
                 SimpleNode secondChild = (SimpleNode) expressionNode.jjtGetChildren()[1];
 
                 if (!isInteger(firstChild, functionDescriptor)) {
-                    addException(new SemanticException(firstChild)); // TODO Make the exception more specific
+                    addException(new SemanticException(firstChild)); // TODO expected int
                     return null;
                 }
 
                 if (!isInteger(secondChild, functionDescriptor)) {
-                    addException(new SemanticException(secondChild)); // TODO Make the exception more specific
+                    addException(new SemanticException(secondChild)); // TODO expected int
                     return null;
                 }
 
@@ -291,12 +291,12 @@ public class SemanticAnalyser {
                 SimpleNode secondChild = (SimpleNode) expressionNode.jjtGetChildren()[1];
 
                 if (!isBoolean(firstChild, functionDescriptor)) {
-                    addException(new SemanticException(firstChild)); // TODO Make the exception more specific
+                    addException(new SemanticException(firstChild)); // TODO Expected boolean
                     return null;
                 }
 
                 if (!isBoolean(secondChild, functionDescriptor)) {
-                    addException(new SemanticException(secondChild)); // TODO Make the exception more specific
+                    addException(new SemanticException(secondChild)); // TODO Expected boolean
                     return null;
                 }
 
@@ -306,7 +306,7 @@ public class SemanticAnalyser {
                 SimpleNode firstChild = (SimpleNode) expressionNode.jjtGetChildren()[0];
 
                 if (!isBoolean(firstChild, functionDescriptor)) {
-                    addException(new SemanticException(firstChild)); // TODO Make the exception more specific
+                    addException(new SemanticException(firstChild)); // TODO Expected boolean
                     return null;
                 }
 
@@ -314,7 +314,6 @@ public class SemanticAnalyser {
             }
         }
 
-        addException(new SemanticException(expressionNode)); // TODO Make the exception more specific
         return null;
     }
 
@@ -363,17 +362,6 @@ public class SemanticAnalyser {
                 addException(new SemanticException(simpleNode)); // TODO Make the exception more specific
                 return;
             }
-        }
-
-        if (Utils.isArithmeticExpression(rightSide)) {
-            String rightType = analyseArithmeticExpression(rightSide, functionDescriptor);
-            if (!leftType.equals(rightType)) {
-                addException(new NotSameType(simpleNode, leftType, rightType));
-                return;
-            }
-
-            functionDescriptor.getScope().setInit(leftSide.jjtGetVal(), true);
-            return;
         }
 
         String rightType = this.analyseExpression(rightSide, functionDescriptor);
