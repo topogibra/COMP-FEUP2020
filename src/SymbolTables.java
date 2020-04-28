@@ -89,7 +89,6 @@ public class SymbolTables {
     }
 
     public boolean isImportedClass(String extendedClassName) {
-        System.out.println("Exnted class name: " + extendedClassName);
         return this.imports.containsKey(extendedClassName);
     }
 

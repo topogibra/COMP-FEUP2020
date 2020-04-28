@@ -26,7 +26,6 @@ public class SymbolTablesGenerator {
             }
         }
 
-        symbolTables.print();
         return symbolTables;
     }
 
