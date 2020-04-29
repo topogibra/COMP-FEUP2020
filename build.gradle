@@ -57,7 +57,7 @@ sourceSets {
 // Create JAR with main class
 jar {
    manifest {
-      attributes 'Main-Class': 'jmm'
+      attributes 'Main-Class': 'main.jmm'
    }
 }
 
