@@ -8,6 +8,6 @@ class VarNotInit {
         int j;
         int k;
         k = 2;
-        i = j+k;
+        i = j+true;
     }
 }

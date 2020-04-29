@@ -1,23 +1,23 @@
-import io.println(int) void;
-import Hoi;
-import Hoi.ola();
+import static io.println(int);
 
-class Simple extends Hoi {
+class Simple {
 	public static void main(String[] args) {
-		boolean a;
-		boolean b;
+		int a;
+		int b;
+		Simple simple;
+		int c;
 
-		a = true && true;
+		a = 30;
+		b = 0-10;
+
+		simple = new Simple();
+
+		c = simple.add(a,b);
+
+		io.println(c);
 	}
 
-    public int ola() {
-        boolean a;
-        int b;
-
-        a = true && true;
-        b = 2+true;
-
-        return b;
-    }
-
+	public int add(int a, int b){
+		return a+b;
+	}
 }

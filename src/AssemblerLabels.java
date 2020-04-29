@@ -12,7 +12,7 @@ public class AssemblerLabels {
             int number = map.get(label);
             map.put(label,number+1);
             return label + "_" + number;
-        } else{
+        } else {
             map.put(label,1);
             return label+ "_" + 0;
         }

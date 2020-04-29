@@ -91,7 +91,7 @@ public class CodeGenerator {
     private void generateConstructor() throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
 
-        stringBuilder.append(".method public <init>()V\n");
+        stringBuilder.append(".method <init>()V\n");
         stringBuilder.append(INDENTATION).append("aload_0\n");
         stringBuilder.append(INDENTATION).append("invokenonvirtual ");
 
@@ -194,10 +194,13 @@ public class CodeGenerator {
         SimpleNode leftSide = (SimpleNode) dotMethodNode.jjtGetChild(0);
         SimpleNode rightSide = (SimpleNode) dotMethodNode.jjtGetChild(1);
 
-        if (rightSide.jjtGetNumChildren() > 1)
-            stringBuilder.append(this.generateArgumentsLoading(functionDescriptor, (SimpleNode) rightSide.jjtGetChild(1), assemblerLabels));
-
         if (Utils.isClassVariable(this.symbolTables, leftSide, functionDescriptor)) {
+            TypeDescriptor classDescriptor = functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal()); //TODO only workds if left side is identifier
+            stringBuilder.append(INDENTATION).append("aload ").append(classDescriptor.getIndex()).append("\n");
+
+            if (rightSide.jjtGetNumChildren() > 1) // If arguments are being passed
+                stringBuilder.append(this.generateArgumentsLoading(functionDescriptor, (SimpleNode) rightSide.jjtGetChild(1), assemblerLabels));
+
             String methodId = Utils.parseMethodIdentifier(this.symbolTables, rightSide, functionDescriptor);
             FunctionDescriptor descriptor = symbolTables.getFunctionDescriptor(methodId);
 
@@ -208,6 +211,10 @@ public class CodeGenerator {
         } else {
             ImportDescriptor importDescriptor = Utils.getImportedMethod(this.symbolTables, dotMethodNode, functionDescriptor);
             if (importDescriptor != null) { // Invoke imported method
+
+                if (rightSide.jjtGetNumChildren() > 1) // If arguments are being passed
+                    stringBuilder.append(this.generateArgumentsLoading(functionDescriptor, (SimpleNode) rightSide.jjtGetChild(1), assemblerLabels));
+
                 if (importDescriptor.isStatic())
                     stringBuilder.append(INDENTATION).append("invokestatic ");
                 else
@@ -344,8 +351,9 @@ public class CodeGenerator {
             return stringBuilder.toString();
         }
 
-        for (int i = simpleNode.jjtGetNumChildren() - 1; i >= 0; i--) {
-            SimpleNode child = (SimpleNode) simpleNode.jjtGetChild(i);
+
+        for (Node nodeChild : children) {
+            SimpleNode child = (SimpleNode) nodeChild;
 
             if (child != null)
                 stringBuilder.append(generateArithmeticExpression(child, functionDescriptor, assemblerLabels));
@@ -400,8 +408,9 @@ public class CodeGenerator {
     public String generateArgumentsLoading(FunctionDescriptor functionDescriptor, SimpleNode argsNode, AssemblerLabels assemblerLabels) throws Exception {
         StringBuilder stringBuilder = new StringBuilder();
 
-        for (int i = argsNode.jjtGetNumChildren() - 1; i >= 0; i--) {
-            SimpleNode arg = (SimpleNode) argsNode.jjtGetChild(i);
+        Node[] children = argsNode.jjtGetChildren();
+        for (Node node : children) {
+            SimpleNode arg = (SimpleNode) node;
 
             switch (arg.getNodeName()) {
                 case NodeName.IDENTIFIER: {
