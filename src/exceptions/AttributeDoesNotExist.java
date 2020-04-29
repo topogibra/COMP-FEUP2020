@@ -1,3 +1,7 @@
+package exceptions;
+
+import parser.SimpleNode;
+
 public class AttributeDoesNotExist extends SemanticException {
 
     public AttributeDoesNotExist(SimpleNode simpleNode) {

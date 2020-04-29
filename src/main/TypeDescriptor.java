@@ -1,3 +1,5 @@
+package main;
+
 import Types.VarTypes;
 
 public class TypeDescriptor {

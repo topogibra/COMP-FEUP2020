@@ -1,4 +1,9 @@
+package main;
+
 import Types.NodeName;
+import parser.Node;
+import parser.ParserTreeConstants;
+import parser.SimpleNode;
 
 public class SymbolTablesGenerator {
     private final SimpleNode root;

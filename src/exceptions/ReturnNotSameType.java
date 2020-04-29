@@ -1,3 +1,7 @@
+package exceptions;
+
+import parser.SimpleNode;
+
 public class ReturnNotSameType extends SemanticException {
 
     public ReturnNotSameType(SimpleNode simpleNode, String functionReturnType, String givenType) {

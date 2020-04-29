@@ -1,3 +1,7 @@
+package exceptions;
+
+import parser.SimpleNode;
+
 public class NotStatement extends SemanticException {
 
     public NotStatement(SimpleNode simpleNode) {

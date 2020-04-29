@@ -1,3 +1,7 @@
+package exceptions;
+
+import parser.SimpleNode;
+
 public class MethodCallOnPrimitive extends SemanticException {
 
     public MethodCallOnPrimitive(SimpleNode simpleNode) {

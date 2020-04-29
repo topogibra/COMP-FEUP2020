@@ -21,15 +21,15 @@ dependencies {
 // Execute JJTree
 compileJjtree {
     inputDirectory = file('javacc')
-    outputDirectory = file('generated/jjtree')
+    outputDirectory = file('src/parser')
 	include '**/*.java'
 }
 
 
 // Execute JavaCC
 compileJavacc {
-    inputDirectory = file('generated/jjtree')
-    outputDirectory = file('generated/javacc')
+    inputDirectory = file('src/parser')
+    outputDirectory = file('src/parser')
 	arguments = [grammar_encoding: 'UTF-8', static: 'false']	
 }
 

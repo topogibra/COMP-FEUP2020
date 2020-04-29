@@ -2,9 +2,11 @@ options
 {
     LOOKAHEAD=1;
     TRACK_TOKENS = true;
+    BUILD_NODE_FILES = false;
 }
 
 PARSER_BEGIN(Parser)
+   package parser;
 
    import java.io.*;
    public class Parser {

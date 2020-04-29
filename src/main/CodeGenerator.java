@@ -1,5 +1,9 @@
+package main;
+
 import Types.NodeName;
 import Types.VarTypes;
+import parser.Node;
+import parser.SimpleNode;
 
 import java.io.IOException;
 import java.nio.file.Files;

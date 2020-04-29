@@ -1,4 +1,7 @@
+package exceptions;
+
 import Types.VarTypes;
+import parser.SimpleNode;
 
 public class IndexNotInt extends SemanticException {
     public IndexNotInt(SimpleNode simpleNode) {

@@ -1,3 +1,8 @@
+package main;
+
+import parser.Parser;
+import parser.SimpleNode;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -18,7 +23,7 @@ public class jmm {
 
     public static void main(String[] args) throws Exception {
         if (args.length < 1 || args.length > 2) {
-            System.err.println("Usage: java jmm <file_name> <ignore_exceptions>");
+            System.err.println("Usage: java main.jmm <file_name> <ignore_exceptions>");
             return;
         }
 

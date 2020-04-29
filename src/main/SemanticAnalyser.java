@@ -1,5 +1,11 @@
+package main;
+
 import Types.NodeName;
 import Types.VarTypes;
+import exceptions.*;
+import parser.Node;
+import parser.ParserTreeConstants;
+import parser.SimpleNode;
 
 public class SemanticAnalyser {
     private final int MAX_NUM_ERRORS = 10;

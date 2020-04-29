@@ -2,7 +2,7 @@
 gradlew
 gradlew.bat
 /build/
-/generated/
+src/parser/
 .idea/
 .settings/
 bin/
