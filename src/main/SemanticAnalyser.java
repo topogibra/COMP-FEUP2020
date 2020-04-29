@@ -114,8 +114,8 @@ public class SemanticAnalyser {
             case VarTypes.BOOLEAN:
                 break;
             default: {
-                if (!symbolTables.getClassName().equals(type)) { //TODO Declarar variaveis de imported types
-                    addException(new NotValidType(varDeclarationNode));
+                if (!symbolTables.getClassName().equals(type) && !symbolTables.isImportedClass(type)) {
+                    addException(new ClassNotImported(varDeclarationNode,type));
                 }
                 break;
             }
@@ -439,8 +439,8 @@ public class SemanticAnalyser {
                             return VarTypes.INTARRAY;
                     }
                     case NodeName.IDENTIFIER: { // new ClassName();
-                        if (!symbolTables.getClassName().equals(childNode.jjtGetVal())) {
-                            addException(new SemanticException(childNode)); // TODO Make the exception more specific
+                        if (!symbolTables.getClassName().equals(childNode.jjtGetVal()) && !symbolTables.isImportedClass(childNode.jjtGetVal())) {
+                            addException(new ClassNotImported(childNode,childNode.jjtGetVal()));
                             return null;
                         } else return expressionNode.jjtGetVal();
                     }

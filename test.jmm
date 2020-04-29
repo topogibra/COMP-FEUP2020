@@ -5,10 +5,11 @@ class HelloWorld {
 		int b;
 		int c;
 		HelloWorld hw;
+		YEET s;
 
 		a = 2;
 		b = 2;
-		b = this.get().add(a,b);
+
 
 
 	}
