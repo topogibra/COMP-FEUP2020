@@ -1,5 +1,7 @@
 package main;
 
+import parser.SimpleNode;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -92,6 +94,8 @@ public class SymbolTables {
     public boolean isImportedClass(String extendedClassName) {
         return this.imports.containsKey(extendedClassName);
     }
+
+
 
     public String getClassName() {
         return className;
