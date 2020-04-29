@@ -127,9 +127,6 @@ public class SemanticAnalyser {
             String childName = ParserTreeConstants.jjtNodeName[child.getId()];
 
             switch (childName) {
-                case NodeName.ARRAYACCESS:
-                    this.analyseArray(false, child, functionDescriptor);
-                    break;
                 case NodeName.DOTMETHOD:
                     this.analyseDotMethod(child, functionDescriptor);
                     break;
@@ -155,11 +152,14 @@ public class SemanticAnalyser {
                             addException(new SemanticException(child.getChild(0))); //TODO expression return type not equal to function return type
                     break;
                 }
-                default:
+                default: {
+                    this.addException(new SemanticException(methodBodyNode)); //TODO not a statement
                     break;
+                }
             }
         }
     }
+
 
     private boolean analyseArray(boolean isArraySize, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
         SimpleNode firstChild = (SimpleNode) simpleNode.jjtGetChildren()[0];

@@ -2,18 +2,15 @@ import static io.println(int);
 
 class Simple {
 	public static void main(String[] args) {
-		int a;
 		int b;
 		Simple simple;
 		int c;
+		int[] a;
 
-		a = 30;
+        a = new int[2];
 		b = 0-10;
 
-		simple = new Simple();
-
-		c = simple.add(a,b);
-
+        a[2];
 		io.println(c);
 	}
 
