@@ -69,7 +69,7 @@ public class SemanticAnalyser {
                 case NodeName.EXTENDS: {
                     String extendedClassName = child.getChild(0).jjtGetVal();
                     if (!symbolTables.isImportedClass(extendedClassName)) {
-                        this.addException(new SemanticException(child)); // TODO Make the exception more specific
+                        this.addException(new ExtendedClassNotImported(child));
                         return;
                     }
                     break;
@@ -142,7 +142,7 @@ public class SemanticAnalyser {
                     String conditionType = this.analyseExpression(child.getChild(0), functionDescriptor);
                     if (conditionType != null)
                         if (!conditionType.equals(VarTypes.BOOLEAN))
-                            addException(new SemanticException(child.getChild(0))); //TODO contition not boolean
+                            addException(new ConditionNotBoolean(child.getChild(0), conditionType)); //TODO contition not boolean
                     break;
                 }
                 case NodeName.RETURN: {
@@ -153,7 +153,7 @@ public class SemanticAnalyser {
                     break;
                 }
                 default: {
-                    this.addException(new SemanticException(methodBodyNode)); //TODO not a statement
+                    this.addException(new NotStatement(child));
                     break;
                 }
             }

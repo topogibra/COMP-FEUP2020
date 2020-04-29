@@ -195,8 +195,10 @@ public class CodeGenerator {
         SimpleNode rightSide = (SimpleNode) dotMethodNode.jjtGetChild(1);
 
         if (Utils.isClassVariable(this.symbolTables, leftSide, functionDescriptor)) {
-            TypeDescriptor classDescriptor = functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal()); //TODO only workds if left side is identifier
-            stringBuilder.append(INDENTATION).append("aload ").append(classDescriptor.getIndex()).append("\n");
+            if(leftSide.getNodeName().equals(NodeName.IDENTIFIER)) {
+                TypeDescriptor classDescriptor = functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal()); //TODO only workds if left side is identifier
+                stringBuilder.append(INDENTATION).append("aload ").append(classDescriptor.getIndex()).append("\n");
+            }
 
             if (rightSide.jjtGetNumChildren() > 1) // If arguments are being passed
                 stringBuilder.append(this.generateArgumentsLoading(functionDescriptor, (SimpleNode) rightSide.jjtGetChild(1), assemblerLabels));

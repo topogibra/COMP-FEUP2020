@@ -1,20 +1,18 @@
-import static io.println(int);
+/*  REASON:
+    Variable "j" is undefined.
+*/
 
-class Simple {
-	public static void main(String[] args) {
-		int b;
-		Simple simple;
-		int c;
-		int[] a;
+class VarNotInit {
+    public static void main(String[] a) { 
+        int i;
+        int j;
+        int k;
+        k = 2;
 
-        a = new int[2];
-		b = 0-10;
+        if(1) {
 
-        a[2];
-		io.println(c);
-	}
+        } else {
 
-	public int add(int a, int b){
-		return a+b;
-	}
+        }
+    }
 }
