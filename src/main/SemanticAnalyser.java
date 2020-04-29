@@ -13,7 +13,7 @@ public class SemanticAnalyser {
 
     private final SymbolTables symbolTables;
     private final SimpleNode root;
-    public static boolean ignore_exceptions;
+    public boolean ignore_exceptions;
 
     public SemanticAnalyser(SymbolTables symbolTables, SimpleNode root, boolean ignore_exceptions) {
         this.symbolTables = symbolTables;
@@ -21,7 +21,7 @@ public class SemanticAnalyser {
         SemanticAnalyser.no_error = 0;
     }
 
-    public static void addException(SemanticException exception) throws Exception {
+    public void addException(SemanticException exception) throws Exception {
         if (!ignore_exceptions) {
             if (exception.isError()) {
                 System.err.println(exception.getMessage());
@@ -115,19 +115,19 @@ public class SemanticAnalyser {
                 break;
             default: {
                 if (!symbolTables.getClassName().equals(type) && !symbolTables.isImportedClass(type)) {
-                    addException(new ClassNotImported(varDeclarationNode,type));
+                    addException(new ClassNotImported(varDeclarationNode, type));
                 }
                 break;
             }
         }
     }
 
-    private boolean canUseThis(SimpleNode dotmethod,FunctionDescriptor functionDescriptor) throws Exception {
+    private boolean canUseThis(SimpleNode dotmethod, FunctionDescriptor functionDescriptor) throws Exception {
         SimpleNode firstChild = dotmethod.getChild(0);
-        boolean canUse = firstChild.getNodeName().equals(NodeName.THIS) || (firstChild.getNodeName().equals(NodeName.DOTMETHOD) && canUseThis(firstChild,functionDescriptor));
+        boolean canUse = firstChild.getNodeName().equals(NodeName.THIS) || (firstChild.getNodeName().equals(NodeName.DOTMETHOD) && canUseThis(firstChild, functionDescriptor));
 
 
-        if(canUse && firstChild.getNodeName().equals(NodeName.THIS) && functionDescriptor.isMain()){ // this in static context
+        if (canUse && firstChild.getNodeName().equals(NodeName.THIS) && functionDescriptor.isMain()) { // this in static context
             addException(new ThisFromStaticContext(firstChild));
             return false;
         }
@@ -146,7 +146,7 @@ public class SemanticAnalyser {
 
             switch (childName) {
                 case NodeName.DOTMETHOD:
-                    if(!canUseThis(child,functionDescriptor)){
+                    if (!canUseThis(child, functionDescriptor)) {
                         continue;
                     }
                     this.analyseDotMethod(child, functionDescriptor);
@@ -244,14 +244,12 @@ public class SemanticAnalyser {
                 //this.length
                 addException(new AttributeDoesNotExist(dotMethodNode));
             }
-        }
-        else if (secondChildName.equals(NodeName.LENGTH)) {
+        } else if (secondChildName.equals(NodeName.LENGTH)) {
             if (this.analyseExpression(firstChild, functionDescriptor).equals(VarTypes.INTARRAY))
                 return VarTypes.INT;
             else
                 addException(new AttributeDoesNotExist(dotMethodNode)); //TODO: TEST
-        }
-        else
+        } else
             addException(new MethodNotFound(dotMethodNode));
 
         return null;
@@ -308,7 +306,6 @@ public class SemanticAnalyser {
                     addException(new UnexpectedType(secondChild, VarTypes.INT));
                     stop = true;
                 }
-
 
 
                 return (stop) ? null : nodeName.equals(NodeName.LESS) ? VarTypes.BOOLEAN : VarTypes.INT;
@@ -390,7 +387,7 @@ public class SemanticAnalyser {
             }
         }
 
-        if(rightSide.getNodeName().equals(NodeName.DOTMETHOD) && !canUseThis(rightSide,functionDescriptor)){
+        if (rightSide.getNodeName().equals(NodeName.DOTMETHOD) && !canUseThis(rightSide, functionDescriptor)) {
             return;
         }
 
@@ -403,11 +400,11 @@ public class SemanticAnalyser {
         functionDescriptor.getScope().setInit(leftSide.jjtGetVal(), true);
     }
 
-    private String analyseExpression(SimpleNode expressionNode, FunctionDescriptor functionDescriptor) throws Exception {
+    public String analyseExpression(SimpleNode expressionNode, FunctionDescriptor functionDescriptor) throws Exception {
         return this.analyseExpression(expressionNode, functionDescriptor, false);
     }
 
-    private String analyseExpression(SimpleNode expressionNode, FunctionDescriptor functionDescriptor, boolean ignore_init) throws Exception {
+    public String analyseExpression(SimpleNode expressionNode, FunctionDescriptor functionDescriptor, boolean ignore_init) throws Exception {
 
         switch (expressionNode.getNodeName()) {
             case NodeName.ARRAYACCESS: {
@@ -416,20 +413,19 @@ public class SemanticAnalyser {
                 break;
             }
             case NodeName.DOTMETHOD: {
-                return this.analyseDotMethod(expressionNode, functionDescriptor);
+                return this.analyseDotMethod(expressionNode, functionDescriptor, ignore_init);
             }
             case NodeName.IDENTIFIER: {
                 TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(expressionNode.jjtGetVal());
+                if (typeDescriptor == null) {
+                    addException(new NotDeclared(expressionNode));
+                    return null;
+                }
                 if (!ignore_init) {
-                    if (typeDescriptor == null) {
-                        addException(new NotDeclared(expressionNode));
-                        return null;
-                    }
                     if (!typeDescriptor.isInit())
                         addException(new VarNotInitialized(expressionNode));
-                    return typeDescriptor.getTypeIdentifier();
                 }
-                break;
+                return typeDescriptor.getTypeIdentifier();
             }
             case NodeName.NEW: {
                 SimpleNode childNode = (SimpleNode) expressionNode.jjtGetChild(0);
@@ -443,7 +439,7 @@ public class SemanticAnalyser {
                     }
                     case NodeName.IDENTIFIER: { // new ClassName();
                         if (!symbolTables.getClassName().equals(childNode.jjtGetVal()) && !symbolTables.isImportedClass(childNode.jjtGetVal())) {
-                            addException(new ClassNotImported(childNode,childNode.jjtGetVal()));
+                            addException(new ClassNotImported(childNode, childNode.jjtGetVal()));
                             return null;
                         } else return expressionNode.jjtGetVal();
                     }

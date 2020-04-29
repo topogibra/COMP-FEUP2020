@@ -73,8 +73,10 @@ public class Utils {
     public static ImportDescriptor getImportedMethod(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
         SimpleNode firstChild = (SimpleNode) simpleNode.jjtGetChildren()[0];
         SimpleNode secondChild = (SimpleNode) simpleNode.jjtGetChildren()[1];
+        SemanticAnalyser semanticAnalyser = new SemanticAnalyser(symbolTables, null, true);
 
         String importedMethodIdentifier = firstChild.jjtGetVal();
+        importedMethodIdentifier= (importedMethodIdentifier == null) ? semanticAnalyser.analyseExpression(firstChild,functionDescriptor,true) : importedMethodIdentifier;
         importedMethodIdentifier += parseMethodIdentifier(symbolTables, secondChild, functionDescriptor);
 
         return symbolTables.getImportDescriptor(importedMethodIdentifier);

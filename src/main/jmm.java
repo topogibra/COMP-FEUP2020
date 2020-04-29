@@ -60,12 +60,12 @@ public class jmm {
 
 
         // Semantic analysis
-        SemanticAnalyser.ignore_exceptions = ignoreExceptions;
         semanticAnalyser = new SemanticAnalyser(symbolTables, root, ignoreExceptions);
         try {
             semanticAnalyser.startAnalyse();
         } catch (Exception e) {
             System.err.println(e.getMessage());
+            e.printStackTrace();
             throw new Exception();
         }
 
