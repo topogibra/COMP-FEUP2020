@@ -10,7 +10,7 @@ class HelloWorld {
 		HelloWorld hw;
 		YEET k;
 
-        k.println().println().println();
+        (new YEET()).println();
 
 
 	}

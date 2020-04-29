@@ -224,8 +224,14 @@ public class SemanticAnalyser {
 
         // Call a method from an import
         ImportDescriptor importDescriptor = Utils.getImportedMethod(symbolTables, dotMethodNode, functionDescriptor);
-        if (importDescriptor != null)
+        if (importDescriptor != null) {
+            if (firstChild != null && firstChild.jjtGetVal() != null  && !firstChild.jjtGetVal().equals(NodeName.DOTMETHOD)) {
+                if (!importDescriptor.isStatic() && firstChild.jjtGetVal().equals(importDescriptor.getClassName())) {
+                    addException(new NotStaticMethod(firstChild));
+                }
+            }
             return importDescriptor.getReturnType().getTypeIdentifier();
+        }
 
         if (isInteger(firstChild, functionDescriptor, ignore_init) || isBoolean(firstChild, functionDescriptor, ignore_init)) {
             //TODO Add array type
@@ -441,7 +447,7 @@ public class SemanticAnalyser {
                         if (!symbolTables.getClassName().equals(childNode.jjtGetVal()) && !symbolTables.isImportedClass(childNode.jjtGetVal())) {
                             addException(new ClassNotImported(childNode, childNode.jjtGetVal()));
                             return null;
-                        } else return expressionNode.jjtGetVal();
+                        } else return childNode.jjtGetVal();
                     }
                 }
                 break;

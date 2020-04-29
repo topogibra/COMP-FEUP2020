@@ -84,13 +84,17 @@ public class Utils {
 
 
         if(importDescriptor == null){
-            importedMethodIdentifier = semanticAnalyser.analyseExpression(firstChild,functionDescriptor,true);
+            importedMethodIdentifier = semanticAnalyser.analyseExpression(firstChild,functionDescriptor,false);
             String methodIdentifier =  parseMethodIdentifier(symbolTables, secondChild, functionDescriptor);
             importDescriptor = symbolTables.getImportDescriptor(importedMethodIdentifier+methodIdentifier);
 
         }
 
         return importDescriptor;
+    }
+
+    public static SimpleNode getMostRightChildDotMethod(SimpleNode simpleNode){
+        return (!simpleNode.getNodeName().equals(NodeName.DOTMETHOD)) ? getMostRightChildDotMethod(simpleNode.getChild(0)) : null;
     }
 
     public static String parseMethodIdentifier(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
