@@ -108,7 +108,7 @@ public class SemanticAnalyser {
             case VarTypes.BOOLEAN:
                 break;
             default: {
-                if (!symbolTables.getClassName().equals(type)) { //TODO check if we can declare a variable of an imported type
+                if (!symbolTables.getClassName().equals(type)) { //TODO Declarar variaveis de imported types
                     this.addException(new NotValidType(varDeclarationNode));
                 }
                 break;
@@ -142,14 +142,14 @@ public class SemanticAnalyser {
                     String conditionType = this.analyseExpression(child.getChild(0), functionDescriptor);
                     if (conditionType != null)
                         if (!conditionType.equals(VarTypes.BOOLEAN))
-                            addException(new ConditionNotBoolean(child.getChild(0), conditionType)); //TODO contition not boolean
+                            addException(new ConditionNotBoolean(child.getChild(0), conditionType));
                     break;
                 }
                 case NodeName.RETURN: {
                     String returnType = this.analyseExpression(child.getChild(0), functionDescriptor);
                     if (returnType != null)
                         if (!returnType.equals(functionDescriptor.getReturnType()))
-                            addException(new SemanticException(child.getChild(0))); //TODO expression return type not equal to function return type
+                            addException(new ReturnNotSameType(child.getChild(0), functionDescriptor.getReturnType(), returnType));
                     break;
                 }
                 default: {
@@ -191,14 +191,24 @@ public class SemanticAnalyser {
         return true;
     }
 
-    private String analyseDotMethod(SimpleNode dotMethodNode, FunctionDescriptor functionDescriptor) throws Exception {
+    public String analyseDotMethod(SimpleNode dotMethodNode, FunctionDescriptor functionDescriptor) throws Exception {
+        return analyseDotMethod(dotMethodNode, functionDescriptor, false);
+    }
+
+    public String analyseDotMethod(SimpleNode dotMethodNode, FunctionDescriptor functionDescriptor, boolean ignore_init) throws Exception {
         SimpleNode firstChild = (SimpleNode) dotMethodNode.jjtGetChildren()[0];
         SimpleNode secondChild = (SimpleNode) dotMethodNode.jjtGetChildren()[1];
 
         String secondChildName = ParserTreeConstants.jjtNodeName[secondChild.getId()];
 
-        if (isInteger(firstChild, functionDescriptor, true) || isBoolean(firstChild, functionDescriptor, true)) {
-            addException(new SemanticException(firstChild)); //TODO method called on primitive type (ADD array type)
+        // Call a method from an import
+        ImportDescriptor importDescriptor = Utils.getImportedMethod(symbolTables, dotMethodNode, functionDescriptor);
+        if (importDescriptor != null)
+            return importDescriptor.getReturnType().getTypeIdentifier();
+
+        if (isInteger(firstChild, functionDescriptor, ignore_init) || isBoolean(firstChild, functionDescriptor, ignore_init)) {
+            //TODO Add array type
+            addException(new MethodCallOnPrimitive(firstChild));
             return null;
         }
 
@@ -206,25 +216,22 @@ public class SemanticAnalyser {
             if (secondChildName.equals(NodeName.METHODCALL)) {
                 String returnType = getMethodReturnType(secondChild, functionDescriptor);
                 if (returnType == null)
-                    addException(new SemanticException(dotMethodNode)); // TODO method not found
+                    addException(new MethodNotFound(dotMethodNode));
                 else
                     return returnType;
+            } else {
+                //this.length
+                this.addException(new AttributeDoesNotExist(dotMethodNode));
             }
-        } else { // Call a method from an import
-            ImportDescriptor importDescriptor = Utils.getImportedMethod(symbolTables, dotMethodNode, functionDescriptor);
-            if (importDescriptor == null) {
-                if (secondChildName.equals(NodeName.LENGTH)) {
-                    if (this.analyseExpression(firstChild, functionDescriptor).equals(VarTypes.INTARRAY))
-                        return VarTypes.INT;
-                    else
-                        this.addException(new SemanticException(dotMethodNode)); //TODO ATRIBUTO LENGTH NÃO EXISTE
-                }
-                else
-                    this.addException(new SemanticException(dotMethodNode)); // TODO: Metodo não encontrado
-            }
-            else
-                return importDescriptor.getReturnType().getTypeIdentifier();
         }
+        else if (secondChildName.equals(NodeName.LENGTH)) {
+            if (this.analyseExpression(firstChild, functionDescriptor).equals(VarTypes.INTARRAY))
+                return VarTypes.INT;
+            else
+                this.addException(new AttributeDoesNotExist(dotMethodNode)); //TODO: TEST
+        }
+        else
+            this.addException(new MethodNotFound(dotMethodNode));
 
         return null;
     }
@@ -242,12 +249,7 @@ public class SemanticAnalyser {
             return null;
 
         SimpleNode firstChild = (SimpleNode) methodCallNode.jjtGetChildren()[0];
-        if (firstChild.getNodeName().equals(NodeName.METHODNAME))
-            methodIdentifier.append(firstChild.jjtGetVal());
-        else {
-            addException(new SemanticException(methodCallNode)); // TODO Make the exception more specific
-            return null;
-        }
+        methodIdentifier.append(firstChild.jjtGetVal());
 
         if (methodCallNode.jjtGetChildren().length > 1) { //Check if method call has arguments
             SimpleNode secondChild = (SimpleNode) methodCallNode.jjtGetChildren()[1];
@@ -392,7 +394,7 @@ public class SemanticAnalyser {
                 TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(expressionNode.jjtGetVal());
                 if (!ignore_init) {
                     if (typeDescriptor == null) {
-                        this.addException(new SemanticException(expressionNode));
+                        this.addException(new NotDeclared(expressionNode));
                         return null;
                     }
                     if (!typeDescriptor.isInit())

@@ -21,7 +21,7 @@ public class Utils {
         return stringBuilder.toString();
     }
 
-    public static boolean isClassVariable(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) {
+    public static boolean isClassVariable(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
         String nodeName = ParserTreeConstants.jjtNodeName[simpleNode.getId()];
 
         switch (nodeName) {
@@ -38,6 +38,11 @@ public class Utils {
             case NodeName.NEW: {
                 SimpleNode firstChild = (SimpleNode) simpleNode.jjtGetChildren()[0];
                 return firstChild.jjtGetVal().equals(symbolTables.getClassName());
+            }
+            case NodeName.DOTMETHOD: {
+                SemanticAnalyser sa = new SemanticAnalyser(symbolTables, simpleNode, true);
+                String res = sa.analyseDotMethod(simpleNode, functionDescriptor);
+                return res != null && res.equals(symbolTables.getClassName());
             }
         }
 
