@@ -5,11 +5,11 @@ class HelloWorld {
 		int b;
 		int c;
 		HelloWorld hw;
-		YEET s;
+		boolean k;
 
 		a = 2;
 		b = 2;
-
+        c = 1 && 1;
 
 
 	}

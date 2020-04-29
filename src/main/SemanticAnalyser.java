@@ -288,6 +288,8 @@ public class SemanticAnalyser {
 
     private String analyseArithmeticExpression(SimpleNode expressionNode, FunctionDescriptor functionDescriptor) throws Exception {
         String nodeName = ParserTreeConstants.jjtNodeName[expressionNode.getId()];
+        boolean stop = false;
+
         switch (nodeName) {
             case NodeName.SUB:
             case NodeName.ADD:
@@ -298,38 +300,40 @@ public class SemanticAnalyser {
                 SimpleNode secondChild = (SimpleNode) expressionNode.jjtGetChildren()[1];
 
                 if (!isInteger(firstChild, functionDescriptor)) {
-                    addException(new SemanticException(firstChild)); // TODO expected int
-                    return null;
+                    addException(new UnexpectedType(firstChild, VarTypes.INT));
+                    stop = true;
                 }
 
                 if (!isInteger(secondChild, functionDescriptor)) {
-                    addException(new SemanticException(secondChild)); // TODO expected int
-                    return null;
+                    addException(new UnexpectedType(secondChild, VarTypes.INT));
+                    stop = true;
                 }
 
-                return nodeName.equals(NodeName.LESS) ? VarTypes.BOOLEAN : VarTypes.INT;
+
+
+                return (stop) ? null : nodeName.equals(NodeName.LESS) ? VarTypes.BOOLEAN : VarTypes.INT;
             }
             case NodeName.AND: {
                 SimpleNode firstChild = (SimpleNode) expressionNode.jjtGetChildren()[0];
                 SimpleNode secondChild = (SimpleNode) expressionNode.jjtGetChildren()[1];
 
                 if (!isBoolean(firstChild, functionDescriptor)) {
-                    addException(new SemanticException(firstChild)); // TODO Expected boolean
-                    return null;
+                    addException(new UnexpectedType(firstChild, VarTypes.BOOLEAN));
+                    stop = true;
                 }
 
                 if (!isBoolean(secondChild, functionDescriptor)) {
-                    addException(new SemanticException(secondChild)); // TODO Expected boolean
-                    return null;
+                    addException(new UnexpectedType(secondChild, VarTypes.BOOLEAN));
+                    stop = true;
                 }
 
-                return VarTypes.BOOLEAN;
+                return (stop) ? null : VarTypes.BOOLEAN;
             }
             case NodeName.NOT: {
                 SimpleNode firstChild = (SimpleNode) expressionNode.jjtGetChildren()[0];
 
                 if (!isBoolean(firstChild, functionDescriptor)) {
-                    addException(new SemanticException(firstChild)); // TODO Expected boolean
+                    addException(new UnexpectedType(firstChild, VarTypes.BOOLEAN));
                     return null;
                 }
 
@@ -382,7 +386,6 @@ public class SemanticAnalyser {
                 break;
             }
             default: {
-                addException(new SemanticException(simpleNode)); // TODO Make the exception more specific
                 return;
             }
         }
