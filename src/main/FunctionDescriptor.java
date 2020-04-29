@@ -47,6 +47,10 @@ public class FunctionDescriptor {
         return this.methodName;
     }
 
+    public boolean isMain(){
+        return this.methodName.equals("main");
+    }
+
     public LinkedHashMap<String, TypeDescriptor> getParams() {
         return this.params;
     }

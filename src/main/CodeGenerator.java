@@ -16,7 +16,6 @@ public class CodeGenerator {
     private final String DEST_DIRECTORY = "jasminCode/";
     private final String FILE_EXTENSION = ".j";
     private final String INDENTATION = "\t";
-
     private final SymbolTables symbolTables;
     private Path filePath;
 

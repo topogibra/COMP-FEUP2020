@@ -1,6 +1,23 @@
 import static ioPlus.printHelloWorld() void;
 class HelloWorld {
 	public static void main(String[] args) {
-		ioPlus.printHelloWorld();
+		int a;
+		int b;
+		int c;
+		HelloWorld hw;
+
+		a = 2;
+		b = 2;
+		b = this.get().add(a,b);
+
+
 	}
+
+	public int add(int a, int b){
+        return a+b;
+	}
+
+	public HelloWorld get(){
+    	return this;
+    }
 }

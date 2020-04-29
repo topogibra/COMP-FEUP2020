@@ -1,6 +1,7 @@
 package main;
 
 import Types.NodeName;
+import exceptions.ThisFromStaticContext;
 import parser.Node;
 import parser.ParserTreeConstants;
 import parser.SimpleNode;

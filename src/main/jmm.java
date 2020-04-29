@@ -27,6 +27,7 @@ public class jmm {
             return;
         }
 
+
         jmm compiler = new jmm(args[0]);
 
         if (args.length == 2)
@@ -57,7 +58,9 @@ public class jmm {
         symbolTablesGenerator = new SymbolTablesGenerator(root);
         symbolTables = symbolTablesGenerator.generate();
 
+
         // Semantic analysis
+        SemanticAnalyser.ignore_exceptions = ignoreExceptions;
         semanticAnalyser = new SemanticAnalyser(symbolTables, root, ignoreExceptions);
         try {
             semanticAnalyser.startAnalyse();
