@@ -345,7 +345,15 @@ public class CodeGenerator {
                 break;
             }
             case NodeName.LESS: {
-                //TODO
+                String lessTrue = assemblerLabels.getLabel("less_false");
+                String lessFinal = assemblerLabels.getLabel("less_final");
+                stringBuilder.append(INDENTATION).append("if_icmplt ").append(lessTrue).append("\n");
+                stringBuilder.append(INDENTATION).append("iconst_0\n");
+                stringBuilder.append(INDENTATION).append("goto ").append(lessFinal).append("\n");
+                stringBuilder.append(lessTrue).append(": \n");
+                stringBuilder.append(INDENTATION).append("iconst_1\n");
+                stringBuilder.append(lessFinal).append(": \n");
+
                 break;
             }
         }
