@@ -415,7 +415,7 @@ public class CodeGenerator {
                return INDENTATION + "iload " + typeDescriptor.getIndex();
             }
             case VarTypes.INTARRAY: {
-                //TODO
+                //TODO CP3
                 break;
             }
             default: {
