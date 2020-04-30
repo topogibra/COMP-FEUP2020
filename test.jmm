@@ -1,25 +1,22 @@
 import static ioPlus.printHelloWorld() void;
-import YEET;
-import YEET.println() YEET;
 
 class HelloWorld {
 	public static void main(String[] args) {
 		int a;
 		int b;
 		int c;
-		HelloWorld hw;
-		YEET k;
 
-        (new YEET()).println();
+		if (true) {
+		    a = 2;
+		} else {
+            a = 2;
+		}
 
+		b = a + this.add(1, 2);
 
 	}
 
-	public int add(int a, int b){
-        return a+b;
+	public int add(int a, int b) {
+	    return a + b;
 	}
-
-	public HelloWorld get(){
-    	return this;
-    }
 }

@@ -141,7 +141,7 @@ public class CodeGenerator {
         stringBuilder.append("\n");
 
         //Method Body
-        stringBuilder.append(this.generateMethodBody(functionDescriptor, assemblerLabels));
+        stringBuilder.append(this.generateStatements(functionDescriptor, assemblerLabels));
 
         // Return expression
         if (functionDescriptor.getMethodName().equals("main"))
@@ -152,7 +152,7 @@ public class CodeGenerator {
         this.write(stringBuilder.toString());
     }
 
-    private String generateMethodBody(FunctionDescriptor functionDescriptor, AssemblerLabels assemblerLabels) throws Exception {
+    private String generateStatements(FunctionDescriptor functionDescriptor, AssemblerLabels assemblerLabels) throws Exception {
         StringBuilder stringBuilder = new StringBuilder();
         SimpleNode methodBody = null;
 
@@ -199,7 +199,7 @@ public class CodeGenerator {
 
         if (Utils.isClassVariable(this.symbolTables, leftSide, functionDescriptor)) {
             if(leftSide.getNodeName().equals(NodeName.IDENTIFIER)) {
-                TypeDescriptor classDescriptor = functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal()); //TODO only workds if left side is identifier
+                TypeDescriptor classDescriptor = functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal()); //TODO only works if left side is identifier
                 stringBuilder.append(INDENTATION).append("aload ").append(classDescriptor.getIndex()).append("\n");
             }
 
@@ -241,36 +241,7 @@ public class CodeGenerator {
         SimpleNode leftSide = (SimpleNode) simpleNode.jjtGetChild(0);
         SimpleNode rightSide = (SimpleNode) simpleNode.jjtGetChild(1);
 
-        switch (rightSide.getNodeName()) {
-            case NodeName.INT: {
-                stringBuilder.append(INDENTATION).append("bipush ").append(rightSide.jjtGetVal()).append("\n");
-                break;
-            }
-            case NodeName.BOOLEAN: {
-                stringBuilder.append(INDENTATION).append(this.parseBoolean(rightSide)).append("\n");
-                break;
-            }
-            case NodeName.IDENTIFIER: {
-
-                break;
-            }
-            case NodeName.NEW : {
-                SimpleNode identifierChild = (SimpleNode) rightSide.jjtGetChild(0);
-                stringBuilder.append(INDENTATION).append("new ").append(identifierChild.jjtGetVal()).append("\n");
-                stringBuilder.append(INDENTATION).append("dup\n");
-                stringBuilder.append(INDENTATION).append("invokespecial ").append(identifierChild.jjtGetVal()).append("/<init>()V\n");
-                break;
-            }
-            case NodeName.DOTMETHOD: {
-                stringBuilder.append(this.generateDotMethod(functionDescriptor, rightSide, assemblerLabels));
-                break;
-            }
-            default: {
-                if (Utils.isArithmeticExpression(rightSide))
-                    stringBuilder.append(this.generateArithmeticExpression(rightSide, functionDescriptor, assemblerLabels));
-                break;
-            }
-        }
+        stringBuilder.append(this.generateExpression(functionDescriptor, rightSide, assemblerLabels));
 
         if (leftSide.getNodeName().equals(NodeName.IDENTIFIER)) {
             TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal());
@@ -329,39 +300,11 @@ public class CodeGenerator {
         String nodeName = simpleNode.getNodeName();
         Node[] children = simpleNode.jjtGetChildren();
 
-        // Primitives
-        if (children == null || children.length == 0) {
-            switch (nodeName) {
-                case NodeName.INT: {
-                    stringBuilder.append(INDENTATION).append("bipush ").append(simpleNode.jjtGetVal()).append("\n");
-                    break;
-                }
-                case NodeName.BOOLEAN: {
-                    stringBuilder.append(INDENTATION);
-                    String val = this.parseBoolean(simpleNode);
-                    stringBuilder.append(val).append("\n");
-                    break;
-                }
-                case NodeName.IDENTIFIER: {
-                    TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(simpleNode.jjtGetVal());
-                    stringBuilder.append(this.parseTypeDescriptorLoader(typeDescriptor)).append("\n");
-                    break;
-                }
-                case NodeName.DOTMETHOD: {
-                    stringBuilder.append(this.generateDotMethod(functionDescriptor, simpleNode, assemblerLabels));
-                    break;
-                }
-            }
-
-            return stringBuilder.toString();
-        }
-
-
         for (Node nodeChild : children) {
             SimpleNode child = (SimpleNode) nodeChild;
 
             if (child != null)
-                stringBuilder.append(generateArithmeticExpression(child, functionDescriptor, assemblerLabels));
+                stringBuilder.append(this.generateExpression(functionDescriptor, child, assemblerLabels));
         }
 
         // Operations
@@ -413,23 +356,8 @@ public class CodeGenerator {
     public String generateArgumentsLoading(FunctionDescriptor functionDescriptor, SimpleNode argsNode, AssemblerLabels assemblerLabels) throws Exception {
         StringBuilder stringBuilder = new StringBuilder();
 
-        Node[] children = argsNode.jjtGetChildren();
-        for (Node node : children) {
-            SimpleNode arg = (SimpleNode) node;
-
-            switch (arg.getNodeName()) {
-                case NodeName.IDENTIFIER: {
-                    TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(arg.jjtGetVal());
-                    stringBuilder.append(parseTypeDescriptorLoader(typeDescriptor));
-                    stringBuilder.append("\n");
-                    break;
-                }
-                case NodeName.DOTMETHOD: {
-                    stringBuilder.append(this.generateDotMethod(functionDescriptor, arg, assemblerLabels));
-                    break;
-                }
-            }
-        }
+        for (Node arg : argsNode.jjtGetChildren())
+            stringBuilder.append(this.generateExpression(functionDescriptor, (SimpleNode) arg, assemblerLabels));
 
         return stringBuilder.toString();
     }
@@ -442,32 +370,11 @@ public class CodeGenerator {
         StringBuilder stringBuilder = new StringBuilder();
 
         if (returnNode != null && returnNode.jjtGetNumChildren() > 0) {
-            SimpleNode child = returnNode.getChild(0);
+            SimpleNode expressionNode = returnNode.getChild(0);
 
             // return EXPRESSION;
-            switch (child.getNodeName()) {
-                case NodeName.IDENTIFIER: {
-                    TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(child.jjtGetVal());
-                    stringBuilder.append(this.parseTypeDescriptorLoader(typeDescriptor)).append("\n");
-                    break;
-                }
-                case NodeName.INT: {
-                    stringBuilder.append(INDENTATION).append("bipush ").append(child.jjtGetVal()).append("\n");
-                    break;
-                }
-                case NodeName.BOOLEAN: {
-                    stringBuilder.append(INDENTATION).append(this.parseBoolean(child)).append("\n");
-                    break;
-                }
-                default: {
-                    if (Utils.isArithmeticExpression(child))
-                        stringBuilder.append(this.generateArithmeticExpression(child, functionDescriptor, assemblerLabels));
-                }
-            }
-
-            stringBuilder.append("\n");
+            stringBuilder.append(this.generateExpression(functionDescriptor, expressionNode, assemblerLabels));
         }
-
 
         switch (functionDescriptor.getReturnType()) {
             case VarTypes.INT:
@@ -510,6 +417,44 @@ public class CodeGenerator {
             }
         }
         return null;
+    }
+
+    private String generateExpression(FunctionDescriptor functionDescriptor, SimpleNode expressionNode, AssemblerLabels assemblerLabels) throws Exception {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        switch (expressionNode.getNodeName()) {
+            case NodeName.IDENTIFIER: {
+                TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(expressionNode.jjtGetVal());
+                stringBuilder.append(this.parseTypeDescriptorLoader(typeDescriptor)).append("\n");
+                break;
+            }
+            case NodeName.INT: {
+                stringBuilder.append(INDENTATION).append("bipush ").append(expressionNode.jjtGetVal()).append("\n");
+                break;
+            }
+            case NodeName.BOOLEAN: {
+                stringBuilder.append(INDENTATION).append(this.parseBoolean(expressionNode)).append("\n");
+                break;
+            }
+            case NodeName.NEW : {
+                SimpleNode identifierChild = (SimpleNode) expressionNode.jjtGetChild(0);
+                stringBuilder.append(INDENTATION).append("new ").append(identifierChild.jjtGetVal()).append("\n");
+                stringBuilder.append(INDENTATION).append("dup\n");
+                stringBuilder.append(INDENTATION).append("invokespecial ").append(identifierChild.jjtGetVal()).append("/<init>()V\n");
+                break;
+            }
+            case NodeName.DOTMETHOD: {
+                stringBuilder.append(this.generateDotMethod(functionDescriptor, expressionNode, assemblerLabels));
+                break;
+            }
+            default: {
+                if (Utils.isArithmeticExpression(expressionNode))
+                    stringBuilder.append(this.generateArithmeticExpression(expressionNode, functionDescriptor, assemblerLabels));
+                break;
+            }
+        }
+
+        return stringBuilder.toString();
     }
 
 }

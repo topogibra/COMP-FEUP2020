@@ -35,4 +35,6 @@ public interface NodeName {
     String RETURN = "Return";
     String IF = "If";
     String WHILE = "While";
+    String IFBLOCK = "IfBlock";
+    String ELSE = "Else";
 }

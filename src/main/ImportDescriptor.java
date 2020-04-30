@@ -59,10 +59,10 @@ public class ImportDescriptor {
     public String getIdentifier() {
         StringBuilder stringBuilder = new StringBuilder();
 
-        stringBuilder.append(this.className);
+        stringBuilder.append(this.className).append("&");
 
         if (this.methodName != null)
-            stringBuilder.append(this.methodName);
+            stringBuilder.append(this.methodName).append("&");
 
         for (TypeDescriptor typeDescriptor : this.arguments)
             stringBuilder.append(typeDescriptor.getTypeIdentifier());

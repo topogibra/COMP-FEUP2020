@@ -23,7 +23,7 @@ public class FunctionDescriptor {
 
     public String getIdentifier() {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(this.methodName);
+        stringBuilder.append(this.methodName).append("&");
 
         for (Map.Entry<String, TypeDescriptor> entry : this.params.entrySet())
             stringBuilder.append(entry.getValue().getTypeIdentifier());

@@ -5,13 +5,17 @@ import Types.VarTypes;
 public class TypeDescriptor {
     private final String typeIdentifier;
     private boolean isArray = false;
-    private boolean init;
     private int index;
+
+    private boolean init_in_if;
+    private boolean init_in_else;
 
     public TypeDescriptor(String typeIdentifier, int index) {
         this.typeIdentifier = typeIdentifier;
-        this.init = false;
         this.index = index;
+
+        this.init_in_if = false;
+        this.init_in_else = false;
 
        if (this.typeIdentifier.equals("int[]"))
             this.isArray = true;
@@ -30,11 +34,20 @@ public class TypeDescriptor {
     }
 
     public boolean isInit() {
-        return init;
+        return init_in_else && init_in_if;
     }
 
     public void setInit(boolean init) {
-        this.init = init;
+        this.init_in_if = init;
+        this.init_in_else = init;
+    }
+
+    public void setInitInIF(boolean init) {
+        this.init_in_if = init;
+    }
+
+    public void setInitInElse(boolean init) {
+        this.init_in_else = init;
     }
 
     public String toJVM() {

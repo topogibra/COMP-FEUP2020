@@ -14,6 +14,7 @@ public class Utils {
         Node[] children = simpleNode.jjtGetChildren();
 
         stringBuilder.append(((SimpleNode) children[1]).jjtGetVal()); // Method Name
+        stringBuilder.append("&");
 
         if (!ParserTreeConstants.jjtNodeName[((SimpleNode) children[2]).getId()].equals(NodeName.ARGS))
             return stringBuilder.toString();
@@ -73,28 +74,19 @@ public class Utils {
     public static ImportDescriptor getImportedMethod(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
         SimpleNode firstChild = (SimpleNode) simpleNode.jjtGetChildren()[0];
         SimpleNode secondChild = (SimpleNode) simpleNode.jjtGetChildren()[1];
-        SemanticAnalyser semanticAnalyser = new SemanticAnalyser(symbolTables, null, true);
 
+        String className = firstChild.jjtGetVal();
+        String methodIdentifier = parseMethodIdentifier(symbolTables, secondChild, functionDescriptor);
 
-        String importedMethodIdentifier = firstChild.jjtGetVal();
-        importedMethodIdentifier += parseMethodIdentifier(symbolTables, secondChild, functionDescriptor);
+        ImportDescriptor importDescriptor =  symbolTables.getImportDescriptor(className + "&" + methodIdentifier);
 
-
-        ImportDescriptor importDescriptor =  symbolTables.getImportDescriptor(importedMethodIdentifier);
-
-
-        if(importDescriptor == null){
-            importedMethodIdentifier = semanticAnalyser.analyseExpression(firstChild,functionDescriptor,false);
-            String methodIdentifier =  parseMethodIdentifier(symbolTables, secondChild, functionDescriptor);
-            importDescriptor = symbolTables.getImportDescriptor(importedMethodIdentifier+methodIdentifier);
-
+        if (importDescriptor == null) {
+            SemanticAnalyser semanticAnalyser = new SemanticAnalyser(symbolTables, null, true);
+            className = semanticAnalyser.analyseExpression(firstChild,functionDescriptor,false);
+            importDescriptor = symbolTables.getImportDescriptor(className + "&" + methodIdentifier);
         }
 
         return importDescriptor;
-    }
-
-    public static SimpleNode getMostRightChildDotMethod(SimpleNode simpleNode){
-        return (!simpleNode.getNodeName().equals(NodeName.DOTMETHOD)) ? getMostRightChildDotMethod(simpleNode.getChild(0)) : null;
     }
 
     public static String parseMethodIdentifier(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {

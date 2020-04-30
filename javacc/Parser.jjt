@@ -327,7 +327,7 @@ void IfStatement() #If: {}
     <OPEN_PARENTHESIS>
         Expression()
     <CLOSE_PARENTHESIS>
-        Statement() #Block
+        Statement() #IfBlock
     <ELSE>
         Statement() #Else
 }
