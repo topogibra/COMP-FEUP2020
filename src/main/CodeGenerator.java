@@ -198,23 +198,27 @@ public class CodeGenerator {
         SimpleNode rightSide = (SimpleNode) dotMethodNode.jjtGetChild(1);
 
         if (Utils.isClassVariable(this.symbolTables, leftSide, functionDescriptor)) {
-            switch (leftSide.getNodeName()){
-                case NodeName.IDENTIFIER:{
-                    TypeDescriptor classDescriptor = functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal()); //TODO only works if left side is identifier
-                    stringBuilder.append(INDENTATION).append("aload ").append(classDescriptor.getIndex()).append("\n");
-                    break;
-                }
-                case NodeName.NEW:{
-                    stringBuilder.append(INDENTATION).append("new ").append(leftSide.getChild(0).jjtGetVal()).append("\n");
-                    break;
-                }
+//            switch (leftSide.getNodeName()){
+//                case NodeName.IDENTIFIER:{
+//                    TypeDescriptor classDescriptor = functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal()); //TODO only works if left side is identifier
+//                    stringBuilder.append(INDENTATION).append("aload ").append(classDescriptor.getIndex()).append("\n");
+//                    break;
+//                }
+//                case NodeName.NEW:{
+////                    stringBuilder.append(INDENTATION).append("new ").append(leftSide.getChild(0).jjtGetVal()).append("\n");
+////                    stringBuilder.append(INDENTATION).append("invokespecial ").append(leftSide.getChild(0).jjtGetVal()).append("/<init>()V\n");
+//
+//                    break;
+//                }
+//
+//                case NodeName.DOTMETHOD:{
+//                    stringBuilder.append(this.generateDotMethod(functionDescriptor,leftSide,assemblerLabels));
+//                    break;
+//                }
+//
+//            }
 
-                case NodeName.DOTMETHOD:{
-                    stringBuilder.append(this.generateDotMethod(functionDescriptor,leftSide,assemblerLabels));
-                    break;
-                }
-
-            }
+            stringBuilder.append(this.generateExpression(functionDescriptor,leftSide,assemblerLabels));
 
             if (rightSide.jjtGetNumChildren() > 1) // If arguments are being passed
                 stringBuilder.append(this.generateArgumentsLoading(functionDescriptor, (SimpleNode) rightSide.jjtGetChild(1), assemblerLabels));
