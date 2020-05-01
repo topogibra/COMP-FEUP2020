@@ -40,12 +40,11 @@ public class SemanticException extends Exception {
         int col = firstToken.beginColumn;
 
         String path = jmm.filepath.toAbsolutePath().toString();
-        String classname = this.getClass().toString().substring(6).toLowerCase();
+        String error_type = this.is_error ? "error: " : "warning: ";
 
-        errorMessage.append(this.is_error ? "ERROR: " : "WARNING: ");
         errorMessage.append(path).append(":");
         errorMessage.append(line).append(" ");
-        errorMessage.append(classname).append(": ").append(message.isEmpty() ? "" : message + ":").append("\n");
+        errorMessage.append(error_type).append(message.isEmpty() ? "" : message + ":").append("\n");
 
         try {
             FileInputStream fileStream = new FileInputStream(path);

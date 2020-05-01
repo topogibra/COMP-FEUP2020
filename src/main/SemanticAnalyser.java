@@ -7,12 +7,8 @@ import parser.Node;
 import parser.ParserTreeConstants;
 import parser.SimpleNode;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class SemanticAnalyser {
@@ -70,7 +66,7 @@ public class SemanticAnalyser {
             ImportDescriptor importDescriptor = entry.getValue();
 
             if (importDescriptor.isStatic() && importDescriptor.getMethodName() == null)
-                this.addException(new NonStaticParent(importDescriptor.getNode()));
+                this.addException(new StaticClassImport(importDescriptor.getNode()));
         }
     }
 
