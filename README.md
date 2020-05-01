@@ -19,7 +19,7 @@ Todas as verificações feitas na análise semantica devem reportar erro excepto
 **Type Verification:**
 
 * verificar se operações são efetuadas com o mesmo tipo (e.g. int + boolean tem de dar erro) ✅
-* não é possível utilizar arrays diretamente para operações aritmeticas (e.g. array1 + array2) ✅ (IMPROVE ERROR)
+* não é possível utilizar arrays diretamente para operações aritmeticas (e.g. array1 + array2) ✅ 
 * verificar se um array access é de facto feito sobre um array ✅
 * verificar se o indice do array access é um inteiro ✅
 * verificar se valor do assignee é igual ao do assigned (a_int = b_boolean não é permitido!) ✅
@@ -46,7 +46,7 @@ Todas as verificações feitas na análise semantica devem reportar erro excepto
 * estrutura básica de fields ✅
 * estrutura básica de métodos (podem desconsiderar os limites neste checkpoint: limit_stack 99, limit_locals 99) ✅
 * assignments ✅
-* operações aritméticas (com prioridade de operações correta) ✅ (CHECK PRIORIDADE)
+* operações aritméticas (com prioridade de operações correta) ✅ 
     - neste checkpoint não é necessário a seleção das operações mais eficientes mas isto será considerado no CP3 e versão final ✅
 * invocação de métodos ✅
 
