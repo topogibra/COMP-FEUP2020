@@ -254,7 +254,7 @@ public class CodeGenerator {
                     break;
                 }
                 default: {
-                    if (symbolTables.getClassName().equals(typeIdentifier))
+                    if (symbolTables.getClassName().equals(typeIdentifier) || symbolTables.isImportedClass(typeIdentifier))
                     stringBuilder.append(INDENTATION).append("astore ").append(typeDescriptor.getIndex()).append("\n");
                     break;
                 }
@@ -448,6 +448,10 @@ public class CodeGenerator {
                 SimpleNode identifierChild = (SimpleNode) expressionNode.jjtGetChild(0);
                 stringBuilder.append(INDENTATION).append("new ").append(identifierChild.jjtGetVal()).append("\n");
                 stringBuilder.append(INDENTATION).append("dup\n");
+
+                if (expressionNode.jjtGetNumChildren() > 1) //Arguments were passed
+                    stringBuilder.append(this.generateArgumentsLoading(functionDescriptor, expressionNode.getChild(1), assemblerLabels));
+
                 stringBuilder.append(INDENTATION).append("invokespecial ").append(identifierChild.jjtGetVal()).append("/<init>()V\n");
                 break;
             }

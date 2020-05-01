@@ -460,13 +460,13 @@ void Values() #void: {Token t;} // simpler expressions
 	| ( <OPEN_PARENTHESIS> Expression() <CLOSE_PARENTHESIS> )
 }
 
-void NewFunc() #New(1): {Token t;} //new within expression
+void NewFunc() #New: {Token t;} //new within expression
 {
     ( <INT> <OPEN_BRACKET>
      Expression() #ArraySize(1)
      <CLOSE_BRACKET> )
     | ( t=<IDENTIFIER>  {jjtThis.val = t.image;} #Identifier(0)
-     <OPEN_PARENTHESIS> <CLOSE_PARENTHESIS> )
+     FuncArguments() )
 }
 
 void DotFunc() #void: {Token t;}
