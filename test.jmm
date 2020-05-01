@@ -1,6 +1,6 @@
 import static ioPlus.printHelloWorld() void;
 import Foo;
-import Foo(int);
+import Foo.add()Foo;
 
 class HelloWorld {
 	public static void main(String[] args) {
@@ -8,16 +8,15 @@ class HelloWorld {
 		int b;
 		int c;
 		Foo d;
-		HelloWorld f;
+		Foo f;
 
-        f = new HelloWorld();
+        f = new Foo();
 
-        (new HelloWorld()).add().add();
+        (new Foo()).add().add();
 	}
 
 	public HelloWorld add() {
 	    return this;
 	}
-
 
 }
