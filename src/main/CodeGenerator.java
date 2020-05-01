@@ -198,9 +198,22 @@ public class CodeGenerator {
         SimpleNode rightSide = (SimpleNode) dotMethodNode.jjtGetChild(1);
 
         if (Utils.isClassVariable(this.symbolTables, leftSide, functionDescriptor)) {
-            if(leftSide.getNodeName().equals(NodeName.IDENTIFIER)) {
-                TypeDescriptor classDescriptor = functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal()); //TODO only works if left side is identifier
-                stringBuilder.append(INDENTATION).append("aload ").append(classDescriptor.getIndex()).append("\n");
+            switch (leftSide.getNodeName()){
+                case NodeName.IDENTIFIER:{
+                    TypeDescriptor classDescriptor = functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal()); //TODO only works if left side is identifier
+                    stringBuilder.append(INDENTATION).append("aload ").append(classDescriptor.getIndex()).append("\n");
+                    break;
+                }
+                case NodeName.NEW:{
+                    stringBuilder.append(INDENTATION).append("new ").append(leftSide.getChild(0).jjtGetVal()).append("\n");
+                    break;
+                }
+
+                case NodeName.DOTMETHOD:{
+                    stringBuilder.append(this.generateDotMethod(functionDescriptor,leftSide,assemblerLabels));
+                    break;
+                }
+
             }
 
             if (rightSide.jjtGetNumChildren() > 1) // If arguments are being passed
@@ -453,6 +466,10 @@ public class CodeGenerator {
                     stringBuilder.append(this.generateArgumentsLoading(functionDescriptor, expressionNode.getChild(1), assemblerLabels));
 
                 stringBuilder.append(INDENTATION).append("invokespecial ").append(identifierChild.jjtGetVal()).append("/<init>()V\n");
+                break;
+            }
+            case NodeName.THIS:{
+                stringBuilder.append(INDENTATION).append("aload 0\n");
                 break;
             }
             case NodeName.DOTMETHOD: {

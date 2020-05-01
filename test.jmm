@@ -1,5 +1,5 @@
 import static ioPlus.printHelloWorld() void;
-import static Foo;
+import Foo;
 import Foo(int);
 
 class HelloWorld {
@@ -10,13 +10,14 @@ class HelloWorld {
 		Foo d;
 		HelloWorld f;
 
-        a = 2;
+        f = new HelloWorld();
 
-		d = new Foo(2);
+        (new HelloWorld()).add().add();
 	}
 
-	public int add(int a, int b) {
-	    return a + b;
+	public HelloWorld add() {
+	    return this;
 	}
+
 
 }
