@@ -145,7 +145,7 @@ public class ParserTest {
 
     @Test
     public void testvarNotInit() {
-        test("fixtures/public/fail/semantic/varNotInit.jmm", false);
+        test("fixtures/public/fail/semantic/varNotInit.jmm", true);
     }
 
    @Test
