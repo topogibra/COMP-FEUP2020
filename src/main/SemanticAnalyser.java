@@ -7,6 +7,9 @@ import parser.Node;
 import parser.ParserTreeConstants;
 import parser.SimpleNode;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 public class SemanticAnalyser {
     private static final int MAX_NUM_ERRORS = 10;
     private static int no_error = 0;
@@ -45,15 +48,24 @@ public class SemanticAnalyser {
     private void analyse() throws Exception {
         Node[] children = this.root.jjtGetChildren();
 
-        if (children == null)
-            return;
+        this.analyseImports();
 
         for (Node node : children) {
             SimpleNode child = (SimpleNode) node;
 
             if (child.getNodeName().equals(NodeName.CLASS)) {
                 this.analyseClass(child);
+                break;
             }
+        }
+    }
+
+    private void analyseImports() throws Exception {
+        for (Map.Entry<String, ImportDescriptor> entry : this.symbolTables.getImports().entrySet()) {
+            ImportDescriptor importDescriptor = entry.getValue();
+
+            if (importDescriptor.isStatic() && importDescriptor.getMethodName() == null)
+                this.addException(new NonStaticParent(importDescriptor.getNode()));
         }
     }
 

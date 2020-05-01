@@ -1,7 +1,5 @@
 package main;
 
-import parser.SimpleNode;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -48,6 +46,10 @@ public class SymbolTables {
 
     public LinkedHashMap<String, FunctionDescriptor> getMethods() {
         return this.methods;
+    }
+
+    public LinkedHashMap<String, ImportDescriptor> getImports() {
+        return this.imports;
     }
 
     public void print() {

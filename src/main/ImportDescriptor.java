@@ -1,19 +1,23 @@
 package main;
 
+import parser.SimpleNode;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class ImportDescriptor {
     private String className = null;
     private String methodName = null;
+    private SimpleNode importNode;
 
     private TypeDescriptor returnType;
     private final List<TypeDescriptor> arguments;
     private boolean isStatic = false;
 
-    public ImportDescriptor() {
+    public ImportDescriptor(SimpleNode importNode) {
         this.arguments = new ArrayList<>();
         this.returnType = new TypeDescriptor("void");
+        this.importNode = importNode;
     }
 
     public String getClassName() {
@@ -70,4 +74,7 @@ public class ImportDescriptor {
         return stringBuilder.toString();
     }
 
+    public SimpleNode getNode() {
+        return this.importNode;
+    }
 }

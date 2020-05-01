@@ -35,7 +35,7 @@ public class SymbolTablesGenerator {
     }
 
     private ImportDescriptor createImportDescriptor(SimpleNode simpleNode) {
-        ImportDescriptor importDescriptor = new ImportDescriptor();
+        ImportDescriptor importDescriptor = new ImportDescriptor(simpleNode);
 
         Node[] children = simpleNode.jjtGetChildren();
         for (Node node : children) {
