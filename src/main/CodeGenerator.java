@@ -451,6 +451,10 @@ public class CodeGenerator {
             }
             case NodeName.NEW : {
                 SimpleNode identifierChild = (SimpleNode) expressionNode.jjtGetChild(0);
+
+                if (identifierChild.getNodeName().equals(NodeName.ARRAYSIZE))
+                    break; //TODO CP3
+
                 stringBuilder.append(INDENTATION).append("new ").append(identifierChild.jjtGetVal()).append("\n");
                 stringBuilder.append(INDENTATION).append("dup\n");
 
