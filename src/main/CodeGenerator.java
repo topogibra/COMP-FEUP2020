@@ -197,8 +197,11 @@ public class CodeGenerator {
         SimpleNode leftSide = (SimpleNode) dotMethodNode.jjtGetChild(0);
         SimpleNode rightSide = (SimpleNode) dotMethodNode.jjtGetChild(1);
 
-        stringBuilder.append(this.generateExpression(functionDescriptor,leftSide,assemblerLabels));
         if (Utils.isClassVariable(this.symbolTables, leftSide, functionDescriptor)) {
+
+            if (!leftSide.jjtGetVal().equals(NodeName.THIS))
+                stringBuilder.append(this.generateExpression(functionDescriptor,leftSide,assemblerLabels));
+
             if (rightSide.jjtGetNumChildren() > 1) // If arguments are being passed
                 stringBuilder.append(this.generateArgumentsLoading(functionDescriptor, (SimpleNode) rightSide.jjtGetChild(1), assemblerLabels));
 
@@ -213,7 +216,7 @@ public class CodeGenerator {
             ImportDescriptor importDescriptor = Utils.getImportedMethod(this.symbolTables, dotMethodNode, functionDescriptor);
             if (importDescriptor != null) { // Invoke imported method
 
-
+                stringBuilder.append(this.generateExpression(functionDescriptor,leftSide,assemblerLabels));
 
                 if (rightSide.jjtGetNumChildren() > 1) // If arguments are being passed
                     stringBuilder.append(this.generateArgumentsLoading(functionDescriptor, (SimpleNode) rightSide.jjtGetChild(1), assemblerLabels));
@@ -433,7 +436,6 @@ public class CodeGenerator {
                 TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(expressionNode.jjtGetVal());
 
                 if (typeDescriptor == null){
-                    stringBuilder.append(expressionNode.jjtGetVal());
                     break;
                 }
                 stringBuilder.append(this.parseTypeDescriptorLoader(typeDescriptor)).append("\n");

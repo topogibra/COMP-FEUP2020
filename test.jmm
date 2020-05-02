@@ -1,22 +1,21 @@
-import static ioPlus.printHelloWorld() void;
-import Foo;
-import Foo.add()Foo;
+import static io.println(int);
 
-class HelloWorld {
-	public static void main(String[] args) {
-		int a;
-		int b;
-		int c;
-		Foo d;
-		Foo f;
+class Hello_T {
 
-        f = new Foo();
+	public static void main(String[] args)
+    {
+		int d;
+		Hello_T e;
+		e = new Hello_T();
+		d = 1;
+		e.soma(2);
 
-        (new Foo()).add().add();
 	}
 
-	public HelloWorld add() {
-	    return this;
+	public  int soma(int a){
+		io.println(a);
+		return a+1;
 	}
 
-}
+
+ }
