@@ -256,9 +256,9 @@ public class CodeGenerator {
         SimpleNode leftSide = (SimpleNode) simpleNode.jjtGetChild(0);
         SimpleNode rightSide = (SimpleNode) simpleNode.jjtGetChild(1);
 
-        stringBuilder.append(this.generateExpression(functionDescriptor, rightSide, assemblerLabels));
-
         if (leftSide.getNodeName().equals(NodeName.IDENTIFIER)) {
+            stringBuilder.append(this.generateExpression(functionDescriptor, rightSide, assemblerLabels));
+
             TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal());
             String typeIdentifier = typeDescriptor.getTypeIdentifier();
 
@@ -268,12 +268,21 @@ public class CodeGenerator {
                     stringBuilder.append(INDENTATION).append("istore ").append(typeDescriptor.getIndex()).append("\n");
                     break;
                 }
+                case VarTypes.INTARRAY: {
+                    stringBuilder.append(INDENTATION).append("astore ").append(typeDescriptor.getIndex()).append("\n");
+                    break;
+                }
                 default: {
                     if (symbolTables.getClassName().equals(typeIdentifier) || symbolTables.isImportedClass(typeIdentifier))
                     stringBuilder.append(INDENTATION).append("astore ").append(typeDescriptor.getIndex()).append("\n");
                     break;
                 }
             }
+        }
+        else if(leftSide.getNodeName().equals(NodeName.ARRAYACCESS)) { // a[2] = 4;
+            stringBuilder.append(this.generateArrayAccess(functionDescriptor, leftSide, assemblerLabels)); // push ref, push index
+            stringBuilder.append(this.generateExpression(functionDescriptor, rightSide, assemblerLabels)); // push value
+            stringBuilder.append(INDENTATION).append("iastore\n");
         }
 
         stringBuilder.append("\n");
@@ -489,8 +498,7 @@ public class CodeGenerator {
                return INDENTATION + "iload " + typeDescriptor.getIndex();
             }
             case VarTypes.INTARRAY: {
-                //TODO CP3
-                break;
+                return INDENTATION + "aload " + typeDescriptor.getIndex();
             }
             default: {
                 if (symbolTables.getClassName().equals(typeDescriptor.getTypeIdentifier()) || symbolTables.isImportedClass(typeDescriptor.getTypeIdentifier()))
@@ -525,8 +533,11 @@ public class CodeGenerator {
             case NodeName.NEW : {
                 SimpleNode identifierChild = (SimpleNode) expressionNode.jjtGetChild(0);
 
-                if (identifierChild.getNodeName().equals(NodeName.ARRAYSIZE))
-                    break; //TODO CP3
+                if (identifierChild.getNodeName().equals(NodeName.ARRAYSIZE)) {
+                    stringBuilder.append(this.generateExpression(functionDescriptor, identifierChild.getChild(0), assemblerLabels));
+                    stringBuilder.append(INDENTATION).append("newarray int\n");
+                    break;
+                }
 
                 stringBuilder.append(INDENTATION).append("new ").append(identifierChild.jjtGetVal()).append("\n");
                 stringBuilder.append(INDENTATION).append("dup\n");
@@ -545,12 +556,29 @@ public class CodeGenerator {
                 stringBuilder.append(this.generateDotMethod(functionDescriptor, expressionNode, assemblerLabels));
                 break;
             }
+            case NodeName.ARRAYACCESS: {
+                stringBuilder.append(this.generateArrayAccess(functionDescriptor, expressionNode, assemblerLabels));
+                stringBuilder.append(INDENTATION).append("iaload\n");
+                break;
+            }
             default: {
                 if (Utils.isArithmeticExpression(expressionNode))
                     stringBuilder.append(this.generateArithmeticExpression(expressionNode, functionDescriptor, assemblerLabels));
                 break;
             }
         }
+
+        return stringBuilder.toString();
+    }
+
+    private String generateArrayAccess(FunctionDescriptor functionDescriptor, SimpleNode arrayAccessNode, AssemblerLabels assemblerLabels) throws Exception {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        SimpleNode firstChild = arrayAccessNode.getChild(0);
+        SimpleNode expressionChild = arrayAccessNode.getChild(1);
+
+        stringBuilder.append(this.generateExpression(functionDescriptor, firstChild, assemblerLabels));
+        stringBuilder.append(this.generateExpression(functionDescriptor, expressionChild, assemblerLabels));
 
         return stringBuilder.toString();
     }

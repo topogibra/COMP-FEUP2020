@@ -2,23 +2,31 @@ import static io.println(int);
 
 class Hello_T {
 
+    int[] ola;
+
 	public static void main(String[] args)
     {
+		int[] a;
+		int[] b;
 		int d;
-		int c;
-		boolean a;
+		int e;
+		Hello_T hello;
 
-		while (2 < 4) {
+        e = 1;
+		d = 2;
+		d = e;
+		hello = new Hello_T();
 
-		    while(true)
-		        c = 10;
+		a = new int[d];
+        b = a;
 
+        e = b[2];
+        b[2] = 1;
+	}
 
-		    d = 5;
-		    a = true && false;
-		}
-
-
+	public int[] get() {
+	    ola = new int[2];
+	    return ola;
 	}
 
  }
