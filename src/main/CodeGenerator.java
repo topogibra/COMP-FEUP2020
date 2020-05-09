@@ -141,7 +141,7 @@ public class CodeGenerator {
         stringBuilder.append("\n");
 
         //Method Body
-        stringBuilder.append(this.generateStatements(functionDescriptor, assemblerLabels));
+        stringBuilder.append(this.generateMethodBody(functionDescriptor, assemblerLabels));
 
         // Return expression
         if (functionDescriptor.getMethodName().equals("main"))
@@ -152,7 +152,7 @@ public class CodeGenerator {
         this.write(stringBuilder.toString());
     }
 
-    private String generateStatements(FunctionDescriptor functionDescriptor, AssemblerLabels assemblerLabels) throws Exception {
+    private String generateMethodBody(FunctionDescriptor functionDescriptor, AssemblerLabels assemblerLabels) throws Exception {
         StringBuilder stringBuilder = new StringBuilder();
         SimpleNode methodBody = null;
 
@@ -170,7 +170,15 @@ public class CodeGenerator {
             throw new Exception("Couldn't find methodBody node");
         }
 
-        for(Node node: methodBody.jjtGetChildren()){
+        stringBuilder.append(this.generateStatements(functionDescriptor, methodBody, assemblerLabels));
+
+        return stringBuilder.toString();
+    }
+
+    private String generateStatements(FunctionDescriptor functionDescriptor, SimpleNode blockNode, AssemblerLabels assemblerLabels) throws Exception {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for(Node node: blockNode.jjtGetChildren()){
             SimpleNode child = (SimpleNode) node;
 
             switch (child.getNodeName()){
@@ -179,6 +187,12 @@ public class CodeGenerator {
                     break;
                 case NodeName.ASSIGNMENT:
                     stringBuilder.append(this.generateAssignment(child, functionDescriptor, assemblerLabels));
+                    break;
+                case NodeName.IF:
+                    stringBuilder.append(this.generateIf(child, functionDescriptor, assemblerLabels));
+                    break;
+                case NodeName.WHILE:
+                    stringBuilder.append(this.generateWhile(child, functionDescriptor, assemblerLabels));
                     break;
                 case NodeName.RETURN:
                     stringBuilder.append(this.generateReturn(functionDescriptor, child, assemblerLabels));
@@ -266,6 +280,68 @@ public class CodeGenerator {
         return stringBuilder.toString();
     }
 
+    private String generateIf(SimpleNode ifNode, FunctionDescriptor functionDescriptor, AssemblerLabels assemblerLabels) throws Exception {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        SimpleNode conditionNode = ifNode.getChild(0);
+        SimpleNode blockNode = ifNode.getChild(1);
+        SimpleNode elseNode = ifNode.getChild(2);
+
+        String elseLabel = assemblerLabels.getLabel("else");
+        String endLabel = assemblerLabels.getLabel("end_if");
+
+        // Generate condition
+        stringBuilder.append(this.generateExpression(functionDescriptor, conditionNode, assemblerLabels));
+
+        // Check if condition is false. If so goto else label
+        stringBuilder.append(INDENTATION).append("ifeq ").append(elseLabel).append("\n");
+
+        // Generate statements inside ifblock
+        stringBuilder.append(this.generateStatements(functionDescriptor, blockNode, assemblerLabels));
+
+        // End of ifblock to goto end, jump else
+        stringBuilder.append(INDENTATION).append("goto ").append(endLabel).append("\n");
+        stringBuilder.append(elseLabel).append(":\n");
+
+        // Generate statements for else block
+        stringBuilder.append(this.generateStatements(functionDescriptor, elseNode, assemblerLabels));
+
+        //End label
+        stringBuilder.append(endLabel).append(":\n");
+
+        return stringBuilder.toString();
+    }
+
+    private String generateWhile(SimpleNode whileNode, FunctionDescriptor functionDescriptor, AssemblerLabels assemblerLabels) throws Exception {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        SimpleNode conditionNode = whileNode.getChild(0);
+        SimpleNode blockNode = whileNode.getChild(1);
+
+        String whileLabel = assemblerLabels.getLabel("while");
+        String endWhileLabel = assemblerLabels.getLabel("end_while");
+
+        // Put label before condition
+        stringBuilder.append(whileLabel).append(":\n");
+
+        // Generate condition
+        stringBuilder.append(this.generateExpression(functionDescriptor, conditionNode, assemblerLabels));
+
+        // Check if condition is false. If so goto end label
+        stringBuilder.append(INDENTATION).append("ifeq ").append(endWhileLabel).append("\n");
+
+        // Generate statements inside while block
+        stringBuilder.append(this.generateStatements(functionDescriptor, blockNode, assemblerLabels));
+
+        // Put while loop label
+        stringBuilder.append(INDENTATION).append("goto ").append(whileLabel).append("\n");
+
+        // Put end while label
+        stringBuilder.append(endWhileLabel).append(":\n");
+
+        return stringBuilder.toString();
+    }
+
     private String generateMethodHeader(FunctionDescriptor descriptor){
         StringBuilder stringBuilder = new StringBuilder();
 
@@ -319,8 +395,7 @@ public class CodeGenerator {
             }
             case NodeName.NOT: {
                 final String label = assemblerLabels.getLabel("put_true");
-                stringBuilder.append(INDENTATION).append("iconst_0\n"); // Push 0 (false) to stack
-                stringBuilder.append(INDENTATION).append("if_icmpeq ").append(label).append("\n"); // Compare previous top value with 0: if previous_value == false
+                stringBuilder.append(INDENTATION).append("ifeq ").append(label).append("\n"); // Compare previous top value with 0: if previous_value == false
                                                                                 // If yes, goto put_true, to put 1 in top of stack
                 stringBuilder.append(INDENTATION).append("iconst_0\n");
                 stringBuilder.append(label).append(":\n");
@@ -332,10 +407,8 @@ public class CodeGenerator {
                 String putFalseAndPopLabel = assemblerLabels.getLabel("put_false_&_pop");
                 String endAndLabel = assemblerLabels.getLabel("end_and");
 
-                stringBuilder.append(INDENTATION).append("iconst_0\n");
-                stringBuilder.append(INDENTATION).append("if_icmpeq ").append(putFalseAndPopLabel).append("\n");
-                stringBuilder.append(INDENTATION).append("iconst_0\n");
-                stringBuilder.append(INDENTATION).append("if_icmpeq ").append(putFalseLabel).append("\n");
+                stringBuilder.append(INDENTATION).append("ifeq ").append(putFalseAndPopLabel).append("\n");
+                stringBuilder.append(INDENTATION).append("ifeq ").append(putFalseLabel).append("\n");
                 stringBuilder.append(INDENTATION).append("iconst_1\n");
                 stringBuilder.append(INDENTATION).append("goto ").append(endAndLabel).append("\n");
                 stringBuilder.append(putFalseAndPopLabel).append(":\n");

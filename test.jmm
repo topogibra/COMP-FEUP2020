@@ -5,21 +5,20 @@ class Hello_T {
 	public static void main(String[] args)
     {
 		int d;
-		Hello_T e;
-        int[] arr;
+		int c;
+		boolean a;
 
-		e = new Hello_T();
-		d = 1;
-		e.soma(2);
-        arr = new int[3];
+		while (2 < 4) {
 
-        arr.length;
+		    while(true)
+		        c = 10;
+
+
+		    d = 5;
+		    a = true && false;
+		}
+
+
 	}
-
-	public  int soma(int a){
-		io.println(a);
-		return a+1;
-	}
-
 
  }
