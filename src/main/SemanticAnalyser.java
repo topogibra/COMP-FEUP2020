@@ -15,9 +15,9 @@ public class SemanticAnalyser {
     private static final int MAX_NUM_ERRORS = 10;
     private static int no_error = 0;
 
-    private final int BYTE_SIZE = 127;
-    private final int SHORT_SIZE = 32767;
-    private final int LONG_SIZE =  2147483647;
+    private final static int BYTE_SIZE = 127;
+    public final static int SHORT_SIZE = 32767;
+    private final static int LONG_SIZE =  2147483647;
 
     private final SymbolTables symbolTables;
     private final SimpleNode root;

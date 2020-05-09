@@ -19,7 +19,9 @@ public class CodeGenerator {
     private final SymbolTables symbolTables;
     private Path filePath;
 
-    private final int BYTE_SIZE = 127;
+    private final static int BYTE_SIZE = 127;
+    public final static int SHORT_SIZE = 32767;
+    private final static int LONG_SIZE =  2147483647;
 
     public CodeGenerator(SymbolTables symbolTables) {
         this.symbolTables = symbolTables;
@@ -595,8 +597,10 @@ public class CodeGenerator {
             return "iconst_" + value;
         else if (value <= BYTE_SIZE)
             return "bipush " + value;
+        else if (value <= SHORT_SIZE)
+            return "sipush " + value;
 
-        return "sipush " + value;
+        return "ldc " + value;
     }
 
 }
