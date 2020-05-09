@@ -19,6 +19,8 @@ public class CodeGenerator {
     private final SymbolTables symbolTables;
     private Path filePath;
 
+    private final int BYTE_SIZE = 127;
+
     public CodeGenerator(SymbolTables symbolTables) {
         this.symbolTables = symbolTables;
     }
@@ -178,7 +180,11 @@ public class CodeGenerator {
     private String generateStatements(FunctionDescriptor functionDescriptor, SimpleNode blockNode, AssemblerLabels assemblerLabels) throws Exception {
         StringBuilder stringBuilder = new StringBuilder();
 
-        for(Node node: blockNode.jjtGetChildren()){
+        Node[] children = blockNode.jjtGetChildren();
+        if (children == null || children.length == 0)
+            return "";
+
+        for(Node node: children) {
             SimpleNode child = (SimpleNode) node;
 
             switch (child.getNodeName()){
@@ -213,8 +219,7 @@ public class CodeGenerator {
 
         if (Utils.isClassVariable(this.symbolTables, leftSide, functionDescriptor)) {
 
-            if (!leftSide.jjtGetVal().equals(NodeName.THIS))
-                stringBuilder.append(this.generateExpression(functionDescriptor,leftSide,assemblerLabels));
+            stringBuilder.append(this.generateExpression(functionDescriptor,leftSide,assemblerLabels));
 
             if (rightSide.jjtGetNumChildren() > 1) // If arguments are being passed
                 stringBuilder.append(this.generateArgumentsLoading(functionDescriptor, (SimpleNode) rightSide.jjtGetChild(1), assemblerLabels));
@@ -297,7 +302,7 @@ public class CodeGenerator {
         SimpleNode elseNode = ifNode.getChild(2);
 
         String elseLabel = assemblerLabels.getLabel("else");
-        String endLabel = assemblerLabels.getLabel("end_if");
+        String endLabel = assemblerLabels.getLabel("endif");
 
         // Generate condition
         stringBuilder.append(this.generateExpression(functionDescriptor, conditionNode, assemblerLabels));
@@ -523,7 +528,7 @@ public class CodeGenerator {
                 break;
             }
             case NodeName.INT: {
-                stringBuilder.append(INDENTATION).append("bipush ").append(expressionNode.jjtGetVal()).append("\n");
+                stringBuilder.append(INDENTATION).append(this.generatePushInt(expressionNode)).append("\n");
                 break;
             }
             case NodeName.BOOLEAN: {
@@ -581,6 +586,17 @@ public class CodeGenerator {
         stringBuilder.append(this.generateExpression(functionDescriptor, expressionChild, assemblerLabels));
 
         return stringBuilder.toString();
+    }
+
+    private String generatePushInt(SimpleNode intNode) {
+        int value = Integer.parseInt(intNode.jjtGetVal());
+
+        if (value <= 5)
+            return "iconst_" + value;
+        else if (value <= BYTE_SIZE)
+            return "bipush " + value;
+
+        return "sipush " + value;
     }
 
 }

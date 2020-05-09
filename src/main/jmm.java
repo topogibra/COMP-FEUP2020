@@ -27,7 +27,6 @@ public class jmm {
             return;
         }
 
-
         jmm compiler = new jmm(args[0]);
 
         if (args.length == 2)
