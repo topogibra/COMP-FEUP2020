@@ -98,6 +98,6 @@ public class FunctionDescriptor {
     }
 
     public int getLimitLocal(){
-        return this.params.size() + this.scope.getMaxLocalVars();
+        return this.params.size() + this.scope.getMaxLocalVars() + 1; // +1, if main because of String[] args else because of 'this'
     }
 }

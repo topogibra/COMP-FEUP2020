@@ -183,21 +183,15 @@ void ImpClass() #void: {Token t1, t2;}
     t1=<IDENTIFIER>  {jjtThis.val = t1.image;} #ClassName(0)
     [ <DOT> t1=<IDENTIFIER> {jjtThis.val = t1.image;} #MethodName(0) ]
     [ <OPEN_PARENTHESIS> ParamList() <CLOSE_PARENTHESIS> ]
-    [ t2=ImportType() {jjtThis.val=t2.image;} #ReturnType(0) ]
+    [ t2=Type() {jjtThis.val=t2.image;} #ReturnType(0) ]
 }
 
 void ParamList() #void: {Token t1, t2;}
 {
     [
-        t1=ImportType() {jjtThis.val=t1.image;} #ArgType(0)
-        ( <COMMA> t2=ImportType() {jjtThis.val=t2.image;} #ArgType(0) )*
+        t1=Type() {jjtThis.val=t1.image;} #ArgType(0)
+        ( <COMMA> t2=Type() {jjtThis.val=t2.image;} #ArgType(0) )*
     ]
-}
-
-Token ImportType() #void: {Token t1;}
-{
-    ( t1=<VOID> | t1=Type() )
-    { return t1; }
 }
 
 // ############### CLASS DECLARATION #################
@@ -231,7 +225,7 @@ void VarDeclaration() #VarDeclaration(2): {Token t1, t2;}
 
 Token Type() #void: {Token t1;}
 {
-    (t1=<INT> | t1=<INT_ARR> | t1=<BOOL> | t1=<IDENTIFIER>)
+    (t1=<INT> | t1=<INT_ARR> | t1=<BOOL> | t1=<IDENTIFIER> | t1=<VOID> )
     {return t1;}
 }
 
@@ -298,7 +292,7 @@ void MethodBody() #MethodBody: {}
 {
     <OPEN_BRACE>
         MethodCode()
-        ReturnExpression()
+       (ReturnExpression())?
     <CLOSE_BRACE>
 }
 
@@ -310,7 +304,7 @@ void MethodCode() #void: {}
 
 void ReturnExpression() #void: {}
 {
-    <RETURN> Expression() #Return(1) <PV>
+    <RETURN> (Expression())? #Return(1) <PV>
 }
 
 // ############### STATEMENT #################

@@ -6,6 +6,7 @@ import parser.Node;
 import parser.SimpleNode;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,7 +22,7 @@ public class CodeGenerator {
 
     private final static int BYTE_SIZE = 127;
     public final static int SHORT_SIZE = 32767;
-    private final static int LONG_SIZE =  2147483647;
+    private final static int LONG_SIZE = 2147483647;
     private int limitStack;
     private int counterStack;
 
@@ -142,10 +143,10 @@ public class CodeGenerator {
         stringBuilder.append("\n");
 
         String methodBody = this.generateMethodBody(functionDescriptor, assemblerLabels);
-        int limitLocals = functionDescriptor.getLimitLocal() + 1;
+        int limitLocals = functionDescriptor.getLimitLocal();
 
         // Return expression
-        if (functionDescriptor.getMethodName().equals("main")){
+        if (functionDescriptor.isMain()) {
             methodBody += this.generateReturn(functionDescriptor, assemblerLabels);
         }
 
@@ -159,7 +160,6 @@ public class CodeGenerator {
         stringBuilder.append(".end method\n");
 
 
-
         this.write(stringBuilder.toString());
     }
 
@@ -169,16 +169,16 @@ public class CodeGenerator {
 
 
         // Look for method body node
-        for (Node node: functionDescriptor.getMethodNode().jjtGetChildren()) {
+        for (Node node : functionDescriptor.getMethodNode().jjtGetChildren()) {
             SimpleNode child = (SimpleNode) node;
 
-            if(child.getNodeName().equals(NodeName.METHODBODY)){
+            if (child.getNodeName().equals(NodeName.METHODBODY)) {
                 methodBody = child;
                 break;
             }
         }
 
-        if (methodBody == null){
+        if (methodBody == null) {
             throw new Exception("Couldn't find methodBody node");
         }
 
@@ -196,10 +196,10 @@ public class CodeGenerator {
         if (children == null || children.length == 0)
             return "";
 
-        for(Node node: children) {
+        for (Node node : children) {
             SimpleNode child = (SimpleNode) node;
 
-            switch (child.getNodeName()){
+            switch (child.getNodeName()) {
                 case NodeName.DOTMETHOD:
                     stringBuilder.append(this.generateDotMethod(functionDescriptor, child, assemblerLabels)).append("\n");
                     break;
@@ -231,7 +231,7 @@ public class CodeGenerator {
 
         if (Utils.isClassVariable(this.symbolTables, leftSide, functionDescriptor)) { // Call from a method within the class
 
-            stringBuilder.append(this.generateExpression(functionDescriptor,leftSide,assemblerLabels));
+            stringBuilder.append(this.generateExpression(functionDescriptor, leftSide, assemblerLabels));
 
             if (rightSide.jjtGetNumChildren() > 1) // If arguments are being passed
                 stringBuilder.append(this.generateArgumentsLoading(functionDescriptor, (SimpleNode) rightSide.jjtGetChild(1), assemblerLabels));
@@ -246,8 +246,7 @@ public class CodeGenerator {
         } else { // Call a static imported method
             ImportDescriptor importDescriptor = Utils.getImportedMethod(this.symbolTables, dotMethodNode, functionDescriptor);
             if (importDescriptor != null) { // Invoke imported method
-
-                stringBuilder.append(this.generateExpression(functionDescriptor,leftSide,assemblerLabels));
+                stringBuilder.append(this.generateExpression(functionDescriptor, leftSide, assemblerLabels));
 
                 if (rightSide.jjtGetNumChildren() > 1) // If arguments are being passed
                     stringBuilder.append(this.generateArgumentsLoading(functionDescriptor, (SimpleNode) rightSide.jjtGetChild(1), assemblerLabels));
@@ -258,6 +257,10 @@ public class CodeGenerator {
                     stringBuilder.append(INDENTATION).append("invokevirtual ");
                 stringBuilder.append(this.generateMethodHeader(importDescriptor)).append("\n");
                 incCounterStack(1);
+            } else if (rightSide.getNodeName().equals(NodeName.LENGTH)){ // array.length
+                TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal());
+                stringBuilder.append(parseTypeDescriptorLoader(typeDescriptor)).append("\n");
+                stringBuilder.append(INDENTATION).append("arraylength\n");
             }
         }
 
@@ -276,30 +279,38 @@ public class CodeGenerator {
         SimpleNode rightSide = (SimpleNode) simpleNode.jjtGetChild(1);
 
         if (leftSide.getNodeName().equals(NodeName.IDENTIFIER)) {
-            stringBuilder.append(this.generateExpression(functionDescriptor, rightSide, assemblerLabels));
+            String leftExpr = this.generateExpression(functionDescriptor, rightSide, assemblerLabels);
 
             TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal());
             String typeIdentifier = typeDescriptor.getTypeIdentifier();
 
-            switch (typeIdentifier) {
-                case VarTypes.INT:
-                case VarTypes.BOOLEAN: {
-                    stringBuilder.append(INDENTATION).append("istore ").append(typeDescriptor.getIndex()).append("\n");
+            if (typeDescriptor.isClassField()) {
+                stringBuilder.append(INDENTATION).append("aload 0\n");
+                stringBuilder.append(leftExpr);
+                incCounterStack(1);
+                stringBuilder.append(INDENTATION).append("putfield ").append(symbolTables.getClassName()).append("/").append(typeDescriptor.getFieldName()).append(" ").append(typeDescriptor.toJVM()).append("\n");
+                incCounterStack(-1);
+            } else
+                {
+                    stringBuilder.append(leftExpr);
+                    switch (typeIdentifier) {
+                    case VarTypes.INT:
+                    case VarTypes.BOOLEAN: {
+                        stringBuilder.append(INDENTATION).append("istore ").append(typeDescriptor.getIndex()).append("\n");
 
-                    break;
-                }
-                case VarTypes.INTARRAY: {
-                    stringBuilder.append(INDENTATION).append("astore ").append(typeDescriptor.getIndex()).append("\n");
-                    break;
-                }
-                default: {
-                    if (symbolTables.getClassName().equals(typeIdentifier) || symbolTables.isImportedClass(typeIdentifier))
-                    stringBuilder.append(INDENTATION).append("astore ").append(typeDescriptor.getIndex()).append("\n");
-                    break;
-                }
-            }
-        }
-        else if(leftSide.getNodeName().equals(NodeName.ARRAYACCESS)) { // a[2] = 4;
+                        break;
+                    }
+                    case VarTypes.INTARRAY: {
+                        stringBuilder.append(INDENTATION).append("astore ").append(typeDescriptor.getIndex()).append("\n");
+                        break;
+                    }
+                    default: {
+                        if (symbolTables.getClassName().equals(typeIdentifier) || symbolTables.isImportedClass(typeIdentifier))
+                            stringBuilder.append(INDENTATION).append("astore ").append(typeDescriptor.getIndex()).append("\n");
+                        break;
+                    }
+                }}
+        } else if (leftSide.getNodeName().equals(NodeName.ARRAYACCESS)) { // a[2] = 4;
             stringBuilder.append(this.generateArrayAccess(functionDescriptor, leftSide, assemblerLabels)); // push ref, push index
             stringBuilder.append(this.generateExpression(functionDescriptor, rightSide, assemblerLabels)); // push value
             stringBuilder.append(INDENTATION).append("iastore\n");
@@ -374,7 +385,7 @@ public class CodeGenerator {
         return stringBuilder.toString();
     }
 
-    private String generateMethodHeader(FunctionDescriptor descriptor){
+    private String generateMethodHeader(FunctionDescriptor descriptor) {
         StringBuilder stringBuilder = new StringBuilder();
 
         stringBuilder.append(descriptor.getMethodName());
@@ -385,10 +396,10 @@ public class CodeGenerator {
         stringBuilder.append(")");
 
         stringBuilder.append(TypeDescriptor.toJVM(descriptor.getReturnType()));
-        return  stringBuilder.toString();
+        return stringBuilder.toString();
     }
 
-    private String generateMethodHeader(ImportDescriptor descriptor){
+    private String generateMethodHeader(ImportDescriptor descriptor) {
         StringBuilder stringBuilder = new StringBuilder();
 
         stringBuilder.append(descriptor.getClassName()).append("/");
@@ -400,7 +411,7 @@ public class CodeGenerator {
         stringBuilder.append(")");
 
         stringBuilder.append(descriptor.getReturnType().toJVM());
-        return  stringBuilder.toString();
+        return stringBuilder.toString();
     }
 
     private String generateArithmeticExpression(SimpleNode simpleNode, FunctionDescriptor functionDescriptor, AssemblerLabels assemblerLabels) throws Exception {
@@ -528,26 +539,35 @@ public class CodeGenerator {
     }
 
     private String parseTypeDescriptorLoader(TypeDescriptor typeDescriptor) {
+        StringBuilder stringBuilder = new StringBuilder();
+        if (typeDescriptor.isClassField()) {
+            stringBuilder.append(INDENTATION).append("aload 0\n");
+            incCounterStack(1);
+            stringBuilder.append(INDENTATION).append("getfield ").append(symbolTables.getClassName()).append("/").append(typeDescriptor.getFieldName()).append(" ").append(typeDescriptor.toJVM());
+            return stringBuilder.toString();
+        }
         switch (typeDescriptor.getTypeIdentifier()) {
             case VarTypes.INT:
             case VarTypes.BOOLEAN: {
-               incCounterStack(1);
-               return INDENTATION + "iload " + typeDescriptor.getIndex();
+                incCounterStack(1);
+                stringBuilder.append(INDENTATION).append("iload ").append(typeDescriptor.getIndex());
+                break;
             }
             case VarTypes.INTARRAY: {
                 incCounterStack(1);
-                return INDENTATION + "aload " + typeDescriptor.getIndex();
+                stringBuilder.append(INDENTATION).append("aload ").append(typeDescriptor.getIndex());
+                break;
             }
             default: {
-                if (symbolTables.getClassName().equals(typeDescriptor.getTypeIdentifier()) || symbolTables.isImportedClass(typeDescriptor.getTypeIdentifier())){
+                if (symbolTables.getClassName().equals(typeDescriptor.getTypeIdentifier()) || symbolTables.isImportedClass(typeDescriptor.getTypeIdentifier())) {
                     incCounterStack(1);
-                    return INDENTATION + "aload " + typeDescriptor.getIndex();
+                    stringBuilder.append(INDENTATION).append("aload ").append(typeDescriptor.getIndex());
                 }
                 break;
             }
 
         }
-        return null;
+        return stringBuilder.toString();
     }
 
     private String generateExpression(FunctionDescriptor functionDescriptor, SimpleNode expressionNode, AssemblerLabels assemblerLabels) throws Exception {
@@ -557,7 +577,7 @@ public class CodeGenerator {
             case NodeName.IDENTIFIER: {
                 TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(expressionNode.jjtGetVal());
 
-                if (typeDescriptor == null){
+                if (typeDescriptor == null) {
                     break;
                 }
                 stringBuilder.append(this.parseTypeDescriptorLoader(typeDescriptor)).append("\n");
@@ -571,7 +591,7 @@ public class CodeGenerator {
                 stringBuilder.append(INDENTATION).append(this.parseBoolean(expressionNode)).append("\n");
                 break;
             }
-            case NodeName.NEW : {
+            case NodeName.NEW: {
                 SimpleNode identifierChild = (SimpleNode) expressionNode.jjtGetChild(0);
 
                 if (identifierChild.getNodeName().equals(NodeName.ARRAYSIZE)) {
@@ -580,7 +600,7 @@ public class CodeGenerator {
                     break;
                 }
 
-                stringBuilder.append(INDENTATION).append("new ").append(identifierChild.jjtGetVal()).append("\n");
+                stringBuilder.append(INDENTATION).append("new ").append("'" + identifierChild.jjtGetVal() + "'").append("\n");
                 stringBuilder.append(INDENTATION).append("dup\n");
                 incCounterStack(2);
 
@@ -590,7 +610,7 @@ public class CodeGenerator {
                 stringBuilder.append(INDENTATION).append("invokespecial ").append(identifierChild.jjtGetVal()).append("/<init>()V\n");
                 break;
             }
-            case NodeName.THIS:{
+            case NodeName.THIS: {
                 stringBuilder.append(INDENTATION).append("aload 0\n");
                 incCounterStack(1);
                 break;
@@ -641,7 +661,7 @@ public class CodeGenerator {
         return "ldc " + value;
     }
 
-    private void incCounterStack(int i){
+    private void incCounterStack(int i) {
         counterStack += i;
         limitStack = Math.max(counterStack, limitStack);
     }

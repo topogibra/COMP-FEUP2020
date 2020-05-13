@@ -7,6 +7,7 @@ public class TypeDescriptor {
     private boolean isArray = false;
     private int index;
     private boolean classField = false;
+    private String fieldName = "";
 
     private boolean init_in_if;
     private boolean init_in_else;
@@ -80,5 +81,13 @@ public class TypeDescriptor {
 
     public void setClassField(boolean classField) {
         this.classField = classField;
+    }
+
+    public String getFieldName() {
+        return fieldName;
+    }
+
+    public void setFieldName(String fieldName) {
+        this.fieldName = fieldName;
     }
 }

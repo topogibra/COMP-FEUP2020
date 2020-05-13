@@ -21,7 +21,8 @@ public class Scope {
     }
 
     public void addVar(String localIdentifier, TypeDescriptor typeDescriptor) {
-        if(this.vars.put(localIdentifier, typeDescriptor) == null){
+        this.vars.put(localIdentifier, typeDescriptor);
+        if(!typeDescriptor.isClassField()){
             maxLocalVars++;
         }
 
