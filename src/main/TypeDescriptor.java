@@ -59,8 +59,9 @@ public class TypeDescriptor {
     public static String toJVM(String typeIdentifier) {
         switch (typeIdentifier) {
             case VarTypes.INT:
-            case VarTypes.BOOLEAN:
                 return "I";
+            case VarTypes.BOOLEAN:
+                return "Z";
             case VarTypes.INTARRAY: return "[I";
             case VarTypes.VOID: return "V";
             default: return typeIdentifier;

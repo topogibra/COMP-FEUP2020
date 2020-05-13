@@ -201,7 +201,7 @@ public class CodeGenerator {
 
             switch (child.getNodeName()) {
                 case NodeName.DOTMETHOD:
-                    stringBuilder.append(this.generateDotMethod(functionDescriptor, child, assemblerLabels)).append("\n");
+                    stringBuilder.append(this.generateDotMethod(functionDescriptor, child, assemblerLabels,true)).append("\n");
                     break;
                 case NodeName.ASSIGNMENT:
                     stringBuilder.append(this.generateAssignment(child, functionDescriptor, assemblerLabels));
@@ -225,6 +225,10 @@ public class CodeGenerator {
     }
 
     private String generateDotMethod(FunctionDescriptor functionDescriptor, SimpleNode dotMethodNode, AssemblerLabels assemblerLabels) throws Exception {
+        return generateDotMethod(functionDescriptor,dotMethodNode,assemblerLabels,false);
+    }
+
+    private String generateDotMethod(FunctionDescriptor functionDescriptor, SimpleNode dotMethodNode, AssemblerLabels assemblerLabels,boolean pop) throws Exception {
         StringBuilder stringBuilder = new StringBuilder();
 
         SimpleNode leftSide = (SimpleNode) dotMethodNode.jjtGetChild(0);
@@ -244,6 +248,10 @@ public class CodeGenerator {
             stringBuilder.append((descriptor.isFromSuper()) ? "invokespecial " : "invokevirtual ");
             stringBuilder.append((descriptor.isFromSuper()) ? symbolTables.getExtendedClassName() : symbolTables.getClassName());
             stringBuilder.append("/").append(this.generateMethodHeader(descriptor)).append("\n");
+            if(pop && !descriptor.getReturnType().equals(VarTypes.VOID)){
+                stringBuilder.append(INDENTATION).append("pop\n");
+                incCounterStack(-1);
+            }
         } else { // Call a static imported method
             ImportDescriptor importDescriptor = Utils.getImportedMethod(this.symbolTables, dotMethodNode, functionDescriptor);
             if (importDescriptor != null) { // Invoke imported method
@@ -258,10 +266,18 @@ public class CodeGenerator {
                     stringBuilder.append(INDENTATION).append("invokevirtual ");
                 stringBuilder.append(this.generateMethodHeader(importDescriptor)).append("\n");
                 incCounterStack(1);
+                if(pop && !importDescriptor.getReturnType().getTypeIdentifier().equals(VarTypes.VOID)){
+                    stringBuilder.append(INDENTATION).append("pop\n");
+                    incCounterStack(-1);
+                }
             } else if (rightSide.getNodeName().equals(NodeName.LENGTH)){ // array.length
                 TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal());
                 stringBuilder.append(parseTypeDescriptorLoader(typeDescriptor)).append("\n");
                 stringBuilder.append(INDENTATION).append("arraylength\n");
+                if(pop){
+                    stringBuilder.append(INDENTATION).append("pop\n");
+                    incCounterStack(-1);
+                }
             }
         }
 
@@ -315,6 +331,7 @@ public class CodeGenerator {
             stringBuilder.append(this.generateArrayAccess(functionDescriptor, leftSide, assemblerLabels)); // push ref, push index
             stringBuilder.append(this.generateExpression(functionDescriptor, rightSide, assemblerLabels)); // push value
             stringBuilder.append(INDENTATION).append("iastore\n");
+            incCounterStack(-3);
         }
 
         incCounterStack(-1);
@@ -623,7 +640,7 @@ public class CodeGenerator {
             case NodeName.ARRAYACCESS: {
                 stringBuilder.append(this.generateArrayAccess(functionDescriptor, expressionNode, assemblerLabels));
                 stringBuilder.append(INDENTATION).append("iaload\n");
-                incCounterStack(1);
+                incCounterStack(-1);
                 break;
             }
             default: {

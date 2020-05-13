@@ -135,11 +135,6 @@ public class Utils {
             }
         }
 
-
-
-
-
-
         return initIf && initElse;
     }
 
