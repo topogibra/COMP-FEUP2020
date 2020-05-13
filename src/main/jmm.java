@@ -30,7 +30,7 @@ public class jmm {
         jmm compiler = new jmm(args[0]);
 
         if (args.length == 2)
-            compiler.setIgnoreExceptions(Boolean.parseBoolean(args[1]));
+            compiler.setIgnoreExceptions(true);
 
         compiler.compileFile();
     }

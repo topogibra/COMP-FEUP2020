@@ -13,7 +13,7 @@ import java.util.Set;
 
 public class SemanticAnalyser {
     private static final int MAX_NUM_ERRORS = 10;
-    private static int no_error = 0;
+    private int no_error ;
 
     private final static int BYTE_SIZE = 127;
     public final static int SHORT_SIZE = 32767;
@@ -26,7 +26,7 @@ public class SemanticAnalyser {
     public SemanticAnalyser(SymbolTables symbolTables, SimpleNode root, boolean ignore_exceptions) {
         this.symbolTables = symbolTables;
         this.root = root;
-        SemanticAnalyser.no_error = 0;
+        this.no_error = 0;
     }
 
     public void addException(SemanticException exception) throws Exception {
