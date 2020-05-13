@@ -302,11 +302,11 @@ public class CodeGenerator {
             String typeIdentifier = typeDescriptor.getTypeIdentifier();
 
             if (typeDescriptor.isClassField()) {
-                stringBuilder.append(INDENTATION).append("aload 0\n");
-                stringBuilder.append(leftExpr);
+                stringBuilder.append(INDENTATION).append("aload_0\n");
                 incCounterStack(1);
+                stringBuilder.append(leftExpr);
                 stringBuilder.append(INDENTATION).append("putfield ").append(symbolTables.getClassName()).append("/").append(typeDescriptor.getFieldName()).append(" ").append(typeDescriptor.toJVM()).append("\n");
-                incCounterStack(-1);
+                incCounterStack(-2);
             } else
                 {
                     stringBuilder.append(leftExpr);
@@ -314,16 +314,19 @@ public class CodeGenerator {
                     case VarTypes.INT:
                     case VarTypes.BOOLEAN: {
                         stringBuilder.append(INDENTATION).append("istore ").append(typeDescriptor.getIndex()).append("\n");
-
+                        incCounterStack(-1);
                         break;
                     }
                     case VarTypes.INTARRAY: {
                         stringBuilder.append(INDENTATION).append("astore ").append(typeDescriptor.getIndex()).append("\n");
+                        incCounterStack(-1);
                         break;
                     }
                     default: {
-                        if (symbolTables.getClassName().equals(typeIdentifier) || symbolTables.isImportedClass(typeIdentifier))
+                        if (symbolTables.getClassName().equals(typeIdentifier) || symbolTables.isImportedClass(typeIdentifier)){
+                            incCounterStack(-1);
                             stringBuilder.append(INDENTATION).append("astore ").append(typeDescriptor.getIndex()).append("\n");
+                        }
                         break;
                     }
                 }}
@@ -334,7 +337,7 @@ public class CodeGenerator {
             incCounterStack(-3);
         }
 
-        incCounterStack(-1);
+
         stringBuilder.append("\n");
         return stringBuilder.toString();
     }
@@ -457,13 +460,16 @@ public class CodeGenerator {
             }
             case NodeName.NOT: {
                 final String label = assemblerLabels.getLabel("put_true");
+                final String endLabel = assemblerLabels.getLabel("not_end");
                 stringBuilder.append(INDENTATION).append("ifeq ").append(label).append("\n"); // Compare previous top value with 0: if previous_value == false,  If yes, goto put_true, to put 1 in top of stack
                 incCounterStack(-1);
                 stringBuilder.append(INDENTATION).append("iconst_0\n");
                 incCounterStack(1);
+                stringBuilder.append(INDENTATION).append("goto ").append(endLabel).append("\n");
                 stringBuilder.append(label).append(":\n");
                 stringBuilder.append(INDENTATION).append("iconst_1\n");
                 incCounterStack(1);
+                stringBuilder.append(endLabel).append(":\n");
                 break;
             }
             case NodeName.AND: {
@@ -536,10 +542,12 @@ public class CodeGenerator {
             case VarTypes.INT:
             case VarTypes.BOOLEAN: {
                 stringBuilder.append(INDENTATION).append("ireturn\n");
+                incCounterStack(-1);
                 break;
             }
             case VarTypes.INTARRAY: {
                 stringBuilder.append(INDENTATION).append("areturn\n");
+                incCounterStack(-1);
                 break;
             }
             case VarTypes.VOID: {
@@ -547,8 +555,10 @@ public class CodeGenerator {
                 break;
             }
             default: {
-                if (functionDescriptor.getReturnType().equals(symbolTables.getClassName()))
+                if (functionDescriptor.getReturnType().equals(symbolTables.getClassName())){
                     stringBuilder.append(INDENTATION).append("areturn\n");
+                    incCounterStack(-1);
+                }
                 break;
             }
         }
@@ -559,7 +569,7 @@ public class CodeGenerator {
     private String parseTypeDescriptorLoader(TypeDescriptor typeDescriptor) {
         StringBuilder stringBuilder = new StringBuilder();
         if (typeDescriptor.isClassField()) {
-            stringBuilder.append(INDENTATION).append("aload 0\n");
+            stringBuilder.append(INDENTATION).append("aload_0\n");
             incCounterStack(1);
             stringBuilder.append(INDENTATION).append("getfield ").append(symbolTables.getClassName()).append("/").append(typeDescriptor.getFieldName()).append(" ").append(typeDescriptor.toJVM());
             return stringBuilder.toString();
@@ -619,8 +629,9 @@ public class CodeGenerator {
                 }
 
                 stringBuilder.append(INDENTATION).append("new ").append("'" + identifierChild.jjtGetVal() + "'").append("\n");
+                incCounterStack(1);
                 stringBuilder.append(INDENTATION).append("dup\n");
-                incCounterStack(2);
+                incCounterStack(1);
 
                 if (expressionNode.jjtGetNumChildren() > 1) //Arguments were passed
                     stringBuilder.append(this.generateArgumentsLoading(functionDescriptor, expressionNode.getChild(1), assemblerLabels));
@@ -629,7 +640,7 @@ public class CodeGenerator {
                 break;
             }
             case NodeName.THIS: {
-                stringBuilder.append(INDENTATION).append("aload 0\n");
+                stringBuilder.append(INDENTATION).append("aload_0\n");
                 incCounterStack(1);
                 break;
             }
