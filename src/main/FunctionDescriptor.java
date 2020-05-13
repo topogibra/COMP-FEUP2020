@@ -96,4 +96,8 @@ public class FunctionDescriptor {
     public SimpleNode getMethodNode() {
         return methodNode;
     }
+
+    public int getLimitLocal(){
+        return this.params.size() + this.scope.getMaxLocalVars();
+    }
 }

@@ -139,21 +139,41 @@ public class CodeGenerator {
 
         stringBuilder.append("\n");
 
-        //### Method body ####
-        stringBuilder.append(INDENTATION).append(".limit stack 99\n");
-        stringBuilder.append(INDENTATION).append(".limit locals 99\n");
-        stringBuilder.append("\n");
-
-        //Method Body
-        stringBuilder.append(this.generateMethodBody(functionDescriptor, assemblerLabels));
+        String methodBody = this.generateMethodBody(functionDescriptor, assemblerLabels);
+        int limitLocals = functionDescriptor.getLimitLocal() + 1;
+        int limitStack = 99;
 
         // Return expression
-        if (functionDescriptor.getMethodName().equals("main"))
-            stringBuilder.append(this.generateReturn(functionDescriptor, assemblerLabels));
+        if (functionDescriptor.getMethodName().equals("main")){
+            methodBody += this.generateReturn(functionDescriptor, assemblerLabels);
+            limitLocals--;
+        }
+
+//        int[] result = this.calculateLimits(methodBody);
+
+
+
+        //### Method body ####
+        stringBuilder.append(INDENTATION).append(".limit stack ").append(limitStack).append("\n");
+        stringBuilder.append(INDENTATION).append(".limit locals ").append(limitLocals).append("\n");
+        stringBuilder.append("\n");
+
+        stringBuilder.append(methodBody);
 
         stringBuilder.append(".end method\n");
 
+
+
         this.write(stringBuilder.toString());
+    }
+
+    private int[] calculateLimits(String methodBody) {
+        int[] result = new int[2]; // Stack, Local
+
+
+
+
+        return result;
     }
 
     private String generateMethodBody(FunctionDescriptor functionDescriptor, AssemblerLabels assemblerLabels) throws Exception {

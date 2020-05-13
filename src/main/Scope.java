@@ -6,10 +6,11 @@ import java.util.Map;
 
 public class Scope {
     private final LinkedHashMap<String, TypeDescriptor> vars;
+    private int maxLocalVars;
 
     public Scope(Scope parentScope) {
         this.vars = new LinkedHashMap<>();
-
+        maxLocalVars = 0;
         if (parentScope != null)
             this.vars.putAll(parentScope.getVars());
 
@@ -20,7 +21,10 @@ public class Scope {
     }
 
     public void addVar(String localIdentifier, TypeDescriptor typeDescriptor) {
-        this.vars.put(localIdentifier, typeDescriptor);
+        if(this.vars.put(localIdentifier, typeDescriptor) == null){
+            maxLocalVars++;
+        }
+
     }
 
     public void setInit(String key, boolean inited){
@@ -38,5 +42,9 @@ public class Scope {
             System.out.print(" Value: " + cvar.getValue().getTypeIdentifier());
             System.out.println("\n\n");
         }
+    }
+
+    public int getMaxLocalVars() {
+        return maxLocalVars;
     }
 }
