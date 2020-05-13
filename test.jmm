@@ -13,5 +13,6 @@ class field{
 	    a = new int[32];
 	    a[4] = 5;
 	    ioPlus.printResult(a.length);
+	    return;
 	}
 }

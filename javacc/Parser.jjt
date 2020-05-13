@@ -304,7 +304,7 @@ void MethodCode() #void: {}
 
 void ReturnExpression() #void: {}
 {
-    <RETURN> (Expression())? #Return(1) <PV>
+    <RETURN> (Expression())? #Return <PV>
 }
 
 // ############### STATEMENT #################

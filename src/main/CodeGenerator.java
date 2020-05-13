@@ -216,6 +216,7 @@ public class CodeGenerator {
                     stringBuilder.append(this.generateReturn(functionDescriptor, child, assemblerLabels));
                     break;
                 default:
+
                     break;
             }
         }
