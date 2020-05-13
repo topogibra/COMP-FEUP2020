@@ -296,7 +296,7 @@ public class CodeGenerator {
         SimpleNode rightSide = (SimpleNode) simpleNode.jjtGetChild(1);
 
         if (leftSide.getNodeName().equals(NodeName.IDENTIFIER)) {
-            String leftExpr = this.generateExpression(functionDescriptor, rightSide, assemblerLabels);
+
 
             TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal());
             String typeIdentifier = typeDescriptor.getTypeIdentifier();
@@ -304,11 +304,13 @@ public class CodeGenerator {
             if (typeDescriptor.isClassField()) {
                 stringBuilder.append(INDENTATION).append("aload_0\n");
                 incCounterStack(1);
+                String leftExpr = this.generateExpression(functionDescriptor, rightSide, assemblerLabels);
                 stringBuilder.append(leftExpr);
                 stringBuilder.append(INDENTATION).append("putfield ").append(symbolTables.getClassName()).append("/").append(typeDescriptor.getFieldName()).append(" ").append(typeDescriptor.toJVM()).append("\n");
                 incCounterStack(-2);
             } else
                 {
+                    String leftExpr = this.generateExpression(functionDescriptor, rightSide, assemblerLabels);
                     stringBuilder.append(leftExpr);
                     switch (typeIdentifier) {
                     case VarTypes.INT:
