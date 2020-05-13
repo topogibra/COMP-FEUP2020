@@ -33,6 +33,8 @@ public class SymbolTables {
     }
 
     public void addVar(String identifier, TypeDescriptor typeDescriptor) {
+        typeDescriptor.setInit(true);
+        typeDescriptor.setClassField(true);
         this.scope.addVar(identifier, typeDescriptor);
     }
 

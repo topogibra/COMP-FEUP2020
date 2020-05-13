@@ -6,6 +6,7 @@ public class TypeDescriptor {
     private final String typeIdentifier;
     private boolean isArray = false;
     private int index;
+    private boolean classField = false;
 
     private boolean init_in_if;
     private boolean init_in_else;
@@ -71,5 +72,13 @@ public class TypeDescriptor {
 
     public void setIndex(int index) {
         this.index = index;
+    }
+
+    public boolean isClassField() {
+        return classField;
+    }
+
+    public void setClassField(boolean classField) {
+        this.classField = classField;
     }
 }

@@ -22,6 +22,8 @@ public class CodeGenerator {
     private final static int BYTE_SIZE = 127;
     public final static int SHORT_SIZE = 32767;
     private final static int LONG_SIZE =  2147483647;
+    private int limitStack;
+    private int counterStack;
 
     public CodeGenerator(SymbolTables symbolTables) {
         this.symbolTables = symbolTables;
@@ -70,11 +72,11 @@ public class CodeGenerator {
     private void generateClass() throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
 
-        stringBuilder.append(".class public ").append(symbolTables.getClassName()).append("\n");
+        stringBuilder.append(".class public '").append(symbolTables.getClassName()).append("'\n");
 
         stringBuilder.append(".super ");
         if (symbolTables.getExtendedClassName() != null)
-            stringBuilder.append(symbolTables.getExtendedClassName());
+            stringBuilder.append("'").append(symbolTables.getExtendedClassName()).append("'");
         else
             stringBuilder.append("java/lang/Object");
 
@@ -88,7 +90,7 @@ public class CodeGenerator {
 
         for (Map.Entry<String, TypeDescriptor> field : symbolTables.getScope().getVars().entrySet()) {
             stringBuilder.append(".field public ");
-            stringBuilder.append(field.getKey()).append(" ");
+            stringBuilder.append("'").append(field.getKey()).append("' ");
             stringBuilder.append(field.getValue().toJVM()).append("\n");
         }
 
@@ -141,17 +143,11 @@ public class CodeGenerator {
 
         String methodBody = this.generateMethodBody(functionDescriptor, assemblerLabels);
         int limitLocals = functionDescriptor.getLimitLocal() + 1;
-        int limitStack = 99;
 
         // Return expression
         if (functionDescriptor.getMethodName().equals("main")){
             methodBody += this.generateReturn(functionDescriptor, assemblerLabels);
-            limitLocals--;
         }
-
-//        int[] result = this.calculateLimits(methodBody);
-
-
 
         //### Method body ####
         stringBuilder.append(INDENTATION).append(".limit stack ").append(limitStack).append("\n");
@@ -167,18 +163,10 @@ public class CodeGenerator {
         this.write(stringBuilder.toString());
     }
 
-    private int[] calculateLimits(String methodBody) {
-        int[] result = new int[2]; // Stack, Local
-
-
-
-
-        return result;
-    }
-
     private String generateMethodBody(FunctionDescriptor functionDescriptor, AssemblerLabels assemblerLabels) throws Exception {
         StringBuilder stringBuilder = new StringBuilder();
         SimpleNode methodBody = null;
+
 
         // Look for method body node
         for (Node node: functionDescriptor.getMethodNode().jjtGetChildren()) {
@@ -194,6 +182,8 @@ public class CodeGenerator {
             throw new Exception("Couldn't find methodBody node");
         }
 
+        limitStack = 0;
+        counterStack = 0;
         stringBuilder.append(this.generateStatements(functionDescriptor, methodBody, assemblerLabels));
 
         return stringBuilder.toString();
@@ -239,7 +229,7 @@ public class CodeGenerator {
         SimpleNode leftSide = (SimpleNode) dotMethodNode.jjtGetChild(0);
         SimpleNode rightSide = (SimpleNode) dotMethodNode.jjtGetChild(1);
 
-        if (Utils.isClassVariable(this.symbolTables, leftSide, functionDescriptor)) {
+        if (Utils.isClassVariable(this.symbolTables, leftSide, functionDescriptor)) { // Call from a method within the class
 
             stringBuilder.append(this.generateExpression(functionDescriptor,leftSide,assemblerLabels));
 
@@ -253,7 +243,7 @@ public class CodeGenerator {
             stringBuilder.append((descriptor.isFromSuper()) ? "invokespecial " : "invokevirtual ");
             stringBuilder.append((descriptor.isFromSuper()) ? symbolTables.getExtendedClassName() : symbolTables.getClassName());
             stringBuilder.append("/").append(this.generateMethodHeader(descriptor)).append("\n");
-        } else {
+        } else { // Call a static imported method
             ImportDescriptor importDescriptor = Utils.getImportedMethod(this.symbolTables, dotMethodNode, functionDescriptor);
             if (importDescriptor != null) { // Invoke imported method
 
@@ -267,6 +257,7 @@ public class CodeGenerator {
                 else
                     stringBuilder.append(INDENTATION).append("invokevirtual ");
                 stringBuilder.append(this.generateMethodHeader(importDescriptor)).append("\n");
+                incCounterStack(1);
             }
         }
 
@@ -274,6 +265,7 @@ public class CodeGenerator {
     }
 
     private String parseBoolean(SimpleNode simpleNode) {
+        incCounterStack(1);
         return simpleNode.jjtGetVal().equals("true") ? "iconst_1" : "iconst_0";
     }
 
@@ -293,6 +285,7 @@ public class CodeGenerator {
                 case VarTypes.INT:
                 case VarTypes.BOOLEAN: {
                     stringBuilder.append(INDENTATION).append("istore ").append(typeDescriptor.getIndex()).append("\n");
+
                     break;
                 }
                 case VarTypes.INTARRAY: {
@@ -312,6 +305,7 @@ public class CodeGenerator {
             stringBuilder.append(INDENTATION).append("iastore\n");
         }
 
+        incCounterStack(-1);
         stringBuilder.append("\n");
         return stringBuilder.toString();
     }
@@ -331,6 +325,7 @@ public class CodeGenerator {
 
         // Check if condition is false. If so goto else label
         stringBuilder.append(INDENTATION).append("ifeq ").append(elseLabel).append("\n");
+        incCounterStack(-1);
 
         // Generate statements inside ifblock
         stringBuilder.append(this.generateStatements(functionDescriptor, blockNode, assemblerLabels));
@@ -365,6 +360,7 @@ public class CodeGenerator {
 
         // Check if condition is false. If so goto end label
         stringBuilder.append(INDENTATION).append("ifeq ").append(endWhileLabel).append("\n");
+        incCounterStack(-1);
 
         // Generate statements inside while block
         stringBuilder.append(this.generateStatements(functionDescriptor, blockNode, assemblerLabels));
@@ -427,15 +423,18 @@ public class CodeGenerator {
             case NodeName.DIV:
             case NodeName.MUL: {
                 stringBuilder.append(INDENTATION).append("i").append(nodeName.toLowerCase()).append("\n");
+                incCounterStack(-1);
                 break;
             }
             case NodeName.NOT: {
                 final String label = assemblerLabels.getLabel("put_true");
-                stringBuilder.append(INDENTATION).append("ifeq ").append(label).append("\n"); // Compare previous top value with 0: if previous_value == false
-                                                                                // If yes, goto put_true, to put 1 in top of stack
+                stringBuilder.append(INDENTATION).append("ifeq ").append(label).append("\n"); // Compare previous top value with 0: if previous_value == false,  If yes, goto put_true, to put 1 in top of stack
+                incCounterStack(-1);
                 stringBuilder.append(INDENTATION).append("iconst_0\n");
+                incCounterStack(1);
                 stringBuilder.append(label).append(":\n");
                 stringBuilder.append(INDENTATION).append("iconst_1\n");
+                incCounterStack(1);
                 break;
             }
             case NodeName.AND: {
@@ -444,13 +443,18 @@ public class CodeGenerator {
                 String endAndLabel = assemblerLabels.getLabel("end_and");
 
                 stringBuilder.append(INDENTATION).append("ifeq ").append(putFalseAndPopLabel).append("\n");
+                incCounterStack(-1);
                 stringBuilder.append(INDENTATION).append("ifeq ").append(putFalseLabel).append("\n");
+                incCounterStack(-1);
                 stringBuilder.append(INDENTATION).append("iconst_1\n");
+                incCounterStack(1);
                 stringBuilder.append(INDENTATION).append("goto ").append(endAndLabel).append("\n");
                 stringBuilder.append(putFalseAndPopLabel).append(":\n");
                 stringBuilder.append(INDENTATION).append("pop\n");
+                incCounterStack(-1);
                 stringBuilder.append(putFalseLabel).append(":\n");
                 stringBuilder.append(INDENTATION).append("iconst_0\n");
+                incCounterStack(1);
                 stringBuilder.append(endAndLabel).append(":\n");
                 break;
             }
@@ -458,10 +462,13 @@ public class CodeGenerator {
                 String lessTrue = assemblerLabels.getLabel("less_false");
                 String lessFinal = assemblerLabels.getLabel("less_final");
                 stringBuilder.append(INDENTATION).append("if_icmplt ").append(lessTrue).append("\n");
+                incCounterStack(-2);
                 stringBuilder.append(INDENTATION).append("iconst_0\n");
+                incCounterStack(1);
                 stringBuilder.append(INDENTATION).append("goto ").append(lessFinal).append("\n");
                 stringBuilder.append(lessTrue).append(": \n");
                 stringBuilder.append(INDENTATION).append("iconst_1\n");
+                incCounterStack(1);
                 stringBuilder.append(lessFinal).append(": \n");
 
                 break;
@@ -476,6 +483,8 @@ public class CodeGenerator {
 
         for (Node arg : argsNode.jjtGetChildren())
             stringBuilder.append(this.generateExpression(functionDescriptor, (SimpleNode) arg, assemblerLabels));
+        incCounterStack(-argsNode.jjtGetNumChildren());
+
 
         return stringBuilder.toString();
     }
@@ -522,16 +531,21 @@ public class CodeGenerator {
         switch (typeDescriptor.getTypeIdentifier()) {
             case VarTypes.INT:
             case VarTypes.BOOLEAN: {
+               incCounterStack(1);
                return INDENTATION + "iload " + typeDescriptor.getIndex();
             }
             case VarTypes.INTARRAY: {
+                incCounterStack(1);
                 return INDENTATION + "aload " + typeDescriptor.getIndex();
             }
             default: {
-                if (symbolTables.getClassName().equals(typeDescriptor.getTypeIdentifier()) || symbolTables.isImportedClass(typeDescriptor.getTypeIdentifier()))
+                if (symbolTables.getClassName().equals(typeDescriptor.getTypeIdentifier()) || symbolTables.isImportedClass(typeDescriptor.getTypeIdentifier())){
+                    incCounterStack(1);
                     return INDENTATION + "aload " + typeDescriptor.getIndex();
+                }
                 break;
             }
+
         }
         return null;
     }
@@ -568,6 +582,7 @@ public class CodeGenerator {
 
                 stringBuilder.append(INDENTATION).append("new ").append(identifierChild.jjtGetVal()).append("\n");
                 stringBuilder.append(INDENTATION).append("dup\n");
+                incCounterStack(2);
 
                 if (expressionNode.jjtGetNumChildren() > 1) //Arguments were passed
                     stringBuilder.append(this.generateArgumentsLoading(functionDescriptor, expressionNode.getChild(1), assemblerLabels));
@@ -577,6 +592,7 @@ public class CodeGenerator {
             }
             case NodeName.THIS:{
                 stringBuilder.append(INDENTATION).append("aload 0\n");
+                incCounterStack(1);
                 break;
             }
             case NodeName.DOTMETHOD: {
@@ -586,6 +602,7 @@ public class CodeGenerator {
             case NodeName.ARRAYACCESS: {
                 stringBuilder.append(this.generateArrayAccess(functionDescriptor, expressionNode, assemblerLabels));
                 stringBuilder.append(INDENTATION).append("iaload\n");
+                incCounterStack(1);
                 break;
             }
             default: {
@@ -612,6 +629,7 @@ public class CodeGenerator {
 
     private String generatePushInt(SimpleNode intNode) {
         int value = Integer.parseInt(intNode.jjtGetVal());
+        incCounterStack(1);
 
         if (value <= 5)
             return "iconst_" + value;
@@ -621,6 +639,11 @@ public class CodeGenerator {
             return "sipush " + value;
 
         return "ldc " + value;
+    }
+
+    private void incCounterStack(int i){
+        counterStack += i;
+        limitStack = Math.max(counterStack, limitStack);
     }
 
 }
