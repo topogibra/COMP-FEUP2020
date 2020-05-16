@@ -249,7 +249,7 @@ public class SemanticAnalyser {
     }
 
 
-    private boolean analyseArray(boolean isArraySize, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
+    private boolean analyseArray(boolean isArraySize, SimpleNode simpleNode, FunctionDescriptor functionDescriptor,Set<String> varinScope) throws Exception {
         SimpleNode firstChild = (SimpleNode) simpleNode.jjtGetChildren()[0];
 
         if (!isArraySize) { //Check if it is an array that's being accessed
@@ -263,7 +263,7 @@ public class SemanticAnalyser {
                     addException(new ExpectedArray(firstChild, typeDescriptor.getTypeIdentifier()));
                     return false;
                 }
-                if (!typeDescriptor.isInit()) {
+                if (!typeDescriptor.isInit() && !varinScope.contains(firstChild.jjtGetVal())) {
                     addException(new VarNotInitialized(simpleNode));
                     return false;
                 }
@@ -280,7 +280,7 @@ public class SemanticAnalyser {
         SimpleNode analysedChild = (SimpleNode) (isArraySize ? firstChild : simpleNode.jjtGetChildren()[1]);
 
         // Analyses if value inside array brackets is a positive integer
-        if (!isInteger(analysedChild, functionDescriptor)) {
+        if (!isInteger(analysedChild, functionDescriptor,false,varinScope)) {
             addException(new IndexNotInt(analysedChild));
             return false;
         }
@@ -479,7 +479,7 @@ public class SemanticAnalyser {
         String leftType;
         switch (leftSideName) {
             case NodeName.ARRAYACCESS: {
-                if (!analyseArray(false, leftSide, functionDescriptor)) {
+                if (!analyseArray(false, leftSide, functionDescriptor,varInScope)) {
                     return false;
                 }
                 leftType = VarTypes.INT;
@@ -534,7 +534,7 @@ public class SemanticAnalyser {
 
         switch (expressionNode.getNodeName()) {
             case NodeName.ARRAYACCESS: {
-                if (this.analyseArray(false, expressionNode, functionDescriptor))
+                if (this.analyseArray(false, expressionNode, functionDescriptor,varInScope))
                     return VarTypes.INT;
                 break;
             }
@@ -558,7 +558,7 @@ public class SemanticAnalyser {
                 SimpleNode childNode = (SimpleNode) expressionNode.jjtGetChild(0);
                 switch (childNode.getNodeName()) {
                     case NodeName.ARRAYSIZE: { // new int[1]
-                        if (!analyseArray(true, childNode, functionDescriptor)) {
+                        if (!analyseArray(true, childNode, functionDescriptor,varInScope)) {
                             addException(new SemanticException(childNode));
                             return null;
                         } else
