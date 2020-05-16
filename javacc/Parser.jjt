@@ -427,7 +427,7 @@ void MultDivExpression() #void: {}
 
 void BracketExpression() #void: {}
 {
-    DotExpression()
+    NotExpression()
     (
         <OPEN_BRACKET>
             Expression() #ArrayAccess(2)
@@ -438,14 +438,15 @@ void BracketExpression() #void: {}
 
 void DotExpression() #void: {}
 {
-    NotExpression()
+
+    Values()
     (<DOT> DotFunc() #DotMethod(2))*
 }
 
 void NotExpression() #void: {}
 {
     <NOT> DotExpression() #Not(1)
-    | Values()
+    | DotExpression()
 }
 
 void Values() #void: {Token t;} // simpler expressions
