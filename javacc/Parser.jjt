@@ -393,7 +393,6 @@ void Assignment1() #void: {Token t;}
 void Expression() #void: {}
 {
     AndExpression()
-    | <NOT> Expression() #Not(1)
 }
 
 void AndExpression() #void: {}
@@ -439,8 +438,14 @@ void BracketExpression() #void: {}
 
 void DotExpression() #void: {}
 {
-    Values()
+    NotExpression()
     (<DOT> DotFunc() #DotMethod(2))*
+}
+
+void NotExpression() #void: {}
+{
+    <NOT> DotExpression() #Not(1)
+    | Values()
 }
 
 void Values() #void: {Token t;} // simpler expressions
