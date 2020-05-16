@@ -253,18 +253,27 @@ public class SemanticAnalyser {
         SimpleNode firstChild = (SimpleNode) simpleNode.jjtGetChildren()[0];
 
         if (!isArraySize) { //Check if it is an array that's being accessed
-            TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(firstChild.jjtGetVal());
-            if (typeDescriptor == null) {
-                addException(new NotDeclared(firstChild));
-                return false;
+            if (firstChild.getNodeName().equals(NodeName.IDENTIFIER)) {
+                TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(firstChild.jjtGetVal());
+                if (typeDescriptor == null) {
+                    addException(new NotDeclared(firstChild));
+                    return false;
+                }
+                if (!typeDescriptor.isArray()) {
+                    addException(new ExpectedArray(firstChild, typeDescriptor.getTypeIdentifier()));
+                    return false;
+                }
+                if (!typeDescriptor.isInit()) {
+                    addException(new VarNotInitialized(simpleNode));
+                    return false;
+                }
             }
-            if (!typeDescriptor.isArray()) {
-                addException(new ExpectedArray(firstChild, typeDescriptor.getTypeIdentifier()));
-                return false;
-            }
-            if (!typeDescriptor.isInit()) {
-                addException(new VarNotInitialized(simpleNode));
-                return false;
+            else if (firstChild.getNodeName().equals(NodeName.DOTMETHOD)) {
+                String returnType = this.analyseDotMethod(firstChild, functionDescriptor);
+                if (!returnType.equals(VarTypes.INTARRAY)) {
+                    addException(new ExpectedArray(firstChild, returnType));
+                    return false;
+                }
             }
         }
 
