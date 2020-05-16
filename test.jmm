@@ -1,16 +1,12 @@
 
-class Ola  {
+class test {
 
     public static void main(String[] args) {
-        int a;
-        Ola oi;
+        boolean a;
+        boolean b;
 
-        oi = new Ola();
+        a = !(!true && !false);
 
-        a = oi.coiso()[2];
-    }
-
-    public int coiso() {
-        return 2;
+        b = !(!(true && !false));
     }
 }
