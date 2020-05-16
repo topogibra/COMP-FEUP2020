@@ -71,6 +71,9 @@ public class SemanticAnalyser {
 
             if (importDescriptor.isStatic() && importDescriptor.getMethodName() == null)
                 this.addException(new StaticClassImport(importDescriptor.getNode()));
+
+            if (importDescriptor.getClassName().equals(symbolTables.getClassName()))
+                this.addException(new ImportClassEqualsClass(importDescriptor.getNode()));
         }
     }
 
@@ -91,6 +94,10 @@ public class SemanticAnalyser {
                 }
                 case NodeName.EXTENDS: {
                     String extendedClassName = child.getChild(0).jjtGetVal();
+                    if (extendedClassName.equals(symbolTables.getClassName())) {
+                        addException(new ExtendedClassEqualsClass(child));
+                        return;
+                    }
                     if (!symbolTables.isImportedClass(extendedClassName)) {
                         addException(new ExtendedClassNotImported(child));
                         return;
