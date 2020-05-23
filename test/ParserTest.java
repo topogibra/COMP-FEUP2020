@@ -199,4 +199,9 @@ public class ParserTest {
         test("fixtures/public/compilerTests/imc100.jmm", false);
     }
 
+    @Test
+    public void testQueue() {
+        test("fixtures/public/compilerTests/priorityqueue.jmm", false);
+    }
+
 }

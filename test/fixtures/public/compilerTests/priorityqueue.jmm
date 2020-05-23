@@ -1,9 +1,12 @@
-import Quicksort.quicksort(int[]) boolean;
+import QuickSort;
+import QuickSort.quicksort(int[]) boolean;
 import static ioOwn.printQueueMenu() void;
 import static ioOwn.requestPersonAge() int;
 import static ioPlus.requestNumber() int;
+import static io.print(int) void;
+import static io.println() void;
 
-Class PriorityQueue() {
+class PriorityQueue {
 
     int[] queue;
     int maxQueueSize;
@@ -15,7 +18,7 @@ Class PriorityQueue() {
     int exitOption;
 
     public static void main(String[] args) {
-        new Queue().start(20);
+        new PriorityQueue().start(20);
     }
 
     public void start(int size) {
@@ -24,28 +27,28 @@ Class PriorityQueue() {
         this.initQueue(size);
         this.initMacros();
 
-        userOption = getOption();
+        userOption = this.getOption();
 
         while(!this.equals(userOption, exitOption)) {
             this.handleRequest(userOption);
-            userOption = getOption();
+            userOption = this.getOption();
         }
     }
 
-    public boolean handleRequest(int userOption) {
-        if(equals(userOption, printOption))
+    public void handleRequest(int userOption) {
+        int age;
+        if(this.equals(userOption, printOption))
             this.printQueue();
-        else if(equals(userOption, addOption)) {
-            int age;
+        else if(this.equals(userOption, addOption)) {
             age = ioOwn.requestPersonAge();
             this.addPersonQueue(age);
         }
-        else if (equals(userOption, prioritizeOption))
+        else if (this.equals(userOption, prioritizeOption))
             this.prioritize();
         else {}
     }
 
-    public getOption() {
+    public int getOption() {
         ioOwn.printQueueMenu();
         return ioPlus.requestNumber();
     }
@@ -59,7 +62,7 @@ Class PriorityQueue() {
 
     public void initQueue(int size) {
         maxQueueSize = size;
-        queue = new int[queueSize];
+        queue = new int[maxQueueSize];
         currentSize = 0;
     }
 
@@ -69,7 +72,7 @@ Class PriorityQueue() {
 
     public void switchPlaces(int place1, int place2) {
         int temp;
-        temp = this.getQueue(place1);
+        temp = this.getQueue()[place1];
         this.getQueue()[place1] = this.getQueue()[place2];
         this.getQueue()[place2] = temp;
     }
@@ -87,6 +90,17 @@ Class PriorityQueue() {
 
     public boolean equals(int a, int b) {
         return !(a < b) && !(b < a);
+    }
+
+    public void printQueue() {
+        int i;
+        i = 0;
+
+        while (i < this.getQueue().length) {
+            io.print(queue[i]);
+            io.println();
+            i = i + 1;
+        }
     }
 
 }

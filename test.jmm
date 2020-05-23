@@ -1,45 +1,106 @@
-import static ioOwn.requestHeight() int;
-import static ioOwn.requestWeight() int;
-import static ioOwn.printIMC(int) void;
-import static ioPlus.printResult(int) void;
+import QuickSort;
+import QuickSort.quicksort(int[]) boolean;
+import static ioOwn.printQueueMenu() void;
+import static ioOwn.requestPersonAge() int;
+import static ioPlus.requestNumber() int;
+import static io.print(int) void;
+import static io.println() void;
 
-class IMC100 {
+class PriorityQueue {
+
+    int[] queue;
+    int maxQueueSize;
+    int currentSize;
+
+    int printOption;
+    int addOption;
+    int prioritizeOption;
+    int exitOption;
 
     public static void main(String[] args) {
-        new IMC100().start();
+        new PriorityQueue().start(20);
     }
 
-    public void start() {
-        int imc100;
-        imc100 = this.calcIMC100(ioOwn.requestHeight(), ioOwn.requestWeight());
-        ioPlus.printResult(imc100);
-        this.printLabel(imc100);
+    public void start(int size) {
+        int userOption;
+
+        this.initQueue(size);
+        this.initMacros();
+
+        userOption = this.getOption();
+
+        while(!this.equals(userOption, exitOption)) {
+            this.handleRequest(userOption);
+            userOption = this.getOption();
+        }
     }
 
-    public int calcIMC100(int height, int weight) {
-        return (10000 * weight / (height * height)) * 100;
+    public void handleRequest(int userOption) {
+        int age;
+        if(this.equals(userOption, printOption))
+            this.printQueue();
+        else if(this.equals(userOption, addOption)) {
+            age = ioOwn.requestPersonAge();
+            this.addPersonQueue(age);
+        }
+        else if (this.equals(userOption, prioritizeOption))
+            this.prioritize();
+        else {}
     }
 
-    public void printLabel(int imc100) {
-        int label;
-
-        if (imc100 < 1600)
-            label = 0;
-        else if (1599 < imc100 && imc100 < 1700)
-            label = 1;
-        else if (1699 < imc100 && imc100 < 1850)
-            label = 2;
-        else if (1849 < imc100 && imc100 < 2500)
-            label = 3;
-        else if (2499 < imc100 && imc100 < 3000)
-            label = 4;
-        else if (2999 < imc100 && imc100 < 3500)
-            label = 5;
-        else if (3499 < imc100 && imc100 < 4000)
-            label = 6;
-        else
-            label = 7;
-
-        ioOwn.printIMC(label);
+    public int getOption() {
+        ioOwn.printQueueMenu();
+        return ioPlus.requestNumber();
     }
+
+    public void initMacros() {
+        printOption = 1;
+        addOption = 2;
+        prioritizeOption = 3;
+        exitOption = 0;
+    }
+
+    public void initQueue(int size) {
+        maxQueueSize = size;
+        queue = new int[maxQueueSize];
+        currentSize = 0;
+    }
+
+    public int[] getQueue() {
+        return queue;
+    }
+
+    public void switchPlaces(int place1, int place2) {
+        int temp;
+        temp = this.getQueue()[place1];
+        this.getQueue()[place1] = this.getQueue()[place2];
+        this.getQueue()[place2] = temp;
+    }
+
+    public void prioritize() {
+        QuickSort sort;
+        sort = new QuickSort();
+        sort.quicksort(queue);
+    }
+
+    public void addPersonQueue(int age) {
+        this.getQueue()[currentSize] = age;
+        currentSize = currentSize + 1;
+    }
+
+    public boolean equals(int a, int b) {
+        return !(a < b) && !(b < a);
+    }
+
+    public void printQueue() {
+        int i;
+        i = 0;
+
+        while (i < this.getQueue().length) {
+            io.print(queue[i]);
+            io.println();
+            i = i + 1;
+        }
+    }
+
 }
