@@ -90,5 +90,5 @@ public class io {
 
 	final static void println(String a) {
 		System.out.println(a);
-	}	
+	}
 }

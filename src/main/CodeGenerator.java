@@ -186,6 +186,9 @@ public class CodeGenerator {
         counterStack = 0;
         stringBuilder.append(this.generateStatements(functionDescriptor, methodBody, assemblerLabels));
 
+        if (functionDescriptor.getReturnType().equals(VarTypes.VOID))
+            stringBuilder.append(INDENTATION).append("return\n");
+
         return stringBuilder.toString();
     }
 
@@ -216,7 +219,6 @@ public class CodeGenerator {
                     stringBuilder.append(this.generateReturn(functionDescriptor, child, assemblerLabels));
                     break;
                 default:
-
                     break;
             }
         }
@@ -271,10 +273,15 @@ public class CodeGenerator {
                     incCounterStack(-1);
                 }
             } else if (rightSide.getNodeName().equals(NodeName.LENGTH)){ // array.length
-                TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal());
-                stringBuilder.append(parseTypeDescriptorLoader(typeDescriptor)).append("\n");
+                if (leftSide.getNodeName().equals(NodeName.IDENTIFIER)) {
+                    TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal());
+                    stringBuilder.append(parseTypeDescriptorLoader(typeDescriptor)).append("\n");
+                } else if (leftSide.getNodeName().equals(NodeName.DOTMETHOD)) {
+                    stringBuilder.append(this.generateDotMethod(functionDescriptor, leftSide, assemblerLabels));
+                }
+
                 stringBuilder.append(INDENTATION).append("arraylength\n");
-                if(pop){
+                if (pop){
                     stringBuilder.append(INDENTATION).append("pop\n");
                     incCounterStack(-1);
                 }
@@ -550,10 +557,6 @@ public class CodeGenerator {
             case VarTypes.INTARRAY: {
                 stringBuilder.append(INDENTATION).append("areturn\n");
                 incCounterStack(-1);
-                break;
-            }
-            case VarTypes.VOID: {
-                stringBuilder.append(INDENTATION).append("return\n");
                 break;
             }
             default: {

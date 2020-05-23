@@ -184,4 +184,9 @@ public class ParserTest {
         test("fixtures/public/fail/syntactical/NestedLoop.jmm", true);
     }
 
+    @Test
+    public void testArrayStorage() {
+        test("fixtures/public/compilerTests/test1.jmm", false);
+    }
+
 }

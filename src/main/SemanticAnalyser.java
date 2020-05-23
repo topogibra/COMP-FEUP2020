@@ -239,12 +239,14 @@ public class SemanticAnalyser {
                 }
             }
         }
+
         if (methodBodyNode.getNodeName().equals(NodeName.METHODBODY)) {
             SimpleNode lastStatement = methodBodyNode.getChild(methodBodyNode.jjtGetNumChildren() - 1);
             if (!lastStatement.getNodeName().equals(NodeName.RETURN) && !functionDescriptor.getReturnType().equals(VarTypes.VOID)) {
                 addException(new MissingReturnStatement(lastStatement,functionDescriptor.getReturnType()));
             }
         }
+
         return result;
     }
 

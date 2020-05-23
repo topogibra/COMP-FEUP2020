@@ -12,9 +12,7 @@ class ArrayStorage {
     int[] array;
 
     public static void main(String[] args) {
-        ArrayStorage storage;
-        storage = new ArrayStorage();
-        storage.start();
+        new ArrayStorage().start();
     }
 
     public void start() {
@@ -52,11 +50,11 @@ class ArrayStorage {
             ioOwn.printExceededSize();
             result = false;
         }
-        else {}
-
-        if (this.equals(userNumber, 1))
-            result = true;
-        else {}
+        else {
+            if (this.equals(this.getArray()[userNumber], 1))
+                result = true;
+            else {}
+        }
 
          return result;
     }
