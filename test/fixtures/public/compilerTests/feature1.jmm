@@ -1,0 +1,92 @@
+import Quicksort.quicksort(int[]) boolean;
+import static ioOwn.printQueueMenu() void;
+import static ioOwn.requestPersonAge() int;
+import static ioPlus.requestNumber() int;
+
+Class PriorityQueue() {
+
+    int[] queue;
+    int maxQueueSize;
+    int currentSize;
+
+    int printOption;
+    int addOption;
+    int prioritizeOption;
+    int exitOption;
+
+    public static void main(String[] args) {
+        new Queue().start(20);
+    }
+
+    public void start(int size) {
+        int userOption;
+
+        this.initQueue(size);
+        this.initMacros();
+
+        userOption = getOption();
+
+        while(!this.equals(userOption, exitOption)) {
+            this.handleRequest(userOption);
+            userOption = getOption();
+        }
+    }
+
+    public boolean handleRequest(int userOption) {
+        if(equals(userOption, printOption))
+            this.printQueue();
+        else if(equals(userOption, addOption)) {
+            int age;
+            age = ioOwn.requestPersonAge();
+            this.addPersonQueue(age);
+        }
+        else if (equals(userOption, prioritizeOption))
+            this.prioritize();
+        else {}
+    }
+
+    public getOption() {
+        ioOwn.printQueueMenu();
+        return ioPlus.requestNumber();
+    }
+
+    public void initMacros() {
+        printOption = 1;
+        addOption = 2;
+        prioritizeOption = 3;
+        exitOption = 0;
+    }
+
+    public void initQueue(int size) {
+        maxQueueSize = size;
+        queue = new int[queueSize];
+        currentSize = 0;
+    }
+
+    public int[] getQueue() {
+        return queue;
+    }
+
+    public void switchPlaces(int place1, int place2) {
+        int temp;
+        temp = this.getQueue(place1);
+        this.getQueue()[place1] = this.getQueue()[place2];
+        this.getQueue()[place2] = temp;
+    }
+
+    public void prioritize() {
+        QuickSort sort;
+        sort = new QuickSort();
+        sort.quicksort(queue);
+    }
+
+    public void addPersonQueue(int age) {
+        this.getQueue()[currentSize] = age;
+        currentSize = currentSize + 1;
+    }
+
+    public boolean equals(int a, int b) {
+        return !(a < b) && !(b < a);
+    }
+
+}

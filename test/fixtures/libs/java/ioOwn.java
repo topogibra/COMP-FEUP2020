@@ -77,5 +77,17 @@ public class ioOwn {
         return null;
     }
 
+    public static void printQueueMenu() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("1 - Print Queue\n");
+        sb.append("2 - Add person to queue\n");
+        sb.append("3 - Prioritize\n");
+        sb.append("0 - Exit\n\n");
 
+        System.out.println(sb.toString());
+    }
+
+    public static int requestPersonAge() {
+        return requestNumber("Insert person's age: ");
+    }
 }
