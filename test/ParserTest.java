@@ -186,7 +186,12 @@ public class ParserTest {
 
     @Test
     public void testArrayStorage() {
-        test("fixtures/public/compilerTests/test1.jmm", false);
+        test("fixtures/public/compilerTests/arrayStorage.jmm", false);
+    }
+
+    @Test
+    public void testCalculator() {
+        test("fixtures/public/compilerTests/calculator.jmm", false);
     }
 
 }

@@ -23,6 +23,7 @@ class Calculator {
 
         while(!this.equals(userOption, exitOption)) {
             ioPlus.printResult(this.handleOption(userOption));
+            io.println();
             userOption = this.getOption();
         }
 
