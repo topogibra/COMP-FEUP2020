@@ -28,4 +28,7 @@ public class ioOwn {
         System.out.println("Array size exceeded");
     }
 
+    public static void reachedMaxTries(int maxTries) {
+        System.out.println("Reached max number of tries (max: " + maxTries + ")");
+    }
 }

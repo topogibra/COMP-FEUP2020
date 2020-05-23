@@ -4,35 +4,38 @@ import static ioOwn.requestArrayIndex() int;
 import static ioOwn.printExceededSize() void;
 import static ioOwn.printWinner() void;
 import static ioOwn.printLoser() void;
+import static ioOwn.reachedMaxTries(int) void;
 import static io.print(int) void;
 import static io.println() void;
 
 class ArrayStorage {
-
+    int maxTries;
     int[] array;
 
     public static void main(String[] args) {
-        ArrayStorage storage;
-        storage = new ArrayStorage();
-        storage.start();
+        new ArrayStorage().start();
     }
 
     public void start() {
         int tries;
         int storageSize;
 
-        tries = 5;
+        maxTries = 5;
+        tries = maxTries;
         storageSize = ioOwn.requestArraySize();
 
         this.init(storageSize);
-        this.getArray()[this.getRandom(storageSize - 1)] = 1;
+        array[this.getRandom(storageSize - 1)] = 1;
 
         while(!this.checkWinner() && 0 < tries) {
             ioOwn.printLoser();
             tries = tries - 1;
         }
 
-        ioOwn.printWinner();
+        if (!this.equals(tries, 0))
+            ioOwn.printWinner();
+        else
+            ioOwn.reachedMaxTries(maxTries);
 
         this.printArray();
     }
@@ -52,11 +55,11 @@ class ArrayStorage {
             ioOwn.printExceededSize();
             result = false;
         }
-        else {}
-
-        if (this.equals(userNumber, 1))
-            result = true;
-        else {}
+        else {
+            if (this.equals(this.getArray()[userNumber], 1))
+                result = true;
+            else {}
+        }
 
          return result;
     }
