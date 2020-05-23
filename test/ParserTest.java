@@ -194,4 +194,9 @@ public class ParserTest {
         test("fixtures/public/compilerTests/calculator.jmm", false);
     }
 
+    @Test
+    public void testIMC100() {
+        test("fixtures/public/compilerTests/imc100.jmm", false);
+    }
+
 }
