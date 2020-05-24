@@ -27,6 +27,7 @@ public class SemanticAnalyser {
         this.symbolTables = symbolTables;
         this.root = root;
         this.no_error = 0;
+        this.ignore_exceptions = ignore_exceptions;
     }
 
     public void addException(SemanticException exception) throws Exception {

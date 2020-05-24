@@ -64,7 +64,7 @@ public class TypeDescriptor {
                 return "Z";
             case VarTypes.INTARRAY: return "[I";
             case VarTypes.VOID: return "V";
-            default: return typeIdentifier;
+            default: return "\"L" + typeIdentifier + ";\"";
         }
     }
 

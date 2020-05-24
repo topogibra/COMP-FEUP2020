@@ -1,7 +1,6 @@
 package main;
 
 import Types.NodeName;
-import exceptions.ThisFromStaticContext;
 import parser.Node;
 import parser.ParserTreeConstants;
 import parser.SimpleNode;
@@ -75,10 +74,14 @@ public class Utils {
     }
 
     public static ImportDescriptor getImportedMethod(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor) throws Exception {
-        return getImportedMethod(symbolTables,simpleNode,functionDescriptor, new HashSet<>());
+        return getImportedMethod(symbolTables,simpleNode,functionDescriptor, new HashSet<>(), true);
     }
 
     public static ImportDescriptor getImportedMethod(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor, Set<String> varInitScope) throws Exception {
+        return getImportedMethod(symbolTables,simpleNode,functionDescriptor, varInitScope, false);
+    }
+
+    public static ImportDescriptor getImportedMethod(SymbolTables symbolTables, SimpleNode simpleNode, FunctionDescriptor functionDescriptor, Set<String> varInitScope, boolean ignore_init) throws Exception {
         SimpleNode firstChild = (SimpleNode) simpleNode.jjtGetChildren()[0];
         SimpleNode secondChild = (SimpleNode) simpleNode.jjtGetChildren()[1];
 
@@ -89,7 +92,7 @@ public class Utils {
 
         if (importDescriptor == null) {
             SemanticAnalyser semanticAnalyser = new SemanticAnalyser(symbolTables, null, true);
-            className = semanticAnalyser.analyseExpression(firstChild,functionDescriptor,false,varInitScope);
+            className = semanticAnalyser.analyseExpression(firstChild, functionDescriptor, ignore_init, varInitScope);
             importDescriptor = symbolTables.getImportDescriptor(className + "&" + methodIdentifier);
         }
 
@@ -106,37 +109,9 @@ public class Utils {
         return semanticAnalyser.parseMethodIdentifier(simpleNode, functionDescriptor,varInitScope);
     }
 
-
-    public static boolean isInsideIf(SimpleNode node){
-        SimpleNode parent = node.getParent();
-        while(parent != null){
-            if(parent.getNodeName().equals(NodeName.IFBLOCK) || parent.getNodeName().equals(NodeName.ELSE)){
-                return true;
-            }
-            parent = parent.getParent();
-        }
-        return false;
+    public static String getExpressionType(SymbolTables symbolTables, SimpleNode expressionNode, FunctionDescriptor functionDescriptor) throws Exception {
+        SemanticAnalyser semanticAnalyser = new SemanticAnalyser(symbolTables, null, true);
+        return semanticAnalyser.analyseExpression(expressionNode, functionDescriptor, true);
     }
-
-    public static boolean checkInitOnIf(TypeDescriptor typeDescriptor,SimpleNode ifNode){
-        if (typeDescriptor.isInit()){
-            return true;
-        }
-        boolean initIf = false;
-        boolean initElse = false;
-
-        SimpleNode ifblock;
-        for (int i = 0; i < ifNode.jjtGetNumChildren() ; i++) {
-            SimpleNode child = ifNode.getChild(i);
-
-            if(child.getNodeName().equals(NodeName.IFBLOCK)){
-                ifblock = child;
-                break;
-            }
-        }
-
-        return initIf && initElse;
-    }
-
 
 }

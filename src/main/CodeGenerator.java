@@ -527,8 +527,24 @@ public class CodeGenerator {
 
         for (Node arg : argsNode.jjtGetChildren())
             stringBuilder.append(this.generateExpression(functionDescriptor, (SimpleNode) arg, assemblerLabels));
+
         incCounterStack(-argsNode.jjtGetNumChildren());
 
+        return stringBuilder.toString();
+    }
+
+    public String generateConstructorArguments(FunctionDescriptor functionDescriptor, SimpleNode argsNode, AssemblerLabels assemblerLabels) throws Exception {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for (Node arg : argsNode.jjtGetChildren()) {
+            SimpleNode node = (SimpleNode) arg;
+            if (node.getNodeName().equals(NodeName.IDENTIFIER))
+                stringBuilder.append(functionDescriptor.getTypeDescriptor(node.jjtGetVal()).toJVM());
+            else
+                stringBuilder.append(TypeDescriptor.toJVM(Utils.getExpressionType(symbolTables, node, functionDescriptor)));
+        }
+
+        incCounterStack(-argsNode.jjtGetNumChildren());
 
         return stringBuilder.toString();
     }
@@ -573,6 +589,7 @@ public class CodeGenerator {
 
     private String parseTypeDescriptorLoader(TypeDescriptor typeDescriptor) {
         StringBuilder stringBuilder = new StringBuilder();
+
         if (typeDescriptor.isClassField()) {
             stringBuilder.append(INDENTATION).append("aload_0\n");
             incCounterStack(1);
@@ -633,7 +650,7 @@ public class CodeGenerator {
                     break;
                 }
 
-                stringBuilder.append(INDENTATION).append("new ").append("'" + identifierChild.jjtGetVal() + "'").append("\n");
+                stringBuilder.append(INDENTATION).append("new ").append("'").append(identifierChild.jjtGetVal()).append("'").append("\n");
                 incCounterStack(1);
                 stringBuilder.append(INDENTATION).append("dup\n");
                 incCounterStack(1);
@@ -641,7 +658,12 @@ public class CodeGenerator {
                 if (expressionNode.jjtGetNumChildren() > 1) //Arguments were passed
                     stringBuilder.append(this.generateArgumentsLoading(functionDescriptor, expressionNode.getChild(1), assemblerLabels));
 
-                stringBuilder.append(INDENTATION).append("invokespecial ").append(identifierChild.jjtGetVal()).append("/<init>()V\n");
+                stringBuilder.append(INDENTATION).append("invokespecial ").append(identifierChild.jjtGetVal()).append("/<init>(");
+
+                if (expressionNode.jjtGetNumChildren() > 1) //Arguments were passed
+                    stringBuilder.append(this.generateConstructorArguments(functionDescriptor, expressionNode.getChild(1), assemblerLabels));
+
+                stringBuilder.append(")V\n");
                 break;
             }
             case NodeName.THIS: {

@@ -204,4 +204,9 @@ public class ParserTest {
         test("fixtures/public/compilerTests/priorityqueue.jmm", false);
     }
 
+    @Test
+    public void testCity() {
+        test("fixtures/public/compilerTests/city.jmm", false);
+    }
+
 }

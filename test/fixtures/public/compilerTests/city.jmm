@@ -41,6 +41,7 @@ class City {
         i = 0;
         while(i < shopGroup.length) {
             shopGroup[i] = MathUtils.random(0, shopGroup.length);
+            i = i + 1;
         }
     }
 }

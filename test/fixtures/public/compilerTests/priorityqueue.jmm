@@ -1,5 +1,5 @@
-import QuickSort;
-import QuickSort.quicksort(int[]) boolean;
+import Quicksort;
+import Quicksort.quicksort(int[]) boolean;
 import static ioOwn.printQueueMenu() void;
 import static ioOwn.requestPersonAge() int;
 import static ioPlus.requestNumber() int;
@@ -78,8 +78,8 @@ class PriorityQueue {
     }
 
     public void prioritize() {
-        QuickSort sort;
-        sort = new QuickSort();
+        Quicksort sort;
+        sort = new Quicksort();
         sort.quicksort(queue);
     }
 
