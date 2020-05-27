@@ -13,24 +13,37 @@ public class jmm {
 
     public static Path filepath;
 
-    private boolean ignoreExceptions = false;
+    private boolean debugMode = true;
+    private boolean optimizationMode = false;
+    private int maxNumRegisters = 0;
 
-    Parser parser;
-    SymbolTables symbolTables;
-    SymbolTablesGenerator symbolTablesGenerator;
-    SemanticAnalyser semanticAnalyser;
-    CodeGenerator codeGenerator;
+    private Parser parser;
+    private SymbolTables symbolTables;
+    private SymbolTablesGenerator symbolTablesGenerator;
+    private SemanticAnalyser semanticAnalyser;
+    private CodeGenerator codeGenerator;
+
+    public static final String DEBUG_FLAG = "-d";
+    public static final String REGISTERS_FLAG = "-r";
+    public static final String OPTIMIZATION_FLAG = "-o";
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 1 || args.length > 2) {
-            System.err.println("Usage: java main.jmm <file_name> <ignore_exceptions>");
+        if (args.length < 1 || args.length > 4) {
+            System.err.println("Usage: java main.jmm [-d] [-r=<num>] [-o] <input_file.jmm>");
             return;
         }
 
         jmm compiler = new jmm(args[0]);
 
-        if (args.length == 2)
-            compiler.setIgnoreExceptions(true);
+        for (int i = 0; i < args.length - 1; i++) {
+            String s = args[i];
+            if (s.equals(jmm.DEBUG_FLAG))
+                compiler.setDebugMode(false);
+            else if (s.equals(jmm.OPTIMIZATION_FLAG))
+                compiler.setOptimizationMode(true);
+            else if (s.matches(jmm.REGISTERS_FLAG + "=\\d+"))
+                compiler.setMaxNumRegisters(Integer.parseInt(s.substring(2)));
+        }
 
         compiler.compileFile();
     }
@@ -51,15 +64,14 @@ public class jmm {
             throw new Exception();
         }
 
-        if (!ignoreExceptions)
+        if (debugMode)
             root.dump("");
 
         symbolTablesGenerator = new SymbolTablesGenerator(root);
         symbolTables = symbolTablesGenerator.generate();
 
-
         // Semantic analysis
-        semanticAnalyser = new SemanticAnalyser(symbolTables, root, ignoreExceptions);
+        semanticAnalyser = new SemanticAnalyser(symbolTables, root, !debugMode);
         try {
             semanticAnalyser.startAnalyse();
         } catch (Exception e) {
@@ -68,7 +80,7 @@ public class jmm {
             throw new Exception();
         }
 
-        codeGenerator = new CodeGenerator(symbolTables);
+        codeGenerator = new CodeGenerator(symbolTables, optimizationMode, maxNumRegisters);
         codeGenerator.generate();
     }
 
@@ -85,8 +97,15 @@ public class jmm {
         return input;
     }
 
-    public void setIgnoreExceptions(boolean ignoreExceptions) {
-        this.ignoreExceptions = ignoreExceptions;
+    public void setDebugMode(boolean debugMode) {
+        this.debugMode = debugMode;
     }
 
+    public void setOptimizationMode(boolean optimizationMode) {
+        this.optimizationMode = optimizationMode;
+    }
+
+    public void setMaxNumRegisters(int maxNumRegisters) {
+        this.maxNumRegisters = maxNumRegisters;
+    }
 }

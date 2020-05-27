@@ -6,7 +6,6 @@ import parser.Node;
 import parser.SimpleNode;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,20 +13,27 @@ import java.nio.file.StandardOpenOption;
 import java.util.Map;
 
 public class CodeGenerator {
+
     private final String DEST_DIRECTORY = "jasminCode/";
     private final String FILE_EXTENSION = ".j";
     private final String INDENTATION = "\t";
-    private final SymbolTables symbolTables;
+
     private Path filePath;
+    private final SymbolTables symbolTables;
+    private final boolean optimizationMode;
+    private final int maxNumRegisters;
 
     private final static int BYTE_SIZE = 127;
     public final static int SHORT_SIZE = 32767;
     private final static int LONG_SIZE = 2147483647;
+
     private int limitStack;
     private int counterStack;
 
-    public CodeGenerator(SymbolTables symbolTables) {
+    public CodeGenerator(SymbolTables symbolTables, boolean optimizationMode, int maxNumRegisters) {
         this.symbolTables = symbolTables;
+        this.optimizationMode = optimizationMode;
+        this.maxNumRegisters = maxNumRegisters;
     }
 
     public void generate() throws Exception {
@@ -44,7 +50,6 @@ public class CodeGenerator {
     }
 
     private void createFile(String className) {
-
         Path directory = Paths.get(DEST_DIRECTORY);
         if (!Files.exists(directory)) {
             try {
@@ -159,14 +164,12 @@ public class CodeGenerator {
 
         stringBuilder.append(".end method\n");
 
-
         this.write(stringBuilder.toString());
     }
 
     private String generateMethodBody(FunctionDescriptor functionDescriptor, AssemblerLabels assemblerLabels) throws Exception {
         StringBuilder stringBuilder = new StringBuilder();
         SimpleNode methodBody = null;
-
 
         // Look for method body node
         for (Node node : functionDescriptor.getMethodNode().jjtGetChildren()) {
@@ -250,7 +253,7 @@ public class CodeGenerator {
             stringBuilder.append((descriptor.isFromSuper()) ? "invokespecial " : "invokevirtual ");
             stringBuilder.append((descriptor.isFromSuper()) ? symbolTables.getExtendedClassName() : symbolTables.getClassName());
             stringBuilder.append("/").append(this.generateMethodHeader(descriptor)).append("\n");
-            if(pop && !descriptor.getReturnType().equals(VarTypes.VOID)){
+            if (pop && !descriptor.getReturnType().equals(VarTypes.VOID)){
                 stringBuilder.append(INDENTATION).append("pop\n");
                 incCounterStack(-1);
             }
@@ -272,7 +275,7 @@ public class CodeGenerator {
                     stringBuilder.append(INDENTATION).append("pop\n");
                     incCounterStack(-1);
                 }
-            } else if (rightSide.getNodeName().equals(NodeName.LENGTH)){ // array.length
+            } else if (rightSide.getNodeName().equals(NodeName.LENGTH)) { // array.length
                 if (leftSide.getNodeName().equals(NodeName.IDENTIFIER)) {
                     TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal());
                     stringBuilder.append(parseTypeDescriptorLoader(typeDescriptor)).append("\n");
@@ -281,7 +284,7 @@ public class CodeGenerator {
                 }
 
                 stringBuilder.append(INDENTATION).append("arraylength\n");
-                if (pop){
+                if (pop) {
                     stringBuilder.append(INDENTATION).append("pop\n");
                     incCounterStack(-1);
                 }
@@ -303,10 +306,16 @@ public class CodeGenerator {
         SimpleNode rightSide = (SimpleNode) simpleNode.jjtGetChild(1);
 
         if (leftSide.getNodeName().equals(NodeName.IDENTIFIER)) {
-
-
             TypeDescriptor typeDescriptor = functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal());
             String typeIdentifier = typeDescriptor.getTypeIdentifier();
+
+            int increment = this.getExpressionIncrement(rightSide, leftSide.jjtGetVal());
+            if (!typeDescriptor.isClassField() && increment != -1) { //Increment on local variable
+                stringBuilder.append(INDENTATION).append("iinc ");
+                stringBuilder.append(typeDescriptor.getIndex()).append(" ");
+                stringBuilder.append(increment).append("\n");
+                return stringBuilder.toString();
+            }
 
             if (typeDescriptor.isClassField()) {
                 stringBuilder.append(INDENTATION).append("aload_0\n");
@@ -346,9 +355,27 @@ public class CodeGenerator {
             incCounterStack(-3);
         }
 
-
         stringBuilder.append("\n");
         return stringBuilder.toString();
+    }
+
+    private int getExpressionIncrement(SimpleNode expressionNode, String identifier) {
+        if (expressionNode.getNodeName().equals(NodeName.ADD)) {
+
+            SimpleNode firstOperand = (SimpleNode) expressionNode.jjtGetChild(0);
+            SimpleNode secondOperand = (SimpleNode) expressionNode.jjtGetChild(1);
+
+            if (firstOperand.getNodeName().equals(NodeName.IDENTIFIER) && firstOperand.jjtGetVal().equals(identifier) &&
+                    secondOperand.getNodeName().equals(NodeName.INT) && Integer.parseInt(secondOperand.jjtGetVal()) <= BYTE_SIZE ) {
+                return Integer.parseInt(secondOperand.jjtGetVal());
+            }
+            else if ( secondOperand.getNodeName().equals(NodeName.IDENTIFIER) && secondOperand.jjtGetVal().equals(identifier) &&
+                    firstOperand.getNodeName().equals(NodeName.INT) && Integer.parseInt(firstOperand.jjtGetVal()) <= BYTE_SIZE ) {
+                return Integer.parseInt(firstOperand.jjtGetVal());
+            }
+        }
+
+        return -1;
     }
 
     private String generateIf(SimpleNode ifNode, FunctionDescriptor functionDescriptor, AssemblerLabels assemblerLabels) throws Exception {
@@ -450,6 +477,31 @@ public class CodeGenerator {
         String nodeName = simpleNode.getNodeName();
         Node[] children = simpleNode.jjtGetChildren();
 
+        // Specific case: expression < 0;
+        if (nodeName.equals(NodeName.LESS)) {
+            SimpleNode leftOperand = simpleNode.getChild(0);
+            SimpleNode rightOperand = simpleNode.getChild(1);
+
+            if (rightOperand.getNodeName().equals(NodeName.INT) && rightOperand.jjtGetVal().equals("0")) {
+                stringBuilder.append(this.generateExpression(functionDescriptor, leftOperand, assemblerLabels));
+
+                String lessTrue = assemblerLabels.getLabel("less_false");
+                String lessFinal = assemblerLabels.getLabel("less_final");
+
+                stringBuilder.append(INDENTATION).append("iflt ").append(lessTrue).append("\n");
+                incCounterStack(-1);
+                stringBuilder.append(INDENTATION).append("iconst_0\n");
+                incCounterStack(1);
+                stringBuilder.append(INDENTATION).append("goto ").append(lessFinal).append("\n");
+                stringBuilder.append(lessTrue).append(":\n");
+                stringBuilder.append(INDENTATION).append("iconst_1\n");
+                incCounterStack(1);
+                stringBuilder.append(lessFinal).append(":\n");
+
+                return stringBuilder.toString();
+            }
+        }
+
         for (Node nodeChild : children) {
             SimpleNode child = (SimpleNode) nodeChild;
 
@@ -470,6 +522,7 @@ public class CodeGenerator {
             case NodeName.NOT: {
                 final String label = assemblerLabels.getLabel("put_true");
                 final String endLabel = assemblerLabels.getLabel("not_end");
+
                 stringBuilder.append(INDENTATION).append("ifeq ").append(label).append("\n"); // Compare previous top value with 0: if previous_value == false,  If yes, goto put_true, to put 1 in top of stack
                 incCounterStack(-1);
                 stringBuilder.append(INDENTATION).append("iconst_0\n");
@@ -505,6 +558,7 @@ public class CodeGenerator {
             case NodeName.LESS: {
                 String lessTrue = assemblerLabels.getLabel("less_false");
                 String lessFinal = assemblerLabels.getLabel("less_final");
+
                 stringBuilder.append(INDENTATION).append("if_icmplt ").append(lessTrue).append("\n");
                 incCounterStack(-2);
                 stringBuilder.append(INDENTATION).append("iconst_0\n");

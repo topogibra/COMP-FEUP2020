@@ -7,6 +7,8 @@ plugins {
 // Java project
 apply plugin: 'java'
 
+archivesBaseName = 'jmm'
+
 
 // Repositories providers
 repositories {
