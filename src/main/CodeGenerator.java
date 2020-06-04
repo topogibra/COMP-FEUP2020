@@ -20,8 +20,6 @@ public class CodeGenerator {
 
     private Path filePath;
     private final SymbolTables symbolTables;
-    private final boolean optimizationMode;
-    private final int maxNumRegisters;
 
     private final static int BYTE_SIZE = 127;
     public final static int SHORT_SIZE = 32767;
@@ -30,10 +28,8 @@ public class CodeGenerator {
     private int limitStack;
     private int counterStack;
 
-    public CodeGenerator(SymbolTables symbolTables, boolean optimizationMode, int maxNumRegisters) {
+    public CodeGenerator(SymbolTables symbolTables) {
         this.symbolTables = symbolTables;
-        this.optimizationMode = optimizationMode;
-        this.maxNumRegisters = maxNumRegisters;
     }
 
     public void generate() throws Exception {

@@ -15,7 +15,8 @@ public class jmm {
 
     private boolean debugMode = true;
     private boolean optimizationMode = false;
-    private int maxNumRegisters = 0;
+    private static final int MAX_NUM_REGISTERS = 9999;
+    private int maxNumRegisters = MAX_NUM_REGISTERS;
 
     private Parser parser;
     private SymbolTables symbolTables;
@@ -80,7 +81,9 @@ public class jmm {
             throw new Exception();
         }
 
-        codeGenerator = new CodeGenerator(symbolTables, optimizationMode, maxNumRegisters);
+        codeGenerator = new CodeGenerator(symbolTables);
+
+
         codeGenerator.generate();
     }
 
