@@ -32,7 +32,7 @@ public class CFG {
 
     private SimpleNode getMethodBodyNode(SimpleNode methodNode) {
         for (Node child : methodNode.jjtGetChildren()) {
-            if ( ((SimpleNode) child).getNodeName().equals(NodeName.METHODBODY) ) {
+            if (((SimpleNode) child).getNodeName().equals(NodeName.METHODBODY)) {
                 return ((SimpleNode) child);
             }
         }
@@ -59,32 +59,36 @@ public class CFG {
 
             this.initializeSet(index);
 
-            if (index > 0) //Not first statement
-                this.pred.get(index).add(index - 1);
 
-            if (i != (methodBodyNode.jjtGetNumChildren() - 1)) //Not last statement
-                this.succ.get(index).add(index + 1);
+            index = this.buildUseAndDef(index, statement,i);
 
-            this.buildUseAndDef(index, statement);
 
-            this.buildIn(index, statement);
-
-            index++;
+//            this.buildIn(index, statement);
         }
     }
 
     private void initializeSet(int index) {
-        this.succ.set(index, new HashSet<>());
-        this.pred.set(index, new HashSet<>());
-
-        this.use.set(index, new HashSet<>());
-        this.def.set(index, new HashSet<>());
-
-        this.in.set(index, new HashSet<>());
-        this.out.set(index, new HashSet<>());
+        if (this.succ.size() == index) {
+            this.succ.add(index, new HashSet<>());
+        }
+        if (this.pred.size() == index) {
+            this.pred.add(index, new HashSet<>());
+        }
+        if (this.use.size() == index) {
+            this.use.add(index, new HashSet<>());
+        }
+        if (this.def.size() == index) {
+            this.def.add(index, new HashSet<>());
+        }
+        if (this.in.size() == index) {
+            this.in.add(index, new HashSet<>());
+        }
+        if (this.out.size() == index) {
+            this.out.add(index, new HashSet<>());
+        }
     }
 
-    private void buildUseAndDef(int index, SimpleNode statement) {
+    private int buildUseAndDef(int index, SimpleNode statement, int nodeNumber) {
         switch (statement.getNodeName()) {
             case NodeName.ASSIGNMENT: {
                 SimpleNode leftSide = statement.getChild(0);
@@ -97,26 +101,109 @@ public class CFG {
 
                 this.buildUse(index, rightSide);
 
+                this.setNormalPred(index);
+                this.setNormalSuc(index, statement);
+
                 break;
             }
             case NodeName.IF: {
-                this.buildIf(index, statement);
-                break;
+                return this.buildIf(index, statement, (nodeNumber == statement.getParent().jjtGetNumChildren() - 1));
             }
             case NodeName.WHILE: {
                 break;
             }
             default: {
                 this.buildUse(index, statement);
+                this.setNormalPred(index);
+                this.setNormalSuc(index, statement);
             }
 
 
         }
+        return index;
     }
 
-    private void buildIf(int index, SimpleNode statement) {
+    private int buildIf(int index, SimpleNode statement, boolean lastStatement) { // TODO: Else if, else if
+        int lastindex = index;
+        boolean hasElse = statement.getChild(2).jjtGetNumChildren() > 0;
+        int lastIfBlockStatement = -1;
 
+        // Condition
+        SimpleNode cond = statement.getChild(0);
 
+        this.setNormalPred(lastindex);
+        this.setNormalSuc(lastindex, cond);
+        this.buildUse(lastindex, cond);
+
+        lastindex++;
+        this.initializeSet(lastindex);
+
+        int childno = 0;
+        //If Block
+        for (Node n : statement.getChild(1).jjtGetChildren()) {
+            SimpleNode node = (SimpleNode) n;
+            this.initializeSet(lastindex);
+
+            this.setNormalPred(lastindex);
+            if (childno == (node.getParent().jjtGetNumChildren() - 1)) {
+                lastIfBlockStatement = lastindex;
+                this.setNormalSuc(lastindex, node);
+            } else {
+                this.setNormalSuc(lastindex, node);
+            }
+
+            this.buildUse(lastindex, node);
+            lastindex++;
+            childno++;
+        }
+
+        childno = 0;
+        //Else block
+        if (hasElse) {
+            for (Node n : statement.getChild(2).jjtGetChildren()) {
+                SimpleNode node = (SimpleNode) n;
+                this.initializeSet(lastindex);
+
+                if (childno == 0) {
+                    this.pred.get(lastindex).add(index);
+                } else {
+                    this.setNormalPred(lastindex);
+                }
+                if(childno == (node.getParent().jjtGetNumChildren() - 1) && !lastStatement){
+                    this.setNormalSuc(lastindex, node);
+                }
+
+                this.buildUse(lastindex, node);
+                lastindex++;
+                childno++;
+            }
+        }
+
+        // Fix sucessor of last if block statement
+        if (hasElse && !lastStatement) {
+            assert (lastIfBlockStatement != -1);
+            this.succ.get(lastIfBlockStatement).add(lastindex);
+        }
+
+        // Fix statement predecessors after if
+        if (!lastStatement) {
+            this.initializeSet(lastindex);
+            if (hasElse) {
+                this.pred.get(lastindex).add(lastIfBlockStatement);
+            }
+            this.pred.get(lastindex).add(lastindex - 1);
+        }
+        return lastindex;
+    }
+
+    private void setNormalPred(int index) {
+        if (index > 0) //Not first statement
+            this.pred.get(index).add(index - 1);
+    }
+
+    private void setNormalSuc(int index, SimpleNode statement) {
+        if (index != (statement.jjtGetParent().jjtGetNumChildren() - 1)) //Not last statement
+            this.succ.get(index).add(index + 1);
     }
 
     private void buildUse(int index, SimpleNode statement) {

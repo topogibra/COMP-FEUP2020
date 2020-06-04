@@ -1,5 +1,6 @@
 package main;
 
+import DataFlow.DataFlowAnalyser;
 import parser.Parser;
 import parser.SimpleNode;
 
@@ -12,10 +13,13 @@ import java.nio.file.Paths;
 public class jmm {
 
     public static Path filepath;
+    public static final String DEBUG_FLAG = "-d";
+    public static final String REGISTERS_FLAG = "-r";
+    public static final String OPTIMIZATION_FLAG = "-o";
+    private static final int MAX_NUM_REGISTERS = -1;
 
     private boolean debugMode = true;
     private boolean optimizationMode = false;
-    private static final int MAX_NUM_REGISTERS = 9999;
     private int maxNumRegisters = MAX_NUM_REGISTERS;
 
     private Parser parser;
@@ -23,10 +27,7 @@ public class jmm {
     private SymbolTablesGenerator symbolTablesGenerator;
     private SemanticAnalyser semanticAnalyser;
     private CodeGenerator codeGenerator;
-
-    public static final String DEBUG_FLAG = "-d";
-    public static final String REGISTERS_FLAG = "-r";
-    public static final String OPTIMIZATION_FLAG = "-o";
+    private DataFlowAnalyser dataFlowAnalyser;
 
     public static void main(String[] args) throws Exception {
         if (args.length < 1 || args.length > 4) {
@@ -34,16 +35,15 @@ public class jmm {
             return;
         }
 
-        jmm compiler = new jmm(args[0]);
+        jmm compiler = new jmm(args[args.length - 1]);
 
-        for (int i = 0; i < args.length - 1; i++) {
-            String s = args[i];
+        for (String s : args) {
             if (s.equals(jmm.DEBUG_FLAG))
                 compiler.setDebugMode(false);
             else if (s.equals(jmm.OPTIMIZATION_FLAG))
                 compiler.setOptimizationMode(true);
             else if (s.matches(jmm.REGISTERS_FLAG + "=\\d+"))
-                compiler.setMaxNumRegisters(Integer.parseInt(s.substring(2)));
+                compiler.setMaxNumRegisters(Integer.parseInt(s.substring(3)));
         }
 
         compiler.compileFile();
@@ -71,6 +71,7 @@ public class jmm {
         symbolTablesGenerator = new SymbolTablesGenerator(root);
         symbolTables = symbolTablesGenerator.generate();
 
+
         // Semantic analysis
         semanticAnalyser = new SemanticAnalyser(symbolTables, root, !debugMode);
         try {
@@ -79,6 +80,11 @@ public class jmm {
             System.err.println(e.getMessage());
             e.printStackTrace();
             throw new Exception();
+        }
+
+        if(this.maxNumRegisters != MAX_NUM_REGISTERS || this.optimizationMode){
+            this.dataFlowAnalyser = new DataFlowAnalyser(symbolTables);
+            this.dataFlowAnalyser.analyse();
         }
 
         codeGenerator = new CodeGenerator(symbolTables);
