@@ -11,7 +11,8 @@ import java.util.HashSet;
 
 public class CFG {
 
-    private FunctionDescriptor functionDescriptor;
+    private final FunctionDescriptor functionDescriptor;
+    private SimpleNode methodBodyNode;
 
     //Sets
     private ArrayList<HashSet<Integer>> succ;
@@ -26,21 +27,17 @@ public class CFG {
     public CFG(FunctionDescriptor functionDescriptor) {
         this.functionDescriptor = functionDescriptor;
 
-        SimpleNode methodBodyNode = this.getMethodBodyNode(functionDescriptor.getMethodNode());
-        this.build(methodBodyNode);
-    }
-
-    private SimpleNode getMethodBodyNode(SimpleNode methodNode) {
-        for (Node child : methodNode.jjtGetChildren()) {
-            if (((SimpleNode) child).getNodeName().equals(NodeName.METHODBODY)) {
-                return ((SimpleNode) child);
-            }
+        try {
+            this.methodBodyNode = this.getMethodBodyNode(functionDescriptor.getMethodNode());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
         }
 
-        return null;
+        this.build();
     }
 
-    public void build(SimpleNode methodBodyNode) {
+    public void build() {
         this.succ = new ArrayList<>();
         this.pred = new ArrayList<>();
 
@@ -51,60 +48,23 @@ public class CFG {
         this.out = new ArrayList<>();
 
         int index = 0;
-        for (int i = 0; i < methodBodyNode.jjtGetNumChildren(); i++) {
+        for (int i = 0; i < this.methodBodyNode.jjtGetNumChildren(); i++) {
 
-            SimpleNode statement = methodBodyNode.getChild(i);
-            if (statement.getNodeName().equals(NodeName.VARDECLARATION))
+            SimpleNode statement = this.methodBodyNode.getChild(i);
+            if (statement.getNodeName().equals(NodeName.VARDECLARATION)) //Ignoring Var declarations
                 continue;
 
-            this.initializeSet(index);
-
-
-            index = this.buildUseAndDef(index, statement,i);
-
-
-//            this.buildIn(index, statement);
+            index = this.buildStatement(index, statement, i);
         }
     }
 
-    private void initializeSet(int index) {
-        if (this.succ.size() == index) {
-            this.succ.add(index, new HashSet<>());
-        }
-        if (this.pred.size() == index) {
-            this.pred.add(index, new HashSet<>());
-        }
-        if (this.use.size() == index) {
-            this.use.add(index, new HashSet<>());
-        }
-        if (this.def.size() == index) {
-            this.def.add(index, new HashSet<>());
-        }
-        if (this.in.size() == index) {
-            this.in.add(index, new HashSet<>());
-        }
-        if (this.out.size() == index) {
-            this.out.add(index, new HashSet<>());
-        }
-    }
 
-    private int buildUseAndDef(int index, SimpleNode statement, int nodeNumber) {
+    private int buildStatement(int index, SimpleNode statement, int nodeNumber) {
+        this.initializeSet(index);
+
         switch (statement.getNodeName()) {
             case NodeName.ASSIGNMENT: {
-                SimpleNode leftSide = statement.getChild(0);
-                SimpleNode rightSide = statement.getChild(1);
-
-                if (leftSide.getNodeName().equals(NodeName.IDENTIFIER)) {
-                    TypeDescriptor typeDescriptor = this.functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal());
-                    this.def.get(index).add(typeDescriptor);
-                }
-
-                this.buildUse(index, rightSide);
-
-                this.setNormalPred(index);
-                this.setNormalSuc(index, statement);
-
-                break;
+                return this.buildAssignment(index, statement);
             }
             case NodeName.IF: {
                 return this.buildIf(index, statement, (nodeNumber == statement.getParent().jjtGetNumChildren() - 1));
@@ -123,12 +83,29 @@ public class CFG {
         return index;
     }
 
+    private int buildAssignment(int index, SimpleNode assignmentNode) {
+        SimpleNode leftSide = assignmentNode.getChild(0);
+        SimpleNode rightSide = assignmentNode.getChild(1);
+
+        if (leftSide.getNodeName().equals(NodeName.IDENTIFIER)) {
+            TypeDescriptor typeDescriptor = this.functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal());
+            this.def.get(index).add(typeDescriptor);
+        }
+
+        this.buildUse(index, rightSide);
+
+        this.setNormalPred(index);
+        this.setNormalSuc(index, assignmentNode);
+
+        return index;
+    }
+
     private int buildIf(int index, SimpleNode statement, boolean lastStatement) { // TODO: Else if, else if
         int lastindex = index;
         boolean hasElse = statement.getChild(2).jjtGetNumChildren() > 0;
         int lastIfBlockStatement = -1;
 
-        // Condition
+        // Condition Statement
         SimpleNode cond = statement.getChild(0);
 
         this.setNormalPred(lastindex);
@@ -212,7 +189,6 @@ public class CFG {
                 TypeDescriptor typeDescriptor = this.functionDescriptor.getTypeDescriptor(statement.jjtGetVal());
                 this.use.get(index).add(typeDescriptor);
             }
-
             return;
         }
 
@@ -223,12 +199,34 @@ public class CFG {
         }
     }
 
-    private void buildIn(int index, SimpleNode statement) {
-
-
+    private void initializeSet(int index) {
+        if (this.succ.size() == index) {
+            this.succ.add(index, new HashSet<>());
+        }
+        if (this.pred.size() == index) {
+            this.pred.add(index, new HashSet<>());
+        }
+        if (this.use.size() == index) {
+            this.use.add(index, new HashSet<>());
+        }
+        if (this.def.size() == index) {
+            this.def.add(index, new HashSet<>());
+        }
+        if (this.in.size() == index) {
+            this.in.add(index, new HashSet<>());
+        }
+        if (this.out.size() == index) {
+            this.out.add(index, new HashSet<>());
+        }
     }
 
-    private void buildOut(int index, SimpleNode statement) {
+    private SimpleNode getMethodBodyNode(SimpleNode methodNode) throws Exception {
+        for (Node child : methodNode.jjtGetChildren()) {
+            if (((SimpleNode) child).getNodeName().equals(NodeName.METHODBODY)) {
+                return ((SimpleNode) child);
+            }
+        }
 
+        throw new Exception("No method body node found");
     }
 }

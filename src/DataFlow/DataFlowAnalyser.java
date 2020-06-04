@@ -8,9 +8,13 @@ import java.util.Map;
 public class DataFlowAnalyser {
 
     private SymbolTables symbolTables;
+    private final int maxNumRegisters;
+    private final boolean optimizationMode;
 
-    public DataFlowAnalyser(SymbolTables symbolTables) {
+    public DataFlowAnalyser(SymbolTables symbolTables, int maxNumRegisters, boolean optimizationMode) {
         this.symbolTables = symbolTables;
+        this.maxNumRegisters = maxNumRegisters;
+        this.optimizationMode = optimizationMode;
     }
 
     public void analyse() {

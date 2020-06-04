@@ -57,39 +57,37 @@ public class jmm {
         SimpleNode root;
 
         // Parsing
-        parser = new Parser(this.createInputStream());
+        this.parser = new Parser(this.createInputStream());
         try {
-            root = parser.parseProgram(filepath.toString());
+            root = this.parser.parseProgram(this.filepath.toString());
         } catch (Exception e) {
             System.err.println(e.getMessage());
             throw new Exception();
         }
 
-        if (debugMode)
+        if (this.debugMode)
             root.dump("");
 
-        symbolTablesGenerator = new SymbolTablesGenerator(root);
-        symbolTables = symbolTablesGenerator.generate();
-
+        this.symbolTablesGenerator = new SymbolTablesGenerator(root);
+        this.symbolTables = this.symbolTablesGenerator.generate();
 
         // Semantic analysis
-        semanticAnalyser = new SemanticAnalyser(symbolTables, root, !debugMode);
+        this.semanticAnalyser = new SemanticAnalyser(this.symbolTables, root, !this.debugMode);
         try {
-            semanticAnalyser.startAnalyse();
+            this.semanticAnalyser.startAnalyse();
         } catch (Exception e) {
             System.err.println(e.getMessage());
             e.printStackTrace();
             throw new Exception();
         }
 
-        if(this.maxNumRegisters != MAX_NUM_REGISTERS || this.optimizationMode){
-            this.dataFlowAnalyser = new DataFlowAnalyser(symbolTables);
+        //R-Option and Optimization
+        if (this.maxNumRegisters != MAX_NUM_REGISTERS || this.optimizationMode){
+            this.dataFlowAnalyser = new DataFlowAnalyser(this.symbolTables, this.maxNumRegisters, this.optimizationMode);
             this.dataFlowAnalyser.analyse();
         }
 
         codeGenerator = new CodeGenerator(symbolTables);
-
-
         codeGenerator.generate();
     }
 
