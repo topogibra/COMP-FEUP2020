@@ -2,11 +2,19 @@ import static ioPlus.printHelloWorld() void;
 class HelloWorld {
 	public static void main(String[] args) {
 	    int a;
-		ioPlus.printHelloWorld();
-		if(true){
+
+		if (true) {
 		   a=1+1;
-		} else{
+
+		   if (false) {
+		        a = a + 5;
+		   } else {
+		        a = a - 5;
+		   }
+
+		} else {
            a=1+1;
 		}
+
 	}
 }
