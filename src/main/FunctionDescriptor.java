@@ -97,7 +97,7 @@ public class FunctionDescriptor {
         return methodNode;
     }
 
-    public int getLimitLocal(){
+    public int getNumLocals() {
         return this.params.size() + this.scope.getMaxLocalVars() + 1; // +1, if main because of String[] args else because of 'this'
     }
 }

@@ -21,8 +21,8 @@ public class DataFlowAnalyser {
         for (Map.Entry<String, FunctionDescriptor> entry : symbolTables.getMethods().entrySet()) {
             CFG cfg = new CFG(entry.getValue());
 
-            if (this.maxNumRegisters != -1) {
-
+            if (this.maxNumRegisters != -1 && this.maxNumRegisters < entry.getValue().getNumLocals()) {
+                cfg.calcLiveness();
 
             }
 

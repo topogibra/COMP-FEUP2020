@@ -1,18 +1,35 @@
 import static ioPlus.printHelloWorld() void;
-class HelloWorld {
-	public static void main(String[] args) {
-	    int a;
+class Test {
+    int[] A;
+    int N;
 
-        a = 4; //0
-        while (true) { // 1
-            if (true) { // 2
-                a = 4; //3
-            } else {
-                a = 5; //4
-            }
+	public static void main(String[] args) {
+        Test test;
+
+        test = new Test();
+        test.init();
+        test.sumT();
+	}
+
+	public void init() {
+        A = new int[5];
+        N = 5;
+	}
+
+	public int sumT() {
+	    int sum;
+        int i;
+        int t1;
+
+        sum = 0;
+        i = 0;
+
+        while (i < N) {
+              t1 = A[i];
+              sum = sum + t1;
+              i = i + 1;
         }
 
-        a = 5; //5
-
+        return sum;
 	}
 }

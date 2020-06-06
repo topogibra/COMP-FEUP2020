@@ -144,7 +144,7 @@ public class CodeGenerator {
         stringBuilder.append("\n");
 
         String methodBody = this.generateMethodBody(functionDescriptor, assemblerLabels);
-        int limitLocals = functionDescriptor.getLimitLocal();
+        int limitLocals = functionDescriptor.getNumLocals();
 
         // Return expression
         if (functionDescriptor.isMain()) {

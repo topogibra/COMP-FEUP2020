@@ -91,7 +91,10 @@ public class CFG {
 
         if (leftSide.getNodeName().equals(NodeName.IDENTIFIER)) {
             TypeDescriptor typeDescriptor = this.functionDescriptor.getTypeDescriptor(leftSide.jjtGetVal());
-            this.def.get(index).add(typeDescriptor);
+            if (typeDescriptor != null && !typeDescriptor.isClassField())
+                this.def.get(index).add(typeDescriptor);
+        } else {
+            this.buildUse(index, leftSide);
         }
 
         this.buildUse(index, rightSide);
@@ -325,7 +328,8 @@ public class CFG {
         if (statement.jjtGetNumChildren() == 0) {
             if (statement.getNodeName().equals(NodeName.IDENTIFIER)) {
                 TypeDescriptor typeDescriptor = this.functionDescriptor.getTypeDescriptor(statement.jjtGetVal());
-                this.use.get(index).add(typeDescriptor);
+                if (typeDescriptor != null && !typeDescriptor.isClassField())
+                    this.use.get(index).add(typeDescriptor);
             }
             return;
         }
@@ -385,5 +389,63 @@ public class CFG {
         }
 
         throw new Exception("No method body node found");
+    }
+
+    public void calcLiveness() {
+        int CFGSize = this.succ.size();
+
+        ArrayList<HashSet<TypeDescriptor>> inCopy = this.initializeCopy(CFGSize);
+        ArrayList<HashSet<TypeDescriptor>> outCopy = this.initializeCopy(CFGSize);
+
+        do {
+            for (int i = CFGSize - 1; i >= 0; i--) {
+
+                inCopy.set(i, new HashSet<>(this.in.get(i)));
+                outCopy.set(i, new HashSet<>(this.out.get(i)));
+
+                this.out.set(i, this.getSuccessorsIns(i));
+                this.in.set(i, this.calcIn(i));
+            }
+
+        } while (!checkEnd(CFGSize, inCopy, outCopy));
+    }
+
+    private HashSet<TypeDescriptor> calcIn(int i) {
+        HashSet<TypeDescriptor> in = new HashSet<>(this.use.get(i));
+        HashSet<TypeDescriptor> tmp = new HashSet<>(this.out.get(i));
+
+        tmp.removeAll(this.def.get(i));
+        in.addAll(tmp);
+
+        return in;
+    }
+
+    private HashSet<TypeDescriptor> getSuccessorsIns(int i) {
+        HashSet<TypeDescriptor> in = new HashSet<>();
+
+        for (Integer index : this.succ.get(i)) {
+            in.addAll(this.in.get(index));
+        }
+
+        return in;
+    }
+
+    private ArrayList<HashSet<TypeDescriptor>> initializeCopy(int CFGSize) {
+        ArrayList<HashSet<TypeDescriptor>> copy = new ArrayList<>();
+
+        for (int i = 0; i < CFGSize; i++) {
+            copy.add(new HashSet<>());
+        }
+
+        return copy;
+    }
+
+    private boolean checkEnd(int CFGSize, ArrayList<HashSet<TypeDescriptor>> inCopy, ArrayList<HashSet<TypeDescriptor>> outCopy) {
+        for (int i = 0; i < CFGSize; i++) {
+            if (!this.in.get(i).equals(inCopy.get(i)) || !this.out.get(i).equals(outCopy.get(i)))
+                return false;
+        }
+
+        return true;
     }
 }

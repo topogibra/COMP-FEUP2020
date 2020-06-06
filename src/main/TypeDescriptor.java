@@ -12,6 +12,9 @@ public class TypeDescriptor {
     private boolean init_in_if;
     private boolean init_in_else;
 
+    private int livenessBeginning;
+    private int livenessEnding;
+
     public TypeDescriptor(String typeIdentifier, int index) {
         this.typeIdentifier = typeIdentifier;
         this.index = index;
@@ -90,5 +93,21 @@ public class TypeDescriptor {
 
     public void setFieldName(String fieldName) {
         this.fieldName = fieldName;
+    }
+
+    public void setLivenessBeginning(int livenessBeginning) {
+        this.livenessBeginning = livenessBeginning;
+    }
+
+    public int getLivenessEnding() {
+        return livenessEnding;
+    }
+
+    public void setLivenessEnding(int livenessEnding) {
+        this.livenessEnding = livenessEnding;
+    }
+
+    public int getLivenessBeginning() {
+        return livenessBeginning;
     }
 }
