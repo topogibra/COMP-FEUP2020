@@ -73,7 +73,7 @@ public class CFG {
                 return this.buildIf(index, statement, new HashSet<>());
             }
             case NodeName.WHILE: {
-                break;
+                return this.buildWhile(index, statement);
             }
             default: {
                 this.buildUse(index, statement);
@@ -135,6 +135,7 @@ public class CFG {
                     break;
                 }
                 case NodeName.WHILE: {
+                    index = this.buildWhile(index, node);
                     break;
                 }
                 default: {
@@ -178,6 +179,7 @@ public class CFG {
                         break;
                     }
                     case NodeName.WHILE: {
+                        index = this.buildWhile(index, node);
                         break;
                     }
                     default: {
@@ -190,7 +192,7 @@ public class CFG {
             }
         }
 
-        if (( ifStatement.getParent() == this.methodBodyNode && !this.isLastStatement(ifStatement) ) || !this.isLastChild(ifStatement)) {
+        if (( ifStatement.getParent() == this.methodBodyNode && !this.isLastStatement(ifStatement) ) || (!this.isLastChild(ifStatement) && !ifStatement.getParent().getNodeName().equals(NodeName.WHILE))) {
             index++;
             this.initializeSet(index);
 
@@ -225,12 +227,77 @@ public class CFG {
         return index;
     }
 
+    private int buildWhile(int index, SimpleNode whileStatement) {
+        SimpleNode conditionNode = whileStatement.getChild(0);
+        SimpleNode blockNode = whileStatement.getChild(1);
+
+        // Condition Statement
+        int conditionIndex = index;
+        this.buildUse(conditionIndex, conditionNode);
+
+        //Block
+        int childNo = 0;
+        for (Node n : blockNode.jjtGetChildren()) {
+            SimpleNode node = (SimpleNode) n;
+
+            index++;
+            this.initializeSet(index);
+
+            this.pred.get(index).add(index - 1);
+            this.succ.get(index - 1).add(index);
+
+            if (childNo == blockNode.jjtGetNumChildren() - 1 && !node.getNodeName().equals(NodeName.IF)) {
+                this.succ.get(index).add(conditionIndex);
+                this.pred.get(conditionIndex).add(index);
+            }
+
+
+            switch (node.getNodeName()) {
+                case NodeName.ASSIGNMENT: {
+                    this.buildAssignment(index, node);
+                    break;
+                }
+                case NodeName.IF: {
+                    HashSet<Integer> lastIfStatements = new HashSet<>();
+                    index = this.buildIf(index, node, lastIfStatements);
+                    for (Integer i : lastIfStatements) {
+                        this.succ.get(i).add(conditionIndex);
+                        this.pred.get(conditionIndex).add(i);
+                    }
+                    break;
+                }
+                case NodeName.WHILE: {
+                    index = this.buildWhile(index, node);
+                    break;
+                }
+                default: {
+                    this.buildUse(index, node);
+                    break;
+                }
+            }
+
+            childNo++;
+        }
+
+        if (!this.isLastChild(whileStatement)) {
+            index++;
+            this.initializeSet(index);
+
+            this.succ.get(conditionIndex).add(index);
+            this.pred.get(index).add(conditionIndex);
+
+            index--;
+        }
+
+        return index;
+    }
+
     private boolean isLastChild(SimpleNode node) {
         return node == node.getParent().getChild(node.getParent().jjtGetNumChildren() - 1);
     }
 
     private void setNormalPred(int index, SimpleNode statementNode) {
-        if (!isFirstStatement(statementNode)) {
+        if (!isFirstStatement(statementNode) && this.pred.get(index).size() == 0) {
             this.pred.get(index).add(index - 1);
             this.succ.get(index - 1).add(index);
         }
