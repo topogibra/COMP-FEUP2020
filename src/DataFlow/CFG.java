@@ -54,7 +54,7 @@ public class CFG {
             if (statement.getNodeName().equals(NodeName.VARDECLARATION)) //Ignoring Var declarations
                 continue;
 
-            index = this.buildStatement(index, statement);
+            index = this.buildStatement(index, statement) + 1;
         }
     }
 
@@ -67,11 +67,10 @@ public class CFG {
                 this.buildAssignment(index, statement);
                 this.setNormalPred(index, statement);
                 this.setNormalSuc(index, statement);
-
-                return index + 1;
+                break;
             }
             case NodeName.IF: {
-                return this.buildIf(index, statement);
+                return this.buildIf(index, statement, new HashSet<>());
             }
             case NodeName.WHILE: {
                 break;
@@ -80,8 +79,6 @@ public class CFG {
                 this.buildUse(index, statement);
                 this.setNormalPred(index, statement);
                 this.setNormalSuc(index, statement);
-
-                return index + 1;
             }
         }
 
@@ -100,17 +97,17 @@ public class CFG {
         this.buildUse(index, rightSide);
     }
 
-    private int buildIf(int index, SimpleNode ifStatement) { // TODO: Else if, else if
+    private int buildIf(int index, SimpleNode ifStatement, HashSet<Integer> lastBlockStatements) {
         SimpleNode conditionNode = ifStatement.getChild(0);
         SimpleNode ifBlockNode = ifStatement.getChild(1);
         SimpleNode elseNode = ifStatement.getChild(2);
         boolean hasElse = elseNode.jjtGetNumChildren() > 0;
 
         int lastIfBlockStatement = -1;
+        int lastElseBlockStatement = -1;
 
         // Condition Statement
         int conditionIndex = index;
-        this.setNormalPred(conditionIndex, ifStatement);
         this.buildUse(conditionIndex, conditionNode);
 
         //If Block
@@ -124,7 +121,7 @@ public class CFG {
             this.pred.get(index).add(index - 1);
             this.succ.get(index - 1).add(index);
 
-            if (childNo == ifBlockNode.jjtGetNumChildren() - 1) {
+            if (childNo == (ifBlockNode.jjtGetNumChildren() - 1) && !node.getNodeName().equals(NodeName.IF)) {
                 lastIfBlockStatement = index;
             }
 
@@ -134,7 +131,7 @@ public class CFG {
                     break;
                 }
                 case NodeName.IF: {
-                    index = this.buildIf(index, node) - 1;
+                    index = this.buildIf(index, node, lastBlockStatements);
                     break;
                 }
                 case NodeName.WHILE: {
@@ -167,8 +164,8 @@ public class CFG {
                     this.succ.get(index - 1).add(index);
                 }
 
-                if (childNo == (ifBlockNode.jjtGetNumChildren() - 1) && !this.isLastStatement(ifStatement) && !this.isLastChild(ifStatement)) {
-                    this.succ.get(index).add(index + 1);
+                if (childNo == (elseNode.jjtGetNumChildren() - 1) && !node.getNodeName().equals(NodeName.IF)) {
+                    lastElseBlockStatement = index;
                 }
 
                 switch (node.getNodeName()) {
@@ -177,7 +174,7 @@ public class CFG {
                         break;
                     }
                     case NodeName.IF: {
-                        index = this.buildIf(index, node) - 1;
+                        index = this.buildIf(index, node, lastBlockStatements);
                         break;
                     }
                     case NodeName.WHILE: {
@@ -193,23 +190,36 @@ public class CFG {
             }
         }
 
-        if (!this.isLastStatement(ifStatement)) {
+        if (( ifStatement.getParent() == this.methodBodyNode && !this.isLastStatement(ifStatement) ) || !this.isLastChild(ifStatement)) {
             index++;
             this.initializeSet(index);
-        }
 
-        // Fix sucessor of last if block statement
-        if (hasElse && !this.isLastStatement(ifStatement) && !this.isLastChild(ifStatement)) {
-            assert (lastIfBlockStatement != -1);
-            this.succ.get(lastIfBlockStatement).add(index);
-        }
+            for (Integer i : lastBlockStatements) {
+                this.succ.get(i).add(index);
+                this.pred.get(index).add(i);
+            }
 
-        // Fix statement predecessors after if
-        if (!this.isLastStatement(ifStatement) && !this.isLastChild(ifStatement)) {
-            if (hasElse)
+            lastBlockStatements.clear();
+
+            if (lastIfBlockStatement != -1) {
+                this.succ.get(lastIfBlockStatement).add(index);
                 this.pred.get(index).add(lastIfBlockStatement);
+            }
 
-            this.pred.get(index).add(index - 1);
+            if (lastElseBlockStatement != -1) {
+                this.succ.get(lastElseBlockStatement).add(index);
+                this.pred.get(index).add(lastElseBlockStatement);
+            }
+
+            index--;
+        } else {
+            if (lastIfBlockStatement != -1) {
+                lastBlockStatements.add(lastIfBlockStatement);
+            }
+
+            if (lastElseBlockStatement != -1) {
+                lastBlockStatements.add(lastElseBlockStatement);
+            }
         }
 
         return index;
@@ -220,8 +230,10 @@ public class CFG {
     }
 
     private void setNormalPred(int index, SimpleNode statementNode) {
-        if (!isFirstStatement(statementNode))
+        if (!isFirstStatement(statementNode)) {
             this.pred.get(index).add(index - 1);
+            this.succ.get(index - 1).add(index);
+        }
     }
 
     private void setPred(int index, int predIndex, SimpleNode statementNode) {
@@ -230,8 +242,11 @@ public class CFG {
     }
 
     private void setNormalSuc(int index, SimpleNode statementNode) {
-        if (!this.isLastStatement(statementNode)) //Not last statement
+        if (!this.isLastStatement(statementNode)) {//Not last statement
             this.succ.get(index).add(index + 1);
+            this.initializeSet(index + 1);
+            this.pred.get(index + 1).add(index);
+        }
     }
 
     private void setSuc(int index, int succIndex, SimpleNode statementNode) {

@@ -3,18 +3,17 @@ class HelloWorld {
 	public static void main(String[] args) {
 	    int a;
 
-		if (true) {
-		   a=1+1;
-
-		   if (false) {
-		        a = a + 5;
-		   } else {
-		        a = a - 5;
-		   }
-
+        a = 5;
+		if (true) { //1
+		   a = 2; //2
 		} else {
-           a=1+1;
-		}
+		    if (false) { //2
+                a = 4; //3
+           } else {
+                a = 2 - 5; //4
+           }
+        }
+		a = 5; //5
 
 	}
 }
