@@ -6,6 +6,7 @@ import main.TypeDescriptor;
 import parser.Node;
 import parser.SimpleNode;
 
+import javax.lang.model.element.TypeElement;
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -447,5 +448,21 @@ public class CFG {
         }
 
         return true;
+    }
+
+    public HashSet<TypeDescriptor> calcLiveRanges() {
+        HashSet<TypeDescriptor> result = new HashSet<>();
+
+        int index = 0;
+        for (HashSet<TypeDescriptor> locals : this.in) {
+            for (TypeDescriptor local : locals) {
+                local.updateRange(index);
+                result.add(local);
+            }
+
+            index++;
+        }
+
+        return result;
     }
 }

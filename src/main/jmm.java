@@ -59,7 +59,7 @@ public class jmm {
         // Parsing
         this.parser = new Parser(this.createInputStream());
         try {
-            root = this.parser.parseProgram(this.filepath.toString());
+            root = this.parser.parseProgram(filepath.toString());
         } catch (Exception e) {
             System.err.println(e.getMessage());
             throw new Exception();

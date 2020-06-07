@@ -1,4 +1,4 @@
-** PROJECT TITLE: Compiler of theJava--languageto Java Bytecodes
+** PROJECT TITLE: Compiler of the Java-- language to Java Bytecodes
 
 ** GROUP: COMP2020-1C
 
@@ -10,7 +10,7 @@ NAME2: <name>, NR2: < student number >, GRADE2: 18.5, CONTRIBUTION2: 25%
 
 NAME2: <name>, NR2: < student number >, GRADE2: 18.5, CONTRIBUTION2: 25%
 
-GLOBAL Grade of the project: <0 to 20>
+GLOBAL Grade of the project: 18.5
 
 ** SUMMARY: (Describe what your tool does and its main features.)
 
