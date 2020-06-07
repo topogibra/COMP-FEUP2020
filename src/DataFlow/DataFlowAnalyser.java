@@ -10,6 +10,8 @@ import java.util.Map;
 
 public class DataFlowAnalyser {
 
+    private static final int DEFAULT_NUM_REGISTERS = 0;
+
     private SymbolTables symbolTables;
     private final int maxNumRegisters;
     private final boolean optimizationMode;
@@ -24,7 +26,7 @@ public class DataFlowAnalyser {
         for (Map.Entry<String, FunctionDescriptor> entry : symbolTables.getMethods().entrySet()) {
             CFG cfg = new CFG(entry.getValue());
 
-            if (this.maxNumRegisters != -1 && this.maxNumRegisters < entry.getValue().getNumLocals()) {
+            if (this.maxNumRegisters != DEFAULT_NUM_REGISTERS && this.maxNumRegisters < entry.getValue().getNumLocals()) {
                 cfg.calcLiveness();
                 HashSet<TypeDescriptor> locals = cfg.calcLiveRanges();
 
