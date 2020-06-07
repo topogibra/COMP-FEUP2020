@@ -40,8 +40,7 @@ public class DataFlowAnalyser {
             }
 
             if (this.optimizationMode) {
-
-
+                //TODO use CFG created to do optimizations
             }
         }
     }

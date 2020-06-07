@@ -16,11 +16,11 @@ public class jmm {
     public static final String DEBUG_FLAG = "-d";
     public static final String REGISTERS_FLAG = "-r";
     public static final String OPTIMIZATION_FLAG = "-o";
-    private static final int MAX_NUM_REGISTERS = -1;
+    private static final int DEFAULT_NUM_REGISTERS = 0;
 
     private boolean debugMode = true;
     private boolean optimizationMode = false;
-    private int maxNumRegisters = MAX_NUM_REGISTERS;
+    private int maxNumRegisters = DEFAULT_NUM_REGISTERS;
 
     private Parser parser;
     private SymbolTables symbolTables;
@@ -82,7 +82,7 @@ public class jmm {
         }
 
         //R-Option and Optimization
-        if (this.maxNumRegisters != MAX_NUM_REGISTERS || this.optimizationMode){
+        if (this.maxNumRegisters != DEFAULT_NUM_REGISTERS || this.optimizationMode){
             this.dataFlowAnalyser = new DataFlowAnalyser(this.symbolTables, this.maxNumRegisters, this.optimizationMode);
             this.dataFlowAnalyser.analyse();
         }
