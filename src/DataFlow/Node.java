@@ -1,8 +1,6 @@
 package DataFlow;
 
 import main.TypeDescriptor;
-
-import java.util.ArrayList;
 import java.util.HashSet;
 
 public class Node {
@@ -29,10 +27,6 @@ public class Node {
         return typeDescriptor;
     }
 
-    public void setTypeDescriptor(TypeDescriptor typeDescriptor) {
-        this.typeDescriptor = typeDescriptor;
-    }
-
     public boolean isColored() {
         return this.color != -1;
     }
@@ -49,7 +43,7 @@ public class Node {
         return this.neighbours;
     }
 
-    public Integer getColor() {
+    public int getColor() {
         return this.color;
     }
 
@@ -72,7 +66,7 @@ public class Node {
         return sum;
     }
 
-    public void colorNode(int k) {
+    public void colorNode(int k) throws Exception {
         HashSet<Integer> colorsUsed = new HashSet<>();
 
         for (Node neighbour : this.neighbours) {
@@ -86,6 +80,9 @@ public class Node {
                 break;
             }
         }
+
+        if (this.color == -1)
+            throw new Exception();
     }
 
 }
